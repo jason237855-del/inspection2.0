@@ -3,7 +3,7 @@
 import { readFileSync, writeFileSync } from "fs"
 import { resolve } from "path"
 
-const BASE_URL = "https://hushed-haven-stays.lovable.app"
+const BASE_URL = "https://inspection20.vercel.app"
 
 interface SitemapEntry {
   path: string
