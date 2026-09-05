@@ -16,6 +16,9 @@ dist-ssr
 # 含真實客戶個資的資料庫匯出檔，不可進版控
 db/
 
+# Supabase CLI 本地暫存檔
+supabase/.temp/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

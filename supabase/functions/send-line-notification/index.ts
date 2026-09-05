@@ -1,7 +1,7 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3.23.8";
 
-const ADMIN_URL = "https://hushed-haven-stays.lovable.app/admin";
+const ADMIN_URL = "https://inspection20.vercel.app/admin";
 const LINE_PUSH_ENDPOINT = "https://api.line.me/v2/bot/message/push";
 const LINE_PROFILE_URL = "https://lin.ee/8S6eDLR";
 
