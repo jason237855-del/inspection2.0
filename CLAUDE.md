@@ -2,16 +2,20 @@
 
 ## Project
 
-診斷室驗屋網站（Inspection2.0）。Vite + React 18 + TypeScript，UI 用 shadcn-ui（Radix UI）+ Tailwind CSS，後端 Supabase（DB / Auth / Edge Functions，專案 ID `pylfgxudfrttqaxfipaj`）。原以 Lovable 平台建置與協作編輯。詳細架構、頁面、資料表、LINE 整合說明見 `網站程式總覽.md`（RTF 格式，用 `.md` 副檔名存的，需用 `textutil -convert txt -stdout 網站程式總覽.md` 或類似工具轉出可讀文字，不能直接當純文字讀）。
+診斷室驗屋網站（Inspection2.0）。Vite + React 18 + TypeScript，UI 用 shadcn-ui（Radix UI）+ Tailwind CSS，後端 Supabase（DB / Auth / Edge Functions，專案 ID 見本機 `supabase/config.toml` 或 `.env` 的 `VITE_SUPABASE_PROJECT_ID`，2026-09-06 起為 `gzewuphhnxzyhiwnhjpm`）。原以 Lovable 平台建置與協作編輯，現已改為本機 + GitHub + Vercel 部署（正式網址 https://inspection20.vercel.app）。詳細架構、頁面、資料表、LINE 整合說明已整合進 `README.md`（原始的 `網站程式總覽.md` 是 RTF 格式、用 `.md` 副檔名存的，需用 `textutil -convert txt -stdout 網站程式總覽.md` 或類似工具轉出可讀文字，不能直接當純文字讀；內容已併入 README，僅供追溯歷史用）。
 
 GitHub: https://github.com/jason237855-del/inspection2.0（`main` 分支，2026-09-05 完成初次 commit + push）
+
+## 更新紀錄規則
+
+**每次對這個專案做了實質更新（功能異動、設定變更、部署調整、資料庫 migration 等），都要在 `README.md` 的「更新紀錄」段落新增一筆記錄**（日期 + 做了什麼 + 為什麼），新記錄放最上面（新到舊）。單純的探索、閱讀、回答問題不算，不用記。commit 前記得一併把這筆更新寫進 README。
 
 ## Local dev environment
 
 這台機器原本沒有 Node.js / npm / bun / Homebrew / gh CLI，皆為本次工作階段另外安裝：
 - Node.js 透過 nvm 安裝（`~/.nvm`，目前 Node v24.20.0 / npm 11.19.0）。新開的 shell 需要先 `export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"` 才抓得到 node/npm
 - GitHub CLI (`gh`) 安裝在 `~/.local/bin/gh`（該目錄已在 PATH 中），已用 `gh auth login` 登入帳號 `jason237855-del`，並執行過 `gh auth setup-git` 設定 git 憑證
-- 專案的 `npm run dev` / `npm run build` 內建的 `predev`/`prebuild` 腳本（`scripts/generate-sitemap.ts`）寫死用 `bunx` 執行，但這台機器沒裝 bun，會直接失敗。目前的 workaround 是繞過該 hook，直接用 `npx vite` 啟動開發伺服器。若要讓 `npm run dev` 正常運作，需另外安裝 bun，或把 `package.json` 裡的 `predev`/`prebuild` 改成 `npx tsx scripts/generate-sitemap.ts`
+- 專案的 `npm run dev` / `npm run build` 內建的 `predev`/`prebuild` 腳本（`scripts/generate-sitemap.ts`）原本寫死用 `bunx` 執行，這台機器沒裝 bun 會直接失敗；已改成 `tsx scripts/generate-sitemap.ts`（`tsx` 已加入 `devDependencies`），`npm run dev` / `npm run build` 現在可直接跑，不用再繞過 hook
 
 ## 2026-09-05 所做的清理與設定
 
