@@ -1,0 +1,165 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Design system for Home Inspection & Diagnostics — Slate & Steel palette */
+
+@layer base {
+  :root {
+    --font-sans: "Inter", "Noto Sans TC", system-ui, sans-serif;
+    --font-heading: "Inter", "Noto Sans TC", system-ui, sans-serif;
+    --background: 210 40% 98%;
+    --foreground: 218 23% 23%;
+
+    --card: 210 40% 96%;
+    --card-foreground: 218 23% 23%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 218 23% 23%;
+
+    --primary: 213 17% 52%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 218 17% 35%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 213 19% 45%;
+
+    --accent: 213 19% 69%;
+    --accent-foreground: 218 23% 23%;
+
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 213 19% 85%;
+    --input: 213 19% 85%;
+    --ring: 213 17% 52%;
+
+    --radius: 0.5rem;
+
+    --hero-gradient: linear-gradient(135deg, hsl(218 23% 23% / 0.9), hsl(218 23% 23% / 0.6));
+    --overlay-gradient: linear-gradient(180deg, transparent 0%, hsl(218 23% 23% / 0.7) 100%);
+    --soft-shadow: 0 2px 8px hsl(218 23% 23% / 0.06);
+    --hover-shadow: 0 8px 24px hsl(218 23% 23% / 0.12);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --sidebar-background: 210 40% 98%;
+    --sidebar-foreground: 218 23% 23%;
+    --sidebar-primary: 218 23% 23%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 218 23% 23%;
+    --sidebar-border: 213 19% 85%;
+    --sidebar-ring: 213 17% 52%;
+  }
+
+  .dark {
+    --background: 218 23% 15%;
+    --foreground: 210 40% 98%;
+
+    --card: 218 23% 18%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 218 23% 18%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 213 17% 60%;
+    --primary-foreground: 218 23% 15%;
+
+    --secondary: 213 19% 69%;
+    --secondary-foreground: 218 23% 15%;
+
+    --muted: 218 23% 22%;
+    --muted-foreground: 213 19% 69%;
+
+    --accent: 218 17% 35%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 218 17% 28%;
+    --input: 218 17% 28%;
+    --ring: 213 17% 60%;
+
+    --sidebar-background: 218 23% 15%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 213 17% 60%;
+    --sidebar-primary-foreground: 218 23% 15%;
+    --sidebar-accent: 218 23% 22%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 218 17% 28%;
+    --sidebar-ring: 213 17% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer utilities {
+  .smooth-hover {
+    @apply transition-all duration-400 ease-out;
+  }
+
+  .hover-lift {
+    @apply hover:scale-[1.02] hover:shadow-xl transition-all duration-400;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .uppercase-label {
+    @apply uppercase tracking-wider text-xs font-normal;
+  }
+}
+
+/* Booking form input text & placeholder colors */
+.booking-form input,
+.booking-form textarea {
+  color: #1A1A1A;
+}
+
+.booking-form input::placeholder,
+.booking-form textarea::placeholder {
+  color: #888888;
+  opacity: 1;
+}
+
+/* Light placeholder text when the card is in its dark hover state */
+.booking-form .group:hover input::placeholder,
+.booking-form .group:hover textarea::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.booking-form input:-webkit-autofill,
+.booking-form input:-webkit-autofill:hover,
+.booking-form input:-webkit-autofill:focus,
+.booking-form textarea:-webkit-autofill,
+.booking-form textarea:-webkit-autofill:hover,
+.booking-form textarea:-webkit-autofill:focus {
+  -webkit-text-fill-color: #1A1A1A !important;
+  box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
