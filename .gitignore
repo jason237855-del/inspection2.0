@@ -13,6 +13,9 @@ dist-ssr
 *.local
 .env
 
+# 含真實客戶個資的資料庫匯出檔，不可進版控
+db/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
