@@ -121,6 +121,7 @@ npm run dev
 
 依時間新到舊排列，每筆記錄實際做了什麼變動、為什麼。
 
+- **2026-09-06** — `BookingForm.tsx` 加入基本防灌水機制：隱藏蜜罐欄位（機器人常會自動填入，真人看不到也不會填）+ 表單掛載後未滿 4 秒即送出視為異常。原因：`booking_requests` 的 RLS 允許任何人未登入直接 insert，且每筆都會觸發 LINE 推播給管理員群組，沒有防護容易被自動化機器人灌爆。此為純前端防護，可擋掉大部分通用機器人，但無法防止有心人直接呼叫 Supabase API；更強的防護（如 Cloudflare Turnstile）之後視需要再加。
 - **2026-09-06** — 修正 `CLAUDE.md` 裡兩處過時說明：Supabase 專案 ID 改為指向 `.env`/`supabase/config.toml`（不再寫死舊值）、`predev`/`prebuild` 腳本已改用 `tsx` 執行（原本寫的 `bunx` workaround 已不適用，`npm run dev`/`npm run build` 可直接跑）。
 - **2026-09-06** — 將 `網站程式總覽.md` 的內容整合進本檔並重新核對現況：確認 Locations 假資料頁面已移除、Supabase 專案 ID 已改為新專案、`predev`/`prebuild` 已改用 `tsx`；README 從 Lovable 預設模板改為專案實際說明文件，並新增本更新紀錄段落。
 - **2026-09-06** — `send-line-notification` Edge Function 的 `ADMIN_URL` 從舊的 Lovable 網域改為正式 Vercel 網域 `https://inspection20.vercel.app/admin`；`supabase/.temp/`（Supabase CLI 本地暫存檔）加入 `.gitignore`。

@@ -85,6 +85,9 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
 
   const [bookingId, setBookingId] = useState<string | null>(null);
 
+  // 防灌水：隱藏欄位（機器人常會自動填入），以及表單掛載到送出的最短時間
+  const [website, setWebsite] = useState("");
+  const mountedAtRef = useRef(Date.now());
 
   useEffect(() => {
     const fetchAvailability = async () => {
@@ -172,6 +175,11 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
   const handleSubmit = async () => {
     if (!preferredDate || !timeSlot) {
       toast.error("請選擇預約日期與時段");
+      return;
+    }
+
+    if (website.trim() !== "" || Date.now() - mountedAtRef.current < 4000) {
+      toast.error("系統偵測到異常提交，請稍後再試一次");
       return;
     }
 
@@ -327,6 +335,23 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
           onMouseEnter={() => window.dispatchEvent(new CustomEvent("booking-hover", { detail: true }))}
           onMouseLeave={() => window.dispatchEvent(new CustomEvent("booking-hover", { detail: false }))}
         >
+          {/* 防灌水蜜罐欄位：一般使用者看不到也不會填，機器人常會自動填入 */}
+          <div
+            aria-hidden="true"
+            style={{ position: "absolute", left: "-9999px", top: "-9999px", height: 0, width: 0, overflow: "hidden" }}
+          >
+            <label htmlFor="website">Website</label>
+            <input
+              type="text"
+              id="website"
+              name="website"
+              tabIndex={-1}
+              autoComplete="off"
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+            />
+          </div>
+
           {/* Step Indicator */}
           {step <= 3 && (
             <div className="flex items-center justify-center gap-3 mb-8">
