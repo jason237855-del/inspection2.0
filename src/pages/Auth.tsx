@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ShieldCheck, ArrowLeft, Loader2 } from "lucide-react";
@@ -35,23 +35,21 @@ const translateAuthError = (message: string): string => {
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [adminExists, setAdminExists] = useState<boolean | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  useEffect(() => {
-    supabase.rpc("admin_exists").then(({ data, error }) => {
-      if (error) {
-        console.error("admin_exists error:", error);
-        setAdminExists(false);
-      } else {
-        setAdminExists(!!data);
-      }
-    });
-  }, []);
+  // 忘記密碼
+  const [forgotMode, setForgotMode] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [sendingReset, setSendingReset] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+
+  // 防灌水（僅用於註冊，避免公開的註冊入口被機器人濫用）：隱藏欄位 + 最短填寫時間
+  const [website, setWebsite] = useState("");
+  const mountedAtRef = useRef(Date.now());
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -89,9 +87,30 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [navigate, toast]);
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail) {
+      toast({ title: "請輸入 Email", variant: "destructive" });
+      return;
+    }
+
+    setSendingReset(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setSendingReset(false);
+
+    if (error) {
+      toast({ title: "寄送失敗", description: translateAuthError(error.message), variant: "destructive" });
+      return;
+    }
+
+    setResetSent(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const validation = loginSchema.safeParse({ email, password });
     if (!validation.success) {
       toast({
@@ -99,6 +118,11 @@ const Auth = () => {
         description: validation.error.errors[0].message,
         variant: "destructive",
       });
+      return;
+    }
+
+    if (!isLogin && (website.trim() !== "" || Date.now() - mountedAtRef.current < 4000)) {
+      toast({ title: "系統偵測到異常提交，請稍後再試一次", variant: "destructive" });
       return;
     }
 
@@ -119,7 +143,7 @@ const Auth = () => {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/admin`,
+            emailRedirectTo: `${window.location.origin}/auth`,
           },
         });
         if (error) {
@@ -162,70 +186,158 @@ const Auth = () => {
             </span>
           </div>
           <h1 className="text-2xl font-light text-background mb-2 tracking-tight">
-            {isLogin ? "後臺登錄" : "創建帳戶"}
+            {forgotMode ? "重設密碼" : isLogin ? "後臺登錄" : "創建帳戶"}
           </h1>
           <p className="text-xs text-background/60 font-light">
-            {isLogin
-              ? "登錄管理後臺"
-              : "註冊後臺管理帳戶"}
+            {forgotMode
+              ? "輸入註冊時使用的 Email，我們會寄送重設密碼連結"
+              : isLogin
+                ? "登錄管理後臺"
+                : "註冊後臺管理帳戶"}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-[11px] uppercase tracking-wider font-normal text-background/70">
-              郵箱
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@homeinspection.tw"
-              className="bg-background/10 border-background/20 text-background placeholder:text-background/30 focus-visible:ring-primary"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-[11px] uppercase tracking-wider font-normal text-background/70">
-              密碼
-            </Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="bg-background/10 border-background/20 text-background placeholder:text-background/30 focus-visible:ring-primary"
-              required
-            />
-          </div>
-
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-full text-[11px] uppercase tracking-wider font-normal"
-          >
-            {loading ? (
-              <span className="inline-flex items-center gap-2">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                處理中...
-              </span>
-            ) : isLogin ? "登錄" : "創建帳戶"}
-          </Button>
-        </form>
-
-        {adminExists !== null && (
-          <div className="mt-6 flex flex-col items-center gap-4">
-            {!adminExists && (
+        {forgotMode ? (
+          resetSent ? (
+            <div className="text-center space-y-6">
+              <p className="text-sm text-background/70 font-light">
+                已寄出重設密碼信到 {resetEmail}，請至信箱點擊連結繼續。
+              </p>
               <button
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={() => {
+                  setForgotMode(false);
+                  setResetSent(false);
+                  setResetEmail("");
+                }}
                 className="text-xs text-background/50 hover:text-background/80 font-light transition-colors"
               >
-                {isLogin ? "需要帳戶？註冊" : "已有帳戶？登錄"}
+                返回登入
               </button>
-            )}
+            </div>
+          ) : (
+            <form onSubmit={handleForgotPassword} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="resetEmail" className="text-[11px] uppercase tracking-wider font-normal text-background/70">
+                  郵箱
+                </Label>
+                <Input
+                  id="resetEmail"
+                  type="email"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  placeholder="admin@homeinspection.tw"
+                  className="bg-background/10 border-background/20 text-background placeholder:text-background/30 focus-visible:ring-primary"
+                  required
+                />
+              </div>
+
+              <Button
+                type="submit"
+                disabled={sendingReset}
+                className="w-full rounded-full text-[11px] uppercase tracking-wider font-normal"
+              >
+                {sendingReset ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    處理中...
+                  </span>
+                ) : (
+                  "寄送重設密碼信"
+                )}
+              </Button>
+
+              <button
+                type="button"
+                onClick={() => setForgotMode(false)}
+                className="w-full text-center text-xs text-background/50 hover:text-background/80 font-light transition-colors"
+              >
+                返回登入
+              </button>
+            </form>
+          )
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* 防灌水蜜罐欄位：一般使用者看不到也不會填，機器人常會自動填入 */}
+            <div
+              aria-hidden="true"
+              style={{ position: "absolute", left: "-9999px", top: "-9999px", height: 0, width: 0, overflow: "hidden" }}
+            >
+              <label htmlFor="website">Website</label>
+              <input
+                type="text"
+                id="website"
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-[11px] uppercase tracking-wider font-normal text-background/70">
+                郵箱
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@homeinspection.tw"
+                className="bg-background/10 border-background/20 text-background placeholder:text-background/30 focus-visible:ring-primary"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-[11px] uppercase tracking-wider font-normal text-background/70">
+                  密碼
+                </Label>
+                {isLogin && (
+                  <button
+                    type="button"
+                    onClick={() => setForgotMode(true)}
+                    className="text-[11px] text-background/50 hover:text-background/80 font-light transition-colors"
+                  >
+                    忘記密碼？
+                  </button>
+                )}
+              </div>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="bg-background/10 border-background/20 text-background placeholder:text-background/30 focus-visible:ring-primary"
+                required
+              />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-full text-[11px] uppercase tracking-wider font-normal"
+            >
+              {loading ? (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  處理中...
+                </span>
+              ) : isLogin ? "登錄" : "創建帳戶"}
+            </Button>
+          </form>
+        )}
+
+        {!forgotMode && (
+          <div className="mt-6 flex flex-col items-center gap-4">
+            <button
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-xs text-background/50 hover:text-background/80 font-light transition-colors"
+            >
+              {isLogin ? "需要帳戶？註冊" : "已有帳戶？登錄"}
+            </button>
             <button
               onClick={() => navigate("/")}
               className="text-xs text-background/40 hover:text-background/60 font-light transition-colors flex items-center gap-1"
