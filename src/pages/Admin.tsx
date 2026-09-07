@@ -54,10 +54,13 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import Footer from "@/components/Footer";
 import { useAdmin } from "@/hooks/useAdmin";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import OverviewDashboard from "@/components/admin/OverviewDashboard";
 import AdminSettings from "@/components/admin/AdminSettings";
 import BookingEditorDialog from "@/components/admin/BookingEditorDialog";
+import MobileBottomNav from "@/components/admin/MobileBottomNav";
+import MobileBookingDetail from "@/components/admin/MobileBookingDetail";
 import {
   statusLabels,
   statusColors,
@@ -119,6 +122,7 @@ const PAGE_SIZE = 10;
 const Admin = () => {
   const navigate = useNavigate();
   const { isAdmin, loading: adminLoading } = useAdmin();
+  const isMobile = useIsMobile();
 
   const [bookings, setBookings] = useState<BookingRequest[]>([]);
   const [availability, setAvailability] = useState<Record<string, Availability>>({});
@@ -593,7 +597,7 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="pt-10 pb-20">
+      <main className="pt-10 pb-24 md:pb-20">
         <div className="container mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -701,7 +705,7 @@ const Admin = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="mb-6 flex-nowrap justify-start overflow-x-auto h-auto gap-2 bg-transparent p-0 w-full">
+              <TabsList className="hidden md:flex mb-6 flex-nowrap justify-start overflow-x-auto h-auto gap-2 bg-transparent p-0 w-full">
                 <TabsTrigger
                   value="overview"
                   className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4 py-1.5 text-xs font-light border border-border shrink-0"
@@ -746,25 +750,25 @@ const Admin = () => {
 
 
               <TabsContent value="availability" className="mt-0 space-y-6">
-                <Card className="border border-border shadow-soft p-6">
+                <Card className="border border-border shadow-soft p-4 md:p-6">
                   <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                     <h2 className="text-lg font-light">{format(currentMonth, "yyyy年 MMMM", { locale: zhTW })}</h2>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Button variant="outline" size="sm" onClick={() => setCurrentMonth(new Date())}>
+                    <div className="flex items-center gap-2 flex-nowrap overflow-x-auto pb-1 -mx-1 px-1 md:flex-wrap md:overflow-visible md:mx-0 md:px-0 md:pb-0">
+                      <Button variant="outline" size="sm" className="shrink-0" onClick={() => setCurrentMonth(new Date())}>
                         <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
                         今天
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => setCurrentMonth((m) => subMonths(m, 1))}>
+                      <Button variant="outline" size="sm" className="shrink-0" onClick={() => setCurrentMonth((m) => subMonths(m, 1))}>
                         <ChevronLeft className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => setCurrentMonth((m) => addMonths(m, 1))}>
+                      <Button variant="outline" size="sm" className="shrink-0" onClick={() => setCurrentMonth((m) => addMonths(m, 1))}>
                         <ChevronRight className="h-4 w-4" />
                       </Button>
                       <div className="w-px h-6 bg-border mx-1 hidden md:block" />
-                      <Button variant="outline" size="sm" onClick={blockWeekends}>
+                      <Button variant="outline" size="sm" className="shrink-0" onClick={blockWeekends}>
                         關閉本週末
                       </Button>
-                      <div className="flex items-center gap-2 ml-1">
+                      <div className="flex items-center gap-2 ml-1 shrink-0">
                         <Switch id="batchMode" checked={batchMode} onCheckedChange={setBatchMode} />
                         <Label htmlFor="batchMode" className="text-xs font-light cursor-pointer">
                           批次選取
@@ -971,7 +975,7 @@ const Admin = () => {
               </TabsContent>
 
               <TabsContent value="bookings" className="mt-0 space-y-6">
-                <Card className="border border-border shadow-soft p-6">
+                <Card className="border border-border shadow-soft p-4 md:p-6">
                   <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
                     <div>
                       <h2 className="text-lg font-light">預約訂單管理</h2>
@@ -985,16 +989,29 @@ const Admin = () => {
                     </Button>
                   </div>
 
-                  <div className="flex items-center justify-between mb-4 md:hidden">
-                    <span className="text-sm font-light">篩選與搜尋</span>
-                    <Button variant="outline" size="sm" onClick={() => setFiltersOpen((v) => !v)}>
-                      <SlidersHorizontal className="h-3.5 w-3.5 mr-1.5" />
-                      {filtersOpen ? "收合" : "展開"}
+                  <div className="flex items-center gap-2 mb-4 md:hidden">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                      <Input
+                        placeholder="姓名、電話、建案、地址"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-9 text-sm font-light rounded-full"
+                      />
+                    </div>
+                    <Button
+                      variant={filtersOpen ? "secondary" : "outline"}
+                      size="icon"
+                      className="shrink-0 rounded-full"
+                      onClick={() => setFiltersOpen((v) => !v)}
+                      aria-label="篩選"
+                    >
+                      <SlidersHorizontal className="h-4 w-4" />
                     </Button>
                   </div>
                   <div className={`${filtersOpen ? "flex" : "hidden"} md:flex flex-col xl:flex-row xl:items-end justify-between gap-4 mb-6`}>
                     <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                      <div className="xl:col-span-2 space-y-2">
+                      <div className="hidden md:block xl:col-span-2 space-y-2">
                         <Label className="text-[11px] uppercase tracking-wider font-normal text-muted-foreground">
                           搜尋
                         </Label>
@@ -1297,92 +1314,52 @@ const Admin = () => {
                     )}
                   </Card>
 
-                  {/* 手機版卡片列表 */}
-                  <div className="md:hidden space-y-3">
+                  {/* 手機版清單 */}
+                  <div className="md:hidden space-y-2">
                     {paginatedBookings.length === 0 && (
                       <Card className="border border-border shadow-soft p-8 text-center">
                         <p className="text-sm text-muted-foreground font-light">目前沒有符合條件的預約紀錄</p>
                       </Card>
                     )}
                     {paginatedBookings.map((booking) => (
-                      <Card
+                      <button
                         key={booking.id}
-                        className="border border-border shadow-soft p-4 cursor-pointer active:bg-accent/30 transition-colors"
                         onClick={() => openDetail(booking)}
+                        className="w-full text-left rounded-xl border border-border bg-card shadow-soft p-4 active:bg-accent/30 transition-colors"
                       >
-                        <div className="flex items-start justify-between gap-3 mb-2">
-                          <div className="min-w-0">
-                            <p className="text-[10px] font-mono text-muted-foreground mb-1">
-                              #{booking.id.slice(0, 8).toUpperCase()}
-                            </p>
-                            <p className="text-sm font-light truncate">
-                              {booking.name || "未留姓名"}
-                              <span className="text-xs text-muted-foreground ml-2">
-                                {inspectionLabels[booking.inspection_type] || booking.inspection_type}
-                              </span>
-                            </p>
-                            <p className="text-xs text-muted-foreground font-light mt-0.5">
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={`h-2 w-2 rounded-full shrink-0 ${
+                              booking.status === "pending"
+                                ? "bg-primary"
+                                : booking.status === "confirmed"
+                                ? "bg-secondary"
+                                : booking.status === "completed"
+                                ? "bg-emerald-500"
+                                : "bg-destructive"
+                            }`}
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="text-sm font-light truncate">{booking.name || "未留姓名"}</p>
+                              <Badge
+                                variant="outline"
+                                className={`text-[10px] font-light shrink-0 ${statusColors[booking.status]}`}
+                              >
+                                {statusLabels[booking.status] || booking.status}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground font-light mt-0.5 truncate">
+                              {inspectionLabels[booking.inspection_type] || booking.inspection_type} ·{" "}
                               {format(parseISO(booking.preferred_date), "yyyy/MM/dd")}
-                              {booking.time_slot ? ` · ${timeSlotLabels[booking.time_slot] || booking.time_slot}` : ""}
                             </p>
-                            <p className="text-xs text-muted-foreground font-light mt-0.5">
-                              {propertyLabels[booking.property_type] || booking.property_type} ·{" "}
+                            <p className="text-xs text-muted-foreground font-light mt-0.5 truncate">
                               {regionLabels[booking.region] || booking.region}
-                            </p>
-                            {booking.address && (
-                              <p className="text-xs text-muted-foreground font-light mt-0.5 truncate">
-                                {booking.address}
-                              </p>
-                            )}
-                            {booking.phone && (
-                              <p className="text-xs text-muted-foreground font-light mt-0.5">{booking.phone}</p>
-                            )}
-                            <p className="text-[10px] text-muted-foreground mt-1">
-                              LINE：{booking.line_user_id ? "已綁定" : "未綁定"}
+                              {booking.project_name ? ` · ${booking.project_name}` : ""}
                             </p>
                           </div>
-                          <Badge
-                            variant="outline"
-                            className={`text-[10px] font-light shrink-0 ${statusColors[booking.status]}`}
-                          >
-                            {statusLabels[booking.status] || booking.status}
-                          </Badge>
                         </div>
-                        <div onClick={(e) => e.stopPropagation()} className="space-y-2">
-                          <select
-                            value={booking.status}
-                            onChange={(e) => updateBookingStatus(booking.id, e.target.value)}
-                            className={`w-full text-xs font-light border rounded px-2 py-1.5 bg-transparent ${statusColors[booking.status]}`}
-                          >
-                            {statusOptions.map((s) => (
-                              <option key={s.value} value={s.value}>
-                                {s.label}
-                              </option>
-                            ))}
-                          </select>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="flex-1 text-xs font-light"
-                              onClick={() => openEdit(booking)}
-                            >
-                              <Pencil className="h-3.5 w-3.5 mr-1" />
-                              編輯
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="flex-1 text-xs font-light text-destructive hover:text-destructive"
-                              onClick={() => setDeleteTarget(booking)}
-                            >
-                              <Trash2 className="h-3.5 w-3.5 mr-1" />
-                              刪除
-                            </Button>
-                          </div>
-                        </div>
-
-                      </Card>
+                      </button>
                     ))}
                   </div>
 
@@ -1420,7 +1397,20 @@ const Admin = () => {
 
       <Footer />
 
-      <Dialog open={!!detailBooking} onOpenChange={() => setDetailBooking(null)}>
+      <MobileBottomNav activeTab={activeTab} onChange={setActiveTab} onCreate={openCreate} />
+
+      {isMobile && detailBooking && (
+        <MobileBookingDetail
+          booking={detailBooking}
+          onBack={() => setDetailBooking(null)}
+          onUpdateStatus={updateBookingStatus}
+          onSaveNotes={updateBookingNotes}
+          onEdit={openEdit}
+          onDelete={(b) => setDeleteTarget(b)}
+        />
+      )}
+
+      <Dialog open={!isMobile && !!detailBooking} onOpenChange={() => setDetailBooking(null)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="font-light">預約詳情</DialogTitle>

@@ -1,8 +1,8 @@
 import { useMemo } from "react";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, subDays, parseISO, startOfDay } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, subDays, subMonths, parseISO, startOfDay } from "date-fns";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, Clock, CheckCircle2, XCircle, Percent } from "lucide-react";
+import { CalendarDays, Clock, CheckCircle2, XCircle, Percent, ArrowUp, ArrowDown } from "lucide-react";
 import type { BookingRequest, Availability } from "./types";
 
 const statusLabels: Record<string, string> = {
@@ -63,19 +63,61 @@ const DistributionBar = ({ label, count, total }: { label: string; count: number
   );
 };
 
+const TrendBadge = ({
+  value,
+  suffix = "%",
+  invert = false,
+}: {
+  value: number | null;
+  suffix?: string;
+  invert?: boolean;
+}) => {
+  if (value === null) return null;
+  if (value === 0) {
+    return <span className="text-[10px] font-light text-muted-foreground">與上月持平</span>;
+  }
+  const up = value > 0;
+  const isGood = invert ? !up : up;
+  const Icon = up ? ArrowUp : ArrowDown;
+  return (
+    <span
+      className={`inline-flex items-center gap-0.5 text-[10px] font-light ${
+        isGood ? "text-emerald-600" : "text-destructive"
+      }`}
+    >
+      <Icon className="h-2.5 w-2.5" />
+      {Math.abs(value)}
+      {suffix} 較上月
+    </span>
+  );
+};
+
 const OverviewDashboard = ({ bookings, availability, bookingCounts, onOpenBooking }: Props) => {
   const now = new Date();
   const monthStart = format(startOfMonth(now), "yyyy-MM-dd");
   const monthEnd = format(endOfMonth(now), "yyyy-MM-dd");
+  const prevMonthStart = format(startOfMonth(subMonths(now, 1)), "yyyy-MM-dd");
+  const prevMonthEnd = format(endOfMonth(subMonths(now, 1)), "yyyy-MM-dd");
 
   const metrics = useMemo(() => {
     const thisMonth = bookings.filter((b) => {
       const created = format(new Date(b.created_at), "yyyy-MM-dd");
       return created >= monthStart && created <= monthEnd;
     });
+    const prevMonth = bookings.filter((b) => {
+      const created = format(new Date(b.created_at), "yyyy-MM-dd");
+      return created >= prevMonthStart && created <= prevMonthEnd;
+    });
     const active = bookings.filter((b) => b.status !== "cancelled");
     const cancelled = bookings.length - active.length;
     const cancelRate = bookings.length > 0 ? Math.round((cancelled / bookings.length) * 100) : 0;
+
+    const prevCancelled = prevMonth.filter((b) => b.status === "cancelled").length;
+    const prevCancelRate = prevMonth.length > 0 ? Math.round((prevCancelled / prevMonth.length) * 100) : null;
+
+    const monthNewTrend =
+      prevMonth.length > 0 ? Math.round(((thisMonth.length - prevMonth.length) / prevMonth.length) * 100) : null;
+    const cancelRateTrend = prevCancelRate !== null ? cancelRate - prevCancelRate : null;
 
     // Slot usage: today → end of month
     const days = eachDayOfInterval({ start: startOfDay(now), end: endOfMonth(now) });
@@ -92,14 +134,16 @@ const OverviewDashboard = ({ bookings, availability, bookingCounts, onOpenBookin
 
     return {
       monthNew: thisMonth.length,
+      monthNewTrend,
       pending: bookings.filter((b) => b.status === "pending").length,
       confirmed: bookings.filter((b) => b.status === "confirmed").length,
       cancelRate,
+      cancelRateTrend,
       used,
       capacity,
       usageRate,
     };
-  }, [bookings, availability, bookingCounts, monthStart, monthEnd]);
+  }, [bookings, availability, bookingCounts, monthStart, monthEnd, prevMonthStart, prevMonthEnd]);
 
   const trend = useMemo(() => {
     const days = eachDayOfInterval({ start: subDays(startOfDay(now), 29), end: startOfDay(now) });
@@ -141,7 +185,10 @@ const OverviewDashboard = ({ bookings, availability, bookingCounts, onOpenBookin
           <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mb-3">
             <CalendarDays className="h-4 w-4 text-primary" />
           </div>
-          <p className="text-2xl font-light mb-1">{metrics.monthNew}</p>
+          <div className="flex items-center gap-2 mb-1">
+            <p className="text-2xl font-light">{metrics.monthNew}</p>
+            <TrendBadge value={metrics.monthNewTrend} />
+          </div>
           <p className="text-xs text-muted-foreground font-light">本月新預約</p>
         </Card>
         <Card className="p-5 border border-border shadow-soft">
@@ -162,7 +209,10 @@ const OverviewDashboard = ({ bookings, availability, bookingCounts, onOpenBookin
           <div className="w-9 h-9 rounded-full bg-destructive/10 flex items-center justify-center mb-3">
             <XCircle className="h-4 w-4 text-destructive" />
           </div>
-          <p className="text-2xl font-light mb-1">{metrics.cancelRate}%</p>
+          <div className="flex items-center gap-2 mb-1">
+            <p className="text-2xl font-light">{metrics.cancelRate}%</p>
+            <TrendBadge value={metrics.cancelRateTrend} suffix="pt" invert />
+          </div>
           <p className="text-xs text-muted-foreground font-light">取消率</p>
         </Card>
         <Card className="p-5 border border-border shadow-soft col-span-2 lg:col-span-1">
