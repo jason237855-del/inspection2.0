@@ -2,8 +2,11 @@ import { useMemo } from "react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, subDays, subMonths, parseISO, startOfDay } from "date-fns";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, Clock, CheckCircle2, XCircle, Percent, ArrowUp, ArrowDown } from "lucide-react";
+import { CalendarDays, Clock, CheckCircle2, XCircle, Percent, ArrowUp, ArrowDown, Wallet, TrendingUp } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { BookingRequest, Availability } from "./types";
+
+const formatCurrency = (n: number) => `NT$ ${Math.round(n).toLocaleString("en-US")}`;
 
 const statusLabels: Record<string, string> = {
   pending: "待確認",
@@ -67,14 +70,16 @@ export const TrendBadge = ({
   value,
   suffix = "%",
   invert = false,
+  compareLabel = "較上月",
 }: {
   value: number | null;
   suffix?: string;
   invert?: boolean;
+  compareLabel?: string;
 }) => {
   if (value === null) return null;
   if (value === 0) {
-    return <span className="text-[10px] font-light text-muted-foreground">與上月持平</span>;
+    return <span className="text-[10px] font-light text-muted-foreground">與{compareLabel.replace(/^較/, "")}持平</span>;
   }
   const up = value > 0;
   const isGood = invert ? !up : up;
@@ -87,12 +92,13 @@ export const TrendBadge = ({
     >
       <Icon className="h-2.5 w-2.5" />
       {Math.abs(value)}
-      {suffix} 較上月
+      {suffix} {compareLabel}
     </span>
   );
 };
 
 const OverviewDashboard = ({ bookings, availability, bookingCounts, onOpenBooking }: Props) => {
+  const isMobile = useIsMobile();
   const now = new Date();
   const monthStart = format(startOfMonth(now), "yyyy-MM-dd");
   const monthEnd = format(endOfMonth(now), "yyyy-MM-dd");
@@ -145,6 +151,29 @@ const OverviewDashboard = ({ bookings, availability, bookingCounts, onOpenBookin
     };
   }, [bookings, availability, bookingCounts, monthStart, monthEnd, prevMonthStart, prevMonthEnd]);
 
+  const revenueSummary = useMemo(() => {
+    const eligible = bookings.filter((b) => b.status === "confirmed" || b.status === "completed");
+    const amountOf = (b: BookingRequest) => b.price ?? 0;
+
+    const thisMonth = eligible.filter((b) => {
+      const created = format(new Date(b.created_at), "yyyy-MM-dd");
+      return created >= monthStart && created <= monthEnd;
+    });
+    const prevMonth = eligible.filter((b) => {
+      const created = format(new Date(b.created_at), "yyyy-MM-dd");
+      return created >= prevMonthStart && created <= prevMonthEnd;
+    });
+
+    const monthRevenue = thisMonth.reduce((sum, b) => sum + amountOf(b), 0);
+    const prevMonthRevenue = prevMonth.reduce((sum, b) => sum + amountOf(b), 0);
+    const monthRevenueTrend =
+      prevMonthRevenue > 0 ? Math.round(((monthRevenue - prevMonthRevenue) / prevMonthRevenue) * 100) : null;
+
+    const totalRevenue = eligible.reduce((sum, b) => sum + amountOf(b), 0);
+
+    return { monthRevenue, monthRevenueTrend, totalRevenue };
+  }, [bookings, monthStart, monthEnd, prevMonthStart, prevMonthEnd]);
+
   const trend = useMemo(() => {
     const days = eachDayOfInterval({ start: subDays(startOfDay(now), 29), end: startOfDay(now) });
     const counts = days.map((d) => {
@@ -179,6 +208,29 @@ const OverviewDashboard = ({ bookings, availability, bookingCounts, onOpenBookin
 
   return (
     <div className="space-y-6">
+      {/* 營收概況（僅手機版：桌面版有獨立的「營收狀況」分頁） */}
+      {isMobile && (
+        <div className="grid grid-cols-2 gap-4">
+          <Card className="p-5 border border-border shadow-soft">
+            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+              <Wallet className="h-4 w-4 text-primary" />
+            </div>
+            <div className="flex items-center gap-2 mb-1">
+              <p className="text-2xl font-light">{formatCurrency(revenueSummary.monthRevenue)}</p>
+              <TrendBadge value={revenueSummary.monthRevenueTrend} />
+            </div>
+            <p className="text-xs text-muted-foreground font-light">本月營收</p>
+          </Card>
+          <Card className="p-5 border border-border shadow-soft">
+            <div className="w-9 h-9 rounded-full bg-secondary/10 flex items-center justify-center mb-3">
+              <TrendingUp className="h-4 w-4 text-secondary" />
+            </div>
+            <p className="text-2xl font-light mb-1">{formatCurrency(revenueSummary.totalRevenue)}</p>
+            <p className="text-xs text-muted-foreground font-light">累計營收</p>
+          </Card>
+        </div>
+      )}
+
       {/* 關鍵指標 */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <Card className="p-5 border border-border shadow-soft">

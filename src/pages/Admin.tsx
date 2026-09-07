@@ -735,7 +735,13 @@ const Admin = () => {
               </TabsContent>
 
               <TabsContent value="revenue" className="mt-0">
-                <RevenueDashboard bookings={bookings} />
+                <RevenueDashboard
+                  bookings={bookings}
+                  onOpenBooking={(b) => {
+                    setActiveTab("bookings");
+                    openDetail(b);
+                  }}
+                />
               </TabsContent>
 
 
