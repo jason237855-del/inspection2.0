@@ -51,6 +51,7 @@ type FormState = {
   address: string;
   notes: string;
   status: string;
+  price: string;
 };
 
 const emptyForm = (): FormState => ({
@@ -66,6 +67,7 @@ const emptyForm = (): FormState => ({
   address: "",
   notes: "",
   status: "pending",
+  price: "",
 });
 
 const BookingEditorDialog = ({ open, onOpenChange, booking, onSaved }: Props) => {
@@ -89,6 +91,7 @@ const BookingEditorDialog = ({ open, onOpenChange, booking, onSaved }: Props) =>
         address: booking.address || "",
         notes: booking.notes || "",
         status: booking.status,
+        price: booking.price != null ? String(booking.price) : "",
       });
     } else {
       setForm(emptyForm());
@@ -126,6 +129,7 @@ const BookingEditorDialog = ({ open, onOpenChange, booking, onSaved }: Props) =>
       address: form.address.trim() || null,
       notes: form.notes.trim() || null,
       status: form.status,
+      price: form.price.trim() ? parseInt(form.price, 10) : null,
     };
 
     if (isEdit && booking) {
@@ -290,6 +294,20 @@ const BookingEditorDialog = ({ open, onOpenChange, booking, onSaved }: Props) =>
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">金額（選填）</Label>
+            <Input
+              type="number"
+              min={0}
+              step={100}
+              value={form.price}
+              onChange={(e) => set("price", e.target.value)}
+              placeholder="例如：6888"
+              className="text-sm font-light"
+            />
+            <p className="text-[11px] text-muted-foreground">留空表示尚未報價，不會計入營收統計</p>
           </div>
 
           <div className="space-y-2 sm:col-span-2">

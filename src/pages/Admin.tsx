@@ -58,6 +58,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import OverviewDashboard from "@/components/admin/OverviewDashboard";
+import RevenueDashboard from "@/components/admin/RevenueDashboard";
 import AdminSettings from "@/components/admin/AdminSettings";
 import BookingEditorDialog from "@/components/admin/BookingEditorDialog";
 import MobileBottomNav from "@/components/admin/MobileBottomNav";
@@ -731,6 +732,10 @@ const Admin = () => {
 
               <TabsContent value="settings" className="mt-0">
                 <AdminSettings />
+              </TabsContent>
+
+              <TabsContent value="revenue" className="mt-0">
+                <RevenueDashboard bookings={bookings} />
               </TabsContent>
 
 

@@ -63,7 +63,7 @@ const DistributionBar = ({ label, count, total }: { label: string; count: number
   );
 };
 
-const TrendBadge = ({
+export const TrendBadge = ({
   value,
   suffix = "%",
   invert = false,
