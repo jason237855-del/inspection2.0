@@ -17,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -54,6 +54,7 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import Footer from "@/components/Footer";
 import { useAdmin } from "@/hooks/useAdmin";
+import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import OverviewDashboard from "@/components/admin/OverviewDashboard";
@@ -61,6 +62,7 @@ import AdminSettings from "@/components/admin/AdminSettings";
 import BookingEditorDialog from "@/components/admin/BookingEditorDialog";
 import MobileBottomNav from "@/components/admin/MobileBottomNav";
 import MobileBookingDetail from "@/components/admin/MobileBookingDetail";
+import AdminSidebar from "@/components/admin/AdminSidebar";
 import {
   statusLabels,
   statusColors,
@@ -122,6 +124,7 @@ const PAGE_SIZE = 10;
 const Admin = () => {
   const navigate = useNavigate();
   const { isAdmin, loading: adminLoading } = useAdmin();
+  const { user } = useAuth();
   const isMobile = useIsMobile();
 
   const [bookings, setBookings] = useState<BookingRequest[]>([]);
@@ -596,9 +599,18 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="pt-10 pb-24 md:pb-20">
-        <div className="container mx-auto px-6 lg:px-12">
+    <div className="min-h-screen bg-background md:flex">
+      <AdminSidebar
+        activeTab={activeTab}
+        onChange={setActiveTab}
+        onCreate={openCreate}
+        pendingCount={stats.pending}
+        userEmail={user?.email}
+        onSignOut={handleSignOut}
+      />
+      <div className="flex-1 min-w-0">
+      <main className="pt-10 pb-24 md:pb-10 md:pt-8">
+        <div className="w-full px-6 md:px-8 lg:px-10 xl:px-12 max-w-[1400px] mx-auto md:mx-0">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -705,33 +717,6 @@ const Admin = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="hidden md:flex mb-6 flex-nowrap justify-start overflow-x-auto h-auto gap-2 bg-transparent p-0 w-full">
-                <TabsTrigger
-                  value="overview"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4 py-1.5 text-xs font-light border border-border shrink-0"
-                >
-                  總覽
-                </TabsTrigger>
-                <TabsTrigger
-                  value="availability"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4 py-1.5 text-xs font-light border border-border shrink-0"
-                >
-                  名額管理
-                </TabsTrigger>
-                <TabsTrigger
-                  value="bookings"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4 py-1.5 text-xs font-light border border-border shrink-0"
-                >
-                  預約紀錄
-                </TabsTrigger>
-                <TabsTrigger
-                  value="settings"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4 py-1.5 text-xs font-light border border-border shrink-0"
-                >
-                  管理者設定
-                </TabsTrigger>
-              </TabsList>
-
               <TabsContent value="overview" className="mt-0">
                 <OverviewDashboard
                   bookings={bookings}
@@ -1395,7 +1380,10 @@ const Admin = () => {
         </div>
       </main>
 
-      <Footer />
+      <div className="md:hidden">
+        <Footer />
+      </div>
+      </div>
 
       <MobileBottomNav activeTab={activeTab} onChange={setActiveTab} onCreate={openCreate} />
 
