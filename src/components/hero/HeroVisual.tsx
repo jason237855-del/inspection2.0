@@ -36,10 +36,10 @@ const HeroVisual = ({ scrollYProgress, parallaxX, parallaxY, reduced }: HeroVisu
   const y = useTransform([scrollY, parallaxY], ([sY, pY]: number[]) => sY + pY * PARALLAX_RANGE_PX * 0.6);
 
   return (
-    <div className="pointer-events-none absolute left-1/2 top-[44%] -translate-x-1/2 -translate-y-1/2 md:left-[64%] md:top-1/2">
+    <div className="pointer-events-none absolute left-1/2 top-[78%] -translate-x-1/2 -translate-y-1/2 opacity-40 md:left-[64%] md:top-1/2 md:opacity-100">
       <motion.div
         style={{ x, y, scale, opacity, filter }}
-        className="w-[220px] text-foreground sm:w-[260px] md:w-[340px] lg:w-[420px]"
+        className="w-[170px] text-foreground sm:w-[260px] md:w-[340px] lg:w-[420px]"
       >
         <svg viewBox="0 0 200 200" fill="none" className="h-full w-full overflow-visible">
           {/* faint ground / blueprint baseline */}
