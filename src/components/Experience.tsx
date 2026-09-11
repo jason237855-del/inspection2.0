@@ -72,67 +72,56 @@ const Experience = () => {
         }}
       />
       <div className="container relative z-10 mx-auto w-full px-6 lg:px-12">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7 }}
-          className="max-w-3xl mx-auto text-center mb-16"
-        >
-          <span className="text-[11px] uppercase tracking-wider text-slate-400 mb-4 block">
-            WHY CHOOSE US
-          </span>
-          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-slate-50 tracking-tight">
-            為什麼選診斷室驗屋
-          </h2>
-          <p className="text-base text-slate-300/80 font-light leading-relaxed">
-            結合多領域技術與工程實務，從現象、原因到改善方向，提供更全面且有依據的檢測判斷。
-          </p>
-        </motion.div>
+        <div className="grid gap-12 lg:grid-cols-[minmax(0,340px)_1fr] lg:items-start lg:gap-16">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.7 }}
+            className="lg:sticky lg:top-28"
+          >
+            <span className="text-[11px] uppercase tracking-wider text-slate-400 mb-4 block">
+              WHY CHOOSE US
+            </span>
+            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-slate-50 tracking-tight">
+              為什麼選診斷室驗屋
+            </h2>
+            <p className="text-base text-slate-300/80 font-light leading-relaxed">
+              結合多領域技術與工程實務，從現象、原因到改善方向，提供更全面且有依據的檢測判斷。
+            </p>
+          </motion.div>
 
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="max-w-3xl mx-auto rounded-xl border border-white/10 overflow-hidden backdrop-blur-[2px]"
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2">
-            {certGroups.map((g, index) => {
-              return (
-                <motion.div
-                  key={g.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={isInView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
-                  className="group relative bg-white/[0.035] border-b border-white/10 sm:[&:nth-child(odd)]:border-r p-4 sm:p-5 transition-colors duration-300 hover:bg-white/[0.08]"
-                >
-                  <div className="flex items-start gap-3">
-                    <TradeMotionIcon
-                      type={g.motion}
-                      className="mt-0.5 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white/10 p-1.5 text-slate-200 transition-transform duration-300 group-hover:scale-110"
-                    />
-                    <div className="min-w-0">
-                      <h3 className="text-base font-bold text-slate-50 mb-2 leading-none">
-                        {g.title}
-                      </h3>
-                      <ul className="flex flex-wrap gap-1.5">
-                        {g.items.map((item) => (
-                          <li
-                            key={item}
-                            className="rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1 text-xs font-light leading-none text-slate-300/90"
-                          >
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 xl:gap-6">
+            {certGroups.map((g, index) => (
+              <motion.div
+                key={g.title}
+                initial={{ opacity: 0, y: 24 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.5, delay: 0.2 + index * 0.08 }}
+                className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035] backdrop-blur-[2px] transition-colors duration-300 hover:border-white/20 hover:bg-white/[0.06]"
+              >
+                <div className="flex h-28 items-center justify-center border-b border-white/10 bg-white/[0.02] sm:h-32">
+                  <TradeMotionIcon
+                    type={g.motion}
+                    className="h-14 w-14 text-slate-200 transition-transform duration-300 group-hover:scale-110 sm:h-16 sm:w-16"
+                  />
+                </div>
+                <div className="flex flex-1 flex-col items-center justify-center p-5 text-center">
+                  <h3 className="mb-3 text-base font-bold text-slate-50">{g.title}</h3>
+                  <ul className="flex flex-wrap justify-center gap-1.5">
+                    {g.items.map((item) => (
+                      <li
+                        key={item}
+                        className="rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1 text-xs font-light leading-none text-slate-300/90"
+                      >
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </motion.div>
+            ))}
           </div>
-        </motion.div>
-
+        </div>
       </div>
     </section>
   );
