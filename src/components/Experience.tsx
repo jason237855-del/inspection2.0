@@ -1,29 +1,39 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-import { Zap, Droplets, ShieldCheck, Flame } from "lucide-react";
 import DiagnosticField from "@/components/DiagnosticField";
+import TradeMotionIcon, { type TradeType } from "@/components/TradeMotionIcon";
 
 
-const certGroups = [
+const certGroups: { motion: TradeType; title: string; items: string[] }[] = [
   {
-    icon: Zap,
+    motion: "electrician",
     title: "電匠",
     items: ["室內配線乙級", "用電設備檢驗丙級"],
   },
   {
-    icon: Droplets,
+    motion: "plumber",
     title: "水匠",
     items: ["自來水配管丙級"],
   },
   {
-    icon: ShieldCheck,
+    motion: "waterproof",
     title: "防水",
     items: ["營建防水丙級"],
   },
   {
-    icon: Flame,
+    motion: "gas",
     title: "燃氣",
     items: ["特定瓦斯器具裝修丙級"],
+  },
+  {
+    motion: "carpentry",
+    title: "木作",
+    items: ["裝潢木工乙級"],
+  },
+  {
+    motion: "hvac",
+    title: "空調",
+    items: ["冷凍空調裝修乙級"],
   },
 ];
 
@@ -88,7 +98,6 @@ const Experience = () => {
         >
           <div className="grid grid-cols-1 sm:grid-cols-2">
             {certGroups.map((g, index) => {
-              const Icon = g.icon;
               return (
                 <motion.div
                   key={g.title}
@@ -98,9 +107,10 @@ const Experience = () => {
                   className="group relative bg-white/[0.035] border-b border-white/10 sm:[&:nth-child(odd)]:border-r p-4 sm:p-5 transition-colors duration-300 hover:bg-white/[0.08]"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="mt-0.5 inline-flex items-center justify-center w-9 h-9 shrink-0 rounded-lg bg-white/10 text-slate-200 transition-transform duration-300 group-hover:scale-110">
-                      <Icon className="h-4 w-4" strokeWidth={1.5} />
-                    </div>
+                    <TradeMotionIcon
+                      type={g.motion}
+                      className="mt-0.5 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white/10 p-1.5 text-slate-200 transition-transform duration-300 group-hover:scale-110"
+                    />
                     <div className="min-w-0">
                       <h3 className="text-base font-bold text-slate-50 mb-2 leading-none">
                         {g.title}
