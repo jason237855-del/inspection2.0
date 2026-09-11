@@ -8,6 +8,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { Loader2 } from "lucide-react";
 import Index from "./pages/Index";
 import ScrollToTop from "./components/ScrollToTop";
+import FloatingConsultButton from "./components/FloatingConsultButton";
 
 // 首頁以外的頁面改用 lazy load：一般訪客進站大多先看首頁，
 // 沒必要讓他們一次下載後台管理系統、預約表單等用不到的程式碼。
@@ -38,6 +39,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <ScrollToTop />
+        <FloatingConsultButton />
         <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route path="/" element={<Index />} />
