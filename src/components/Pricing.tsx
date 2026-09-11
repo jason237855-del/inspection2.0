@@ -119,16 +119,18 @@ const comparison: {
   group: string | boolean;
   resale: string | boolean;
 }[] = [
-  { label: "檢測時機", newBuild: "交屋前", group: "交屋前", resale: "購屋前 / 簽約前" },
-  { label: "建議坪數基準", newBuild: "20 坪以內", group: "20 坪以內／每戶", resale: "30 坪以內" },
-  { label: "缺失清單與報告", newBuild: true, group: true, resale: true },
-  { label: "紅外線熱顯像檢測", newBuild: true, group: true, resale: true },
-  { label: "複驗服務", newBuild: "$3,000 起", group: "$3,000 起", resale: "另計" },
+  { label: "適合對象", newBuild: "新成屋交屋屋主", group: "同社區多戶屋主", resale: "購買中古屋買方" },
+  { label: "建議檢測時機", newBuild: "交屋前", group: "交屋前", resale: "交屋前" },
+  { label: "基準坪數", newBuild: "20 坪內／戶", group: "20 坪內／戶", resale: "20 坪內／戶" },
+  { label: "完整檢測報告", newBuild: true, group: true, resale: true },
+  { label: "紅外線熱顯像", newBuild: true, group: true, resale: true },
+  { label: "給排水／機電檢測", newBuild: true, group: true, resale: true },
   { label: "管線老化評估", newBuild: false, group: false, resale: true },
-  { label: "修繕費用說明", newBuild: false, group: false, resale: true },
+  { label: "屋況風險評估", newBuild: false, group: false, resale: true },
   { label: "建商缺失溝通建議", newBuild: true, group: true, resale: false },
-  { label: "專屬排程窗口", newBuild: false, group: true, resale: false },
-  { label: "多戶彙整報告", newBuild: false, group: true, resale: false },
+  { label: "複驗服務", newBuild: "$3,000 起", group: "$3,000 起", resale: false },
+  { label: "專屬團報排程", newBuild: false, group: true, resale: false },
+  { label: "假日驗屋費用", newBuild: false, group: false, resale: true },
 ];
 
 const formatPrice = (v: number) => `$ ${v.toLocaleString("en-US")}`;
