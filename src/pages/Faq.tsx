@@ -15,16 +15,30 @@ import {
   FileSearch,
   CalendarDays,
   MessageCircle,
+  type LucideIcon,
 } from "lucide-react";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
-const sections = [
+type FaqSection = {
+  id: string;
+  icon: LucideIcon;
+  label: string;
+  title: string;
+  /** optional manual line break for the left-column heading (balanced wrap) */
+  titleLines?: string[];
+  intro: string;
+  items: { q: string; a: string }[];
+};
+
+const sections: FaqSection[] = [
   {
     id: "before",
     icon: Home,
     label: "PART 01",
     title: "驗屋前，屋主們最常這樣問",
-    intro: "從驗屋的必要性到最佳安排時機，先替您釐清最關鍵的疑問。",
+    titleLines: ["驗屋前，", "屋主們最常這樣問"],
+    intro:
+      "第一次面對驗屋，難免會對檢測時機、房屋類型與第三方角色感到疑惑。從基本觀念到實際安排，陪您在交屋以前先建立清楚的理解與準備。",
     items: [
       {
         q: "什麼是驗屋？為什麼交屋前需要驗屋？",
@@ -53,7 +67,8 @@ const sections = [
     icon: ClipboardList,
     label: "PART 02",
     title: "檢測內容包含什麼項目",
-    intro: "從六大系統到專業儀器的應用，說明我們如何完整檢視您的房屋。",
+    intro:
+      "房屋檢測不只是逐項查看，更需要依現場條件交叉判讀。從給排水、電氣、門窗與牆地面，到專業儀器的輔助，帶您了解每一項檢測的目的與範圍。",
     items: [
       {
         q: "驗屋會檢查哪些項目？",
@@ -82,7 +97,8 @@ const sections = [
     icon: CalendarCheck,
     label: "PART 03",
     title: "預約流程，驗屋前後該準備什麼？",
-    intro: "從預約到現場檢測與報告交付，掌握每個環節該留意的事。",
+    intro:
+      "從確認日期、準備房屋資料，到現場檢測與報告交付，我們將驗屋前後的重要事項整理清楚，讓您知道每個階段需要準備什麼，以及接下來會如何進行。",
     items: [
       {
         q: "驗屋需要多久？",
@@ -111,7 +127,8 @@ const sections = [
     icon: FileSearch,
     label: "PART 04",
     title: "缺失與複驗，屋主們該如何審視",
-    intro: "驗出缺失後的溝通方向，以及複驗在整個流程中的角色。",
+    intro:
+      "看見缺失只是開始，理解問題的重要程度與改善結果才是關鍵。從缺失說明、修繕溝通到複驗確認，協助您更有方向地判斷後續處理方式。",
     items: [
       {
         q: "缺失問題驗出後該怎麼辦？",
@@ -139,8 +156,9 @@ const sections = [
     id: "booking",
     icon: MessageCircle,
     label: "PART 05",
-    title: "驗屋費用、服務地區與驗屋優惠",
-    intro: "報價方式、服務區域與最快速的預約管道，一次說明清楚。",
+    title: "費用、地區與預約",
+    intro:
+      "從費用評估、服務地區到單戶預約與多戶團報，整理委託前最常遇到的實際問題，讓您在聯繫以前，先掌握所需資料與安排方式。",
     items: [
       {
         q: "驗屋費用怎麼計算？",
@@ -209,7 +227,7 @@ const Faq = () => {
         </div>
 
         {/* Sections */}
-        <div className="container mx-auto px-6 lg:px-12 max-w-5xl space-y-20">
+        <div className="container mx-auto px-6 lg:px-12 max-w-5xl space-y-14 lg:space-y-20">
           {sections.map((section, si) => {
             const Icon = section.icon;
             return (
@@ -222,17 +240,23 @@ const Faq = () => {
                 viewport={{ once: true, amount: 0.15 }}
                 transition={{ duration: 0.55, delay: 0.05 }}
               >
-                <div className="grid gap-8 lg:grid-cols-[minmax(0,280px)_1fr] lg:gap-14">
+                <div className="grid gap-8 lg:grid-cols-[35%_1fr] lg:gap-x-[60px]">
                   {/* Left: section intro */}
-                  <div className="lg:sticky lg:top-28 lg:self-start">
+                  <div className="lg:sticky lg:top-[120px] lg:self-start">
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground mb-4">
                       <Icon className="h-3.5 w-3.5 text-primary" aria-hidden />
                       {section.label}
                     </span>
-                    <h2 className="text-xl lg:text-2xl font-bold text-foreground tracking-tight mb-3">
-                      {section.title}
+                    <h2 className="text-balance text-xl font-bold text-foreground tracking-tight mb-3 lg:text-2xl">
+                      {section.titleLines
+                        ? section.titleLines.map((line) => (
+                            <span key={line} className="block">
+                              {line}
+                            </span>
+                          ))
+                        : section.title}
                     </h2>
-                    <p className="text-sm text-muted-foreground font-light leading-relaxed">
+                    <p className="text-sm text-foreground/75 font-light leading-[1.8]">
                       {section.intro}
                     </p>
                   </div>
@@ -251,7 +275,7 @@ const Faq = () => {
                         className="rounded-xl border border-border bg-card px-5 lg:px-6 transition-colors data-[state=open]:border-primary/30 data-[state=open]:shadow-soft"
                       >
                         <AccordionTrigger className="py-4 lg:py-5 text-left hover:no-underline">
-                          <span className="flex items-start gap-3 pr-2">
+                          <span className="flex min-w-0 items-start gap-3 pr-2">
                             <span className="mt-0.5 shrink-0 text-[11px] font-semibold text-primary/70">
                               Q{qi + 1}
                             </span>
