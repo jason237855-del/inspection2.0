@@ -43,7 +43,7 @@ const Process = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <span className="text-[11px] uppercase tracking-wider text-slate-400 mb-4 block">Our Process</span>
+          <span className="text-[11px] uppercase tracking-wider text-slate-400 mb-4 block">Process</span>
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-50 tracking-tight">服務流程</h2>
           <p className="text-base text-slate-300/80 max-w-2xl mx-auto font-light leading-relaxed">
             從第一通詢問到複驗完成，每個階段都有明確的時程與交付內容。點選任一步驟查看詳細說明。

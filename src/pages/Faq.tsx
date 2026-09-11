@@ -185,7 +185,7 @@ const Faq = () => {
         </div>
 
         {/* Sections */}
-        <div className="container mx-auto px-6 lg:px-12 max-w-3xl space-y-16">
+        <div className="container mx-auto px-6 lg:px-12 max-w-5xl space-y-20">
           {sections.map((section, si) => {
             const Icon = section.icon;
             return (
@@ -198,53 +198,51 @@ const Faq = () => {
                 viewport={{ once: true, amount: 0.15 }}
                 transition={{ duration: 0.55, delay: 0.05 }}
               >
-                {/* Section header */}
-                <div className="relative mb-6 flex items-start gap-4 rounded-2xl border border-border bg-card p-6 lg:p-7 overflow-hidden">
-                  <Icon
-                    aria-hidden
-                    strokeWidth={1}
-                    className="pointer-events-none absolute -right-4 -bottom-6 h-36 w-36 text-primary/[0.10]"
-                  />
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <Icon className="h-5 w-5" aria-hidden />
-                  </div>
-                  <div className="relative">
-                    <span className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground block mb-1.5">
+                <div className="grid gap-8 lg:grid-cols-[minmax(0,280px)_1fr] lg:gap-14">
+                  {/* Left: section intro */}
+                  <div className="lg:sticky lg:top-28 lg:self-start">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground mb-4">
+                      <Icon className="h-3.5 w-3.5 text-primary" aria-hidden />
                       {section.label}
                     </span>
-                    <h2 className="text-lg lg:text-xl font-semibold text-foreground tracking-tight mb-1.5">
+                    <h2 className="text-xl lg:text-2xl font-bold text-foreground tracking-tight mb-3">
                       {section.title}
                     </h2>
-                    <p className="text-xs text-muted-foreground font-light leading-relaxed">
+                    <p className="text-sm text-muted-foreground font-light leading-relaxed">
                       {section.intro}
                     </p>
                   </div>
-                </div>
 
-                {/* Q&A accordion */}
-                <Accordion type="single" collapsible className="space-y-3">
-                  {section.items.map((item, qi) => (
-                    <AccordionItem
-                      key={qi}
-                      value={`${section.id}-${qi}`}
-                      className="rounded-xl border border-border bg-card px-5 lg:px-6 transition-colors data-[state=open]:border-primary/30 data-[state=open]:shadow-soft"
-                    >
-                      <AccordionTrigger className="py-4 lg:py-5 text-left hover:no-underline">
-                        <span className="flex items-start gap-3 pr-2">
-                          <span className="mt-0.5 shrink-0 text-[11px] font-semibold text-primary/70">
-                            Q{qi + 1}
+                  {/* Right: Q&A accordion */}
+                  <Accordion
+                    type="single"
+                    collapsible
+                    defaultValue={`${section.id}-0`}
+                    className="space-y-3"
+                  >
+                    {section.items.map((item, qi) => (
+                      <AccordionItem
+                        key={qi}
+                        value={`${section.id}-${qi}`}
+                        className="rounded-xl border border-border bg-card px-5 lg:px-6 transition-colors data-[state=open]:border-primary/30 data-[state=open]:shadow-soft"
+                      >
+                        <AccordionTrigger className="py-4 lg:py-5 text-left hover:no-underline">
+                          <span className="flex items-start gap-3 pr-2">
+                            <span className="mt-0.5 shrink-0 text-[11px] font-semibold text-primary/70">
+                              Q{qi + 1}
+                            </span>
+                            <span className="text-sm lg:text-[15px] font-medium text-foreground leading-relaxed">
+                              {item.q}
+                            </span>
                           </span>
-                          <span className="text-sm lg:text-[15px] font-medium text-foreground leading-relaxed">
-                            {item.q}
-                          </span>
-                        </span>
-                      </AccordionTrigger>
-                      <AccordionContent className="pb-5 pl-9 text-sm text-muted-foreground font-light leading-relaxed">
-                        {item.a}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
+                        </AccordionTrigger>
+                        <AccordionContent className="pb-5 pl-9 text-sm text-muted-foreground font-light leading-relaxed">
+                          {item.a}
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </div>
               </motion.section>
             );
           })}
@@ -255,7 +253,7 @@ const Faq = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.55 }}
-            className="rounded-2xl border border-border bg-secondary p-8 lg:p-10 text-center"
+            className="mx-auto max-w-2xl rounded-2xl border border-border bg-secondary p-8 lg:p-10 text-center"
           >
             <h2 className="text-xl lg:text-2xl font-semibold text-secondary-foreground mb-3 tracking-tight">
               還有其他問題嗎？

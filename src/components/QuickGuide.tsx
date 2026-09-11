@@ -196,7 +196,7 @@ const QuickGuide = () => {
           className="text-center mb-12"
         >
           <span className="text-[11px] uppercase tracking-wider text-muted-foreground mb-4 block">
-            我們的診斷項目
+            CHECKLIST
           </span>
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground tracking-tight">
             六大系統，逐項確認。
