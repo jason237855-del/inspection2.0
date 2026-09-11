@@ -1,5 +1,6 @@
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
+import HeroStats from "@/components/hero/HeroStats";
 import AboutSection from "@/components/AboutSection";
 import QuickGuide from "@/components/QuickGuide";
 import Process from "@/components/Process";
@@ -12,8 +13,9 @@ import Footer from "@/components/Footer";
 const Index = () => {
   return (
     <div className="min-h-screen overflow-x-hidden">
-      <Navigation />
+      <Navigation variant="dark" />
       <Hero />
+      <HeroStats />
       <AboutSection />
       <Experience />
       <QuickGuide />
