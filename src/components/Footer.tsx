@@ -32,10 +32,14 @@ const Footer = () => {
             <div className="flex flex-wrap md:justify-end gap-x-6 gap-y-2 text-sm font-light leading-relaxed tracking-wide text-background/70">
               <span>台北</span>
               <span>新北</span>
+              <span>基隆</span>
               <span>桃園</span>
               <span>新竹</span>
-              <span>基隆</span>
+              <span>苗栗</span>
+              <span>台中</span>
               <span>宜蘭</span>
+              <span>花蓮</span>
+              <span>台東</span>
             </div>
           </div>
         </div>

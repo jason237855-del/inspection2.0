@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
+import { FileSearch, Clock, AlertTriangle, ClipboardCheck } from "lucide-react";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { COUNT_UP_DURATION_MS } from "./heroMotion";
 
@@ -8,10 +9,10 @@ import { COUNT_UP_DURATION_MS } from "./heroMotion";
  * additional figures here; update these once real numbers are confirmed.
  */
 const STATS = [
-  { value: 3000, suffix: "+", label: "累積檢測戶數" },
-  { value: 10, suffix: "+", label: "年專業經驗" },
-  { value: 11111, suffix: "+", label: "發現缺失與異常" },
-  { value: 30, suffix: "+", label: "專業檢測項目" },
+  { icon: FileSearch, value: 3000, suffix: "+", label: "累積檢測戶數" },
+  { icon: Clock, value: 24, suffix: "小時內", label: "發送電子檢測報告" },
+  { icon: AlertTriangle, value: 11111, suffix: "+", label: "發現缺失與異常" },
+  { icon: ClipboardCheck, value: 30, suffix: "+", label: "專業檢測項目" },
 ];
 
 const easeOutQuad = (t: number) => 1 - (1 - t) * (1 - t);
@@ -59,6 +60,7 @@ const HeroStats = () => {
             transition={{ duration: 0.5, delay: i * 0.08 }}
             className="text-center lg:text-left"
           >
+            <stat.icon className="mb-3 h-8 w-8 text-foreground/70" strokeWidth={1.5} />
             <div className="mb-1.5 text-3xl font-bold tracking-tight text-foreground md:text-4xl">
               <CountUpValue value={stat.value} suffix={stat.suffix} active={isInView} />
             </div>

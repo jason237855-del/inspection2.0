@@ -143,16 +143,16 @@ const Navigation = ({ variant = "default" }: NavigationProps) => {
         <div
           className={`motion-reduce:transition-none transition-[padding,background-color,border-color,box-shadow,backdrop-filter] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-[padding,box-shadow] ${
             isScrolled
-              ? "rounded-full px-4 lg:px-6 py-2 shadow-[0_10px_40px_-12px_rgba(0,0,0,0.28)]"
-              : "rounded-full px-5 lg:px-8 py-4 shadow-[0_2px_20px_-12px_rgba(0,0,0,0.15)]"
+              ? "px-4 lg:px-6 py-2 shadow-[0_10px_40px_-12px_rgba(0,0,0,0.28)]"
+              : "px-5 lg:px-8 py-4 shadow-[0_2px_20px_-12px_rgba(0,0,0,0.15)]"
           } ${
             isMobileMenuOpen
               ? "bg-foreground rounded-3xl backdrop-blur-2xl"
               : isDark
-                ? "bg-foreground/90 backdrop-blur-xl border border-white/10"
+                ? "rounded-full bg-foreground/90 backdrop-blur-xl border border-white/10"
                 : isScrolled
-                  ? "bg-card/70 backdrop-blur-2xl border border-border/60"
-                  : "bg-white/10 backdrop-blur-md border border-white/20"
+                  ? "rounded-full bg-card/70 backdrop-blur-2xl border border-border/60"
+                  : "rounded-full bg-white/10 backdrop-blur-md border border-white/20"
           }`}
         >
         <div className="flex items-center justify-between gap-4 md:gap-6">

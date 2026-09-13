@@ -56,7 +56,7 @@ const HeroSection = () => {
   return (
     <section
       ref={sectionRef}
-      className="relative flex min-h-[92svh] w-full items-center overflow-hidden bg-background md:min-h-screen"
+      className="relative flex min-h-[92svh] w-full items-start overflow-hidden bg-background md:min-h-screen md:items-center"
     >
       <HeroVisual
         scrollYProgress={scrollYProgress}

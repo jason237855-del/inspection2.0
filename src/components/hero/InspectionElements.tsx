@@ -179,15 +179,15 @@ const InspectionPointIcon = (reduced: boolean) => (
 
 const ELEMENTS: ElementConfig[] = [
   { id: "thermal", top: "14%", left: "50%", dx: -32, dy: -22, depth: 0.6, visibleFrom: "lg", floatDuration: 5.4, floatDelay: 0.2, render: ThermalIcon },
-  { id: "scanline", top: "15%", left: "76%", dx: 40, dy: -24, depth: 0.8, visibleFrom: "always", revealOnScroll: true, floatDuration: 4.8, floatDelay: 0.6, render: ScanLineIcon },
-  { id: "laser-level", top: "30%", left: "92%", dx: 60, dy: -8, depth: 0.9, visibleFrom: "always", floatDuration: 5.8, floatDelay: 1.1, render: LaserLevelIcon },
+  { id: "scanline", top: "15%", left: "76%", dx: 40, dy: -24, depth: 0.8, visibleFrom: "md", revealOnScroll: true, floatDuration: 4.8, floatDelay: 0.6, render: ScanLineIcon },
+  { id: "laser-level", top: "30%", left: "92%", dx: 60, dy: -8, depth: 0.9, visibleFrom: "md", floatDuration: 5.8, floatDelay: 1.1, render: LaserLevelIcon },
   { id: "circuit", top: "47%", left: "95%", dx: 64, dy: 8, depth: 0.5, visibleFrom: "md", revealOnScroll: true, floatDuration: 6.2, floatDelay: 0.3, render: CircuitIcon },
   { id: "outlet", top: "66%", left: "90%", dx: 52, dy: 30, depth: 0.7, visibleFrom: "md", floatDuration: 5.1, floatDelay: 0.8, render: OutletIcon },
   { id: "crack", top: "80%", left: "75%", dx: 22, dy: 46, depth: 1, visibleFrom: "always", floatDuration: 4.5, floatDelay: 1.4, render: CrackIcon },
   { id: "inspection-point", top: "83%", left: "54%", dx: -6, dy: 50, depth: 0.9, visibleFrom: "always", revealOnScroll: true, floatDuration: 4.2, floatDelay: 0.5, render: InspectionPointIcon },
   { id: "wall-section", top: "78%", left: "37%", dx: -40, dy: 40, depth: 0.5, visibleFrom: "lg", floatDuration: 6.6, floatDelay: 1.7, render: WallSectionIcon },
   { id: "pipe", top: "58%", left: "31%", dx: -58, dy: 14, depth: 0.8, visibleFrom: "always", floatDuration: 5.6, floatDelay: 0.9, render: PipeIcon },
-  { id: "humidity", top: "36%", left: "33%", dx: -50, dy: -18, depth: 0.7, visibleFrom: "always", revealOnScroll: true, floatDuration: 5.9, floatDelay: 0.2, render: HumidityIcon },
+  { id: "humidity", top: "36%", left: "33%", dx: -50, dy: -18, depth: 0.7, visibleFrom: "md", revealOnScroll: true, floatDuration: 5.9, floatDelay: 0.2, render: HumidityIcon },
   { id: "tile", top: "21%", left: "45%", dx: -34, dy: -30, depth: 0.6, visibleFrom: "lg", floatDuration: 5.3, floatDelay: 1.2, render: TileIcon },
 ];
 
