@@ -144,10 +144,8 @@ const Navigation = ({ variant = "default" }: NavigationProps) => {
           isScrolled ? "px-3 sm:px-6 pt-2 sm:pt-3" : "px-2 sm:px-4 pt-3 sm:pt-5"
         }`}
       >
-        <motion.div
-          layout={!reduceMotion}
-          transition={reduceMotion ? { duration: 0 } : { layout: { duration: 0.5, ease: [0.4, 0, 0.2, 1] } }}
-          className={`motion-reduce:transition-none transition-[padding,background-color,border-color,box-shadow,backdrop-filter] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-[padding,box-shadow] ${
+        <div
+          className={`motion-reduce:transition-none transition-[padding,background-color,border-color,box-shadow,backdrop-filter,border-radius] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] will-change-[padding,box-shadow] ${
             isScrolled
               ? "px-4 lg:px-6 py-2 shadow-[0_10px_40px_-12px_rgba(0,0,0,0.28)]"
               : "px-5 lg:px-8 py-4 shadow-[0_2px_20px_-12px_rgba(0,0,0,0.15)]"
@@ -253,47 +251,49 @@ const Navigation = ({ variant = "default" }: NavigationProps) => {
         <AnimatePresence onExitComplete={() => setMenuChromeOpen(false)}>
           {isMobileMenuOpen && (
             <motion.div
-              initial={reduceMotion ? { opacity: 0 } : { opacity: 0, clipPath: "inset(0 0 100% 0)" }}
-              animate={reduceMotion ? { opacity: 1 } : { opacity: 1, clipPath: "inset(0 0 0% 0)" }}
-              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, clipPath: "inset(0 0 100% 0)" }}
-              transition={reduceMotion ? { duration: 0.15 } : { duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
-              className="md:hidden mt-4 pb-2"
+              initial={reduceMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
+              animate={reduceMotion ? { opacity: 1 } : { opacity: 1, height: "auto" }}
+              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
+              transition={reduceMotion ? { duration: 0.15 } : { duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+              className="md:hidden overflow-hidden"
             >
-              {navItems.map((item) =>
-                item.isRoute ? (
-                  <Link
-                    key={item.label}
-                    to={item.href}
-                    className="block py-3 text-[12px] tracking-wider font-normal smooth-hover hover:opacity-60 text-white"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {item.label}
-                  </Link>
-                ) : (
-                  <a
-                    key={item.label}
-                    href={item.href}
-                    className="block py-3 text-[12px] tracking-wider font-normal smooth-hover hover:opacity-60 text-white"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {item.label}
-                  </a>
-                )
-              )}
-              <Button
-                variant="outline"
-                className="w-full mt-4 rounded-full text-[11px] tracking-wider font-normal backdrop-blur-md border border-white/30 bg-white/10 text-white hover:bg-primary/80 hover:text-white hover:border-primary/80 px-5"
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  handleBookNow();
-                }}
-              >
-                立即預約
-              </Button>
+              <div className="pt-4 pb-2">
+                {navItems.map((item) =>
+                  item.isRoute ? (
+                    <Link
+                      key={item.label}
+                      to={item.href}
+                      className="block py-3 text-[12px] tracking-wider font-normal smooth-hover hover:opacity-60 text-white"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {item.label}
+                    </Link>
+                  ) : (
+                    <a
+                      key={item.label}
+                      href={item.href}
+                      className="block py-3 text-[12px] tracking-wider font-normal smooth-hover hover:opacity-60 text-white"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {item.label}
+                    </a>
+                  )
+                )}
+                <Button
+                  variant="outline"
+                  className="w-full mt-4 rounded-full text-[11px] tracking-wider font-normal backdrop-blur-md border border-white/30 bg-white/10 text-white hover:bg-primary/80 hover:text-white hover:border-primary/80 px-5"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleBookNow();
+                  }}
+                >
+                  立即預約
+                </Button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
-        </motion.div>
+        </div>
       </div>
     </motion.nav>
 
