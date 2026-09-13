@@ -15,6 +15,10 @@ const Navigation = ({ variant = "default" }: NavigationProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  // Stays true through the close animation so the menu card's shape/background
+  // don't snap back to the pill nav before the exiting menu content finishes
+  // clipping away (see 2026-09-13 README entry on the rounded-full/rounded-3xl bug).
+  const [menuChromeOpen, setMenuChromeOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("");
   const isDark = variant === "dark";
   const reduceMotion = usePrefersReducedMotion();
@@ -146,7 +150,7 @@ const Navigation = ({ variant = "default" }: NavigationProps) => {
               ? "px-4 lg:px-6 py-2 shadow-[0_10px_40px_-12px_rgba(0,0,0,0.28)]"
               : "px-5 lg:px-8 py-4 shadow-[0_2px_20px_-12px_rgba(0,0,0,0.15)]"
           } ${
-            isMobileMenuOpen
+            menuChromeOpen
               ? "bg-foreground rounded-3xl backdrop-blur-2xl"
               : isDark
                 ? "rounded-full bg-foreground/90 backdrop-blur-xl border border-white/10"
@@ -233,14 +237,18 @@ const Navigation = ({ variant = "default" }: NavigationProps) => {
 
           <button
             className={`md:hidden ${textColor}`}
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            onClick={() => {
+              const next = !isMobileMenuOpen;
+              setIsMobileMenuOpen(next);
+              if (next) setMenuChromeOpen(true);
+            }}
             aria-label="開啟選單"
           >
             {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
 
-        <AnimatePresence>
+        <AnimatePresence onExitComplete={() => setMenuChromeOpen(false)}>
           {isMobileMenuOpen && (
             <motion.div
               initial={reduceMotion ? { opacity: 0 } : { opacity: 0, clipPath: "inset(0 0 100% 0)" }}
