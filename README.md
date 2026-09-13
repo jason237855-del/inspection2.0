@@ -121,6 +121,11 @@ npm run dev
 
 依時間新到舊排列，每筆記錄實際做了什麼變動、為什麼。
 
+- **2026-09-13（十三，重要）** — 修正客戶預約表單送出後會噴出 `ReferenceError: setBookingCounts is not defined` 的正式站 bug。這是（八）那次做「時段管理」功能時，把 `BookingForm.tsx` 的名額狀態從單一的 `bookingCounts`/`setBookingCounts` 改成分時段的 `slotCountMap`/`setSlotCountMap`，但漏改 `handleSubmit` 送出成功後、更新本地名額計數那一行，殘留呼叫了已經不存在的 `setBookingCounts`，一路推上了正式站。
+  - **實際影響**：訂單本身**有**成功寫進資料庫（crash 發生在 insert 成功之後），但因為 crash 中斷了後續程式碼，緊接著要呼叫的 `send-line-notification`（通知內部 LINE 群組）**沒有執行到**，客戶端也不會看到預約成功的畫面，體驗上像是「送出失敗」。
+  - **實測方式**：用使用者帳號在正式站 `/booking` 走完整流程送出一筆標記為測試的訂單，瀏覽器 Console 直接重現這個錯誤；比對後台「預約紀錄」確認訂單其實有進資料庫，且目前資料庫裡其餘既有訂單看起來都是先前測試用的資料（無法排除但未發現任何像是真實客戶的訂單卡在這個問題上）。修完後已把這筆測試訂單從後台刪除。
+  - **修法**：改成正確更新 `slotCountMap`（依日期+時段記錄已預約數），不再引用不存在的變數。
+  - `npx tsc --noEmit`、`npm run build` 皆通過，優先 commit + push，不等其他測試做完。
 - **2026-09-13（十二）** — 新增 `/booking` 頁面自動跟隨系統深色/淺色模式（使用者要求，只限定這個頁面，其他頁面不受影響）。
   - 專案原本就有 `darkMode: ["class"]` 設定，`index.css` 也早就有一整組完整的 `.dark {...}` 深色 CSS 變數，只是從沒被啟用過；`src/components/ui/*`（Input／Select／Calendar 等）都只用語意化 token，理論上一加上 `dark` class 就會自動變深色，不用逐一手動加樣式。
   - 新增 `src/hooks/usePrefersDarkMode.ts`（比照既有 `usePrefersReducedMotion.ts` 寫法），偵測 `prefers-color-scheme: dark`。

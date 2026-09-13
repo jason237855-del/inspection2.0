@@ -264,7 +264,13 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
 
     setBookingId(newId);
 
-    setBookingCounts((prev) => ({ ...prev, [dateStr]: (prev[dateStr] || 0) + 1 }));
+    if (selectedSlot) {
+      setSlotCountMap((prev) => {
+        const day = { ...(prev[dateStr] || {}) };
+        day[selectedSlot.value] = (day[selectedSlot.value] || 0) + 1;
+        return { ...prev, [dateStr]: day };
+      });
+    }
 
     try {
       const { error: notifyError } = await supabase.functions.invoke("send-line-notification", {
