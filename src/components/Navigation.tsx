@@ -144,7 +144,9 @@ const Navigation = ({ variant = "default" }: NavigationProps) => {
           isScrolled ? "px-3 sm:px-6 pt-2 sm:pt-3" : "px-2 sm:px-4 pt-3 sm:pt-5"
         }`}
       >
-        <div
+        <motion.div
+          layout={!reduceMotion}
+          transition={reduceMotion ? { duration: 0 } : { layout: { duration: 0.5, ease: [0.4, 0, 0.2, 1] } }}
           className={`motion-reduce:transition-none transition-[padding,background-color,border-color,box-shadow,backdrop-filter] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-[padding,box-shadow] ${
             isScrolled
               ? "px-4 lg:px-6 py-2 shadow-[0_10px_40px_-12px_rgba(0,0,0,0.28)]"
@@ -291,7 +293,7 @@ const Navigation = ({ variant = "default" }: NavigationProps) => {
             </motion.div>
           )}
         </AnimatePresence>
-        </div>
+        </motion.div>
       </div>
     </motion.nav>
 
