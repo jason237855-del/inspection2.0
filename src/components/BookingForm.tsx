@@ -99,7 +99,7 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
           .select("preferred_date, time_slot")
           .gte("preferred_date", today)
           .in("status", ["pending", "confirmed"]),
-        supabase.from("time_slots").select("*").eq("is_active", true).order("value", { ascending: true }),
+        supabase.from("time_slots").select("*").eq("is_active", true).order("sort_order", { ascending: true }),
         supabase.from("time_slot_availability").select("*").gte("date", today),
       ]);
 
@@ -312,10 +312,8 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
   };
 
   const stepLabels = ["選擇方案", "填寫資料", "選擇時段"];
-  const inputClass =
-    "rounded-md text-sm font-light group-hover:bg-slate-800 group-hover:border-slate-600 group-hover:text-white group-hover:placeholder:text-white/50";
-  const selectClass =
-    "rounded-md text-sm font-light group-hover:bg-slate-800 group-hover:border-slate-600 group-hover:text-white [&>span]:group-hover:text-white/80 group-hover:[&_svg]:text-white/70";
+  const inputClass = "rounded-md text-sm font-light";
+  const selectClass = "rounded-md text-sm font-light";
   const labelClass =
     "flex items-center gap-1.5 mb-2.5 text-card-foreground text-[11px] uppercase tracking-wider font-normal";
 
@@ -342,7 +340,7 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
           ? "border-border/50 opacity-50 cursor-not-allowed"
           : active
             ? "border-primary bg-primary/5 shadow-soft"
-            : "border-border hover:border-primary/50 group-hover:border-slate-600",
+            : "border-border hover:border-primary/50",
       )}
     >
       <span className="flex items-center justify-between">
@@ -362,7 +360,7 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
         className="max-w-3xl mx-auto"
       >
         <Card
-          className="group p-8 lg:p-10 shadow-soft border border-border bg-card overflow-hidden transition-colors duration-500 hover:bg-slate-900 hover:border-slate-700 hover:text-white hover:shadow-hover [&_label]:hover:text-white [&_h2]:hover:text-white [&_h3]:hover:text-white [&_p]:hover:text-white/80"
+          className="group p-8 lg:p-10 shadow-soft border border-border bg-card overflow-hidden"
           onMouseEnter={() => window.dispatchEvent(new CustomEvent("booking-hover", { detail: true }))}
           onMouseLeave={() => window.dispatchEvent(new CustomEvent("booking-hover", { detail: false }))}
         >
@@ -490,7 +488,7 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-border bg-muted/40 px-5 py-4 group-hover:border-slate-700 group-hover:bg-slate-800/60">
+                <div className="rounded-xl border border-border bg-muted/40 px-5 py-4">
                   <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">預估費用</p>
                   {propertyType ? (
                     <div className="flex flex-wrap items-end gap-3">
@@ -670,7 +668,7 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
                       </div>
                     </div>
 
-                    <div className="rounded-xl border border-border bg-muted/40 px-5 py-4 space-y-2 group-hover:border-slate-700 group-hover:bg-slate-800/60">
+                    <div className="rounded-xl border border-border bg-muted/40 px-5 py-4 space-y-2">
                       <p className="text-[11px] uppercase tracking-wider text-muted-foreground">預約摘要</p>
                       {[
                         ["檢測方案", inspectionTypeLabel],

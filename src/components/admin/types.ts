@@ -39,6 +39,7 @@ export type TimeSlot = {
   label: string;
   default_max_slots: number;
   is_active: boolean;
+  sort_order: number;
 };
 
 export const statusLabels: Record<string, string> = {

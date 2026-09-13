@@ -94,6 +94,8 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
   LogOut,
   Loader2,
   Search,
@@ -322,7 +324,7 @@ const Admin = () => {
         .select("preferred_date, time_slot")
         .gte("preferred_date", today)
         .in("status", ["pending", "confirmed"]),
-      supabase.from("time_slots").select("*").order("value", { ascending: true }),
+      supabase.from("time_slots").select("*").order("sort_order", { ascending: true }),
       supabase.from("time_slot_availability").select("*").gte("date", today),
     ]);
 
@@ -573,12 +575,17 @@ const Admin = () => {
   };
 
   const createTimeSlot = async (input: { value: string; label: string; default_max_slots: number }) => {
-    const { data, error } = await supabase.from("time_slots").insert(input).select().single();
+    const nextSortOrder = timeSlots.reduce((max, s) => Math.max(max, s.sort_order), 0) + 10;
+    const { data, error } = await supabase
+      .from("time_slots")
+      .insert({ ...input, sort_order: nextSortOrder })
+      .select()
+      .single();
     if (error || !data) {
       toast.error("新增時段失敗", { description: error?.message });
       return;
     }
-    setTimeSlots((prev) => [...prev, data].sort((a, b) => a.value.localeCompare(b.value)));
+    setTimeSlots((prev) => [...prev, data].sort((a, b) => a.sort_order - b.sort_order));
     toast.success("時段已新增");
     setTimeSlotDialogOpen(false);
   };
@@ -589,10 +596,37 @@ const Admin = () => {
       toast.error("更新時段失敗", { description: error?.message });
       return;
     }
-    setTimeSlots((prev) => prev.map((s) => (s.id === id ? data : s)).sort((a, b) => a.value.localeCompare(b.value)));
+    setTimeSlots((prev) => prev.map((s) => (s.id === id ? data : s)).sort((a, b) => a.sort_order - b.sort_order));
     toast.success("時段已更新");
     setTimeSlotDialogOpen(false);
     setEditingTimeSlot(null);
+  };
+
+  const moveTimeSlot = async (slot: TimeSlot, direction: "up" | "down") => {
+    const sorted = [...timeSlots].sort((a, b) => a.sort_order - b.sort_order);
+    const index = sorted.findIndex((s) => s.id === slot.id);
+    const swapIndex = direction === "up" ? index - 1 : index + 1;
+    if (index === -1 || swapIndex < 0 || swapIndex >= sorted.length) return;
+
+    const other = sorted[swapIndex];
+    const [{ error: error1 }, { error: error2 }] = await Promise.all([
+      supabase.from("time_slots").update({ sort_order: other.sort_order }).eq("id", slot.id),
+      supabase.from("time_slots").update({ sort_order: slot.sort_order }).eq("id", other.id),
+    ]);
+    if (error1 || error2) {
+      toast.error("排序更新失敗");
+      return;
+    }
+
+    setTimeSlots((prev) =>
+      prev
+        .map((s) => {
+          if (s.id === slot.id) return { ...s, sort_order: other.sort_order };
+          if (s.id === other.id) return { ...s, sort_order: slot.sort_order };
+          return s;
+        })
+        .sort((a, b) => a.sort_order - b.sort_order)
+    );
   };
 
   const deleteTimeSlot = async (slot: TimeSlot) => {
@@ -1223,6 +1257,7 @@ const Admin = () => {
                     <Table>
                       <TableHeader>
                         <TableRow>
+                          <TableHead className="text-[11px] uppercase tracking-wider font-normal">排序</TableHead>
                           <TableHead className="text-[11px] uppercase tracking-wider font-normal">顯示名稱</TableHead>
                           <TableHead className="text-[11px] uppercase tracking-wider font-normal">代碼</TableHead>
                           <TableHead className="text-[11px] uppercase tracking-wider font-normal">預設每日名額</TableHead>
@@ -1231,8 +1266,30 @@ const Admin = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {timeSlots.map((slot) => (
+                        {timeSlots.map((slot, index) => (
                           <TableRow key={slot.id}>
+                            <TableCell>
+                              <div className="flex items-center gap-0.5">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0"
+                                  disabled={index === 0}
+                                  onClick={() => moveTimeSlot(slot, "up")}
+                                >
+                                  <ChevronUp className="h-3.5 w-3.5" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0"
+                                  disabled={index === timeSlots.length - 1}
+                                  onClick={() => moveTimeSlot(slot, "down")}
+                                >
+                                  <ChevronDown className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                            </TableCell>
                             <TableCell className="text-sm font-light">{slot.label}</TableCell>
                             <TableCell className="text-sm font-light text-muted-foreground">{slot.value}</TableCell>
                             <TableCell className="text-sm font-light">{slot.default_max_slots}</TableCell>

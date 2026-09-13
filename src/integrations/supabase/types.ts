@@ -164,6 +164,7 @@ export type Database = {
           id: string
           is_active: boolean
           label: string
+          sort_order: number
           updated_at: string
           value: string
         }
@@ -173,6 +174,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           label: string
+          sort_order?: number
           updated_at?: string
           value: string
         }
@@ -182,6 +184,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           label?: string
+          sort_order?: number
           updated_at?: string
           value?: string
         }

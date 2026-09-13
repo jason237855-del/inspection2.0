@@ -121,6 +121,10 @@ npm run dev
 
 依時間新到舊排列，每筆記錄實際做了什麼變動、為什麼。
 
+- **2026-09-13（十一）** — 兩項調整（使用者要求）：
+  1. 拿掉預約表單卡片整個滑鼠懸停變色的效果（`BookingForm.tsx`）：原本整張卡片＋輸入框／下拉選單／方案按鈕／摘要區塊，滑鼠移上去會一起變成深色（`hover:bg-slate-900` 系列 + 對應的 `group-hover:*`），使用者回報這樣文字反而不明顯，全部移除，只保留卡片本身樣式；卡片上 `onMouseEnter/onMouseLeave` 觸發 `booking-hover` 自訂事件（用來讓固定導覽列在滑過預約卡片時保持顯示）維持不變，跟變色效果是兩件事。
+  2. 後台「時段管理」新增可上下移動排序（使用者實測新增很多時段後，需要能自訂顯示順序，不想被綁死在依代碼字串排序）：`time_slots` 新增 `sort_order` 欄位（新 migration，尚未套用到正式 Supabase），既有資料依原本代碼排序回填初始值（間隔 10 方便之後插入）。後台清單新增排序欄位跟上/下箭頭按鈕，點擊會把該時段跟相鄰時段的 `sort_order`互換並存回資料庫；新增時段預設排在最後面。所有讀取 `time_slots` 的地方（後台名額管理、時段管理、客戶預約表單）都改成依 `sort_order` 排序，取代原本的代碼字串排序。
+  - `npx tsc --noEmit`、`npm run build` 皆通過。
 - **2026-09-13（十）** — 修正「名額管理」單日設定視窗在時段很多時（使用者實測新增了 14 個半小時一個的時段）沒辦法上下滑動的問題：`Admin.tsx` 的 `DialogContent` 原本沒有限制高度也沒開 `overflow`，時段一多內容直接撐爆視窗高度，看不到也捲不到後面的項目。加上 `max-h-[85vh] overflow-y-auto`，超過視窗高度時視窗內部可以獨立捲動。`npx tsc --noEmit`、`npm run build` 皆通過。
 - **2026-09-13（九）** — 修正兩個問題（使用者實測回報）：
   1. 新增時段功能上線後 `localhost:8080/admin` 整頁空白：`Admin.tsx` 的 `lucide-react` icon import 清單裡 `Clock` 被重複列了兩次（同一個 import 陳述式裡出現兩次同名），瀏覽器執行時噴出 `Uncaught SyntaxError: Identifier 'Clock' has already been declared`，導致 React 完全沒 mount。移除重複的那一個即可。
