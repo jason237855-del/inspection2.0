@@ -121,6 +121,7 @@ npm run dev
 
 依時間新到舊排列，每筆記錄實際做了什麼變動、為什麼。
 
+- **2026-09-13（十）** — 修正「名額管理」單日設定視窗在時段很多時（使用者實測新增了 14 個半小時一個的時段）沒辦法上下滑動的問題：`Admin.tsx` 的 `DialogContent` 原本沒有限制高度也沒開 `overflow`，時段一多內容直接撐爆視窗高度，看不到也捲不到後面的項目。加上 `max-h-[85vh] overflow-y-auto`，超過視窗高度時視窗內部可以獨立捲動。`npx tsc --noEmit`、`npm run build` 皆通過。
 - **2026-09-13（九）** — 修正兩個問題（使用者實測回報）：
   1. 新增時段功能上線後 `localhost:8080/admin` 整頁空白：`Admin.tsx` 的 `lucide-react` icon import 清單裡 `Clock` 被重複列了兩次（同一個 import 陳述式裡出現兩次同名），瀏覽器執行時噴出 `Uncaught SyntaxError: Identifier 'Clock' has already been declared`，導致 React 完全沒 mount。移除重複的那一個即可。
   2. 後台「名額管理」月曆格子的日期跟現實對不上（例如 2026 年 9 月 13 日明明是週日，卻被畫在「五」那一欄）：`calendarDays`（`Admin.tsx`）本來是 `eachDayOfInterval({start: startOfMonth, end: endOfMonth})` 直接產生「這個月每一天」的陣列，不管當月 1 號實際上是星期幾，畫格子時永遠讓 1 號從第一格（週日欄）開始排，等於每個月都可能整排位移。修法：用 `date-fns` 的 `getDay(startOfMonth(currentMonth))` 算出 1 號是星期幾，畫格子前先補對應數量的空白格，讓日期跟星期標題對齊。這是既有的舊 bug，這次剛好在測新功能時被發現一併修掉；`RevenueDashboard.tsx`／`OverviewDashboard.tsx` 裡其他用到 `eachDayOfInterval` 的地方都只是加總數字、不是畫週曆格子，沒有同樣問題。

@@ -1128,7 +1128,7 @@ const Admin = () => {
                 </Card>
 
                 <Dialog open={!!selectedDate} onOpenChange={() => setSelectedDate(null)}>
-                  <DialogContent className="sm:max-w-md">
+                  <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle className="font-light">
                         {selectedDate && format(selectedDate, "yyyy年MM月dd日")} 設定
