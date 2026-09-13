@@ -36,6 +36,12 @@
     --input: 213 19% 85%;
     --ring: 213 17% 52%;
 
+    /* Footer is deliberately always-dark regardless of light/dark mode —
+       kept as its own tokens (not overridden under .dark) instead of
+       reusing --foreground/--background, which do flip under .dark. */
+    --footer-background: 218 23% 23%;
+    --footer-foreground: 210 40% 98%;
+
     --radius: 0.5rem;
 
     --hero-gradient: linear-gradient(135deg, hsl(218 23% 23% / 0.9), hsl(218 23% 23% / 0.6));
@@ -138,19 +144,13 @@
 /* Booking form input text & placeholder colors */
 .booking-form input,
 .booking-form textarea {
-  color: #1A1A1A;
+  color: hsl(var(--foreground));
 }
 
 .booking-form input::placeholder,
 .booking-form textarea::placeholder {
-  color: #888888;
+  color: hsl(var(--muted-foreground));
   opacity: 1;
-}
-
-/* Light placeholder text when the card is in its dark hover state */
-.booking-form .group:hover input::placeholder,
-.booking-form .group:hover textarea::placeholder {
-  color: rgba(255, 255, 255, 0.7);
 }
 
 .booking-form input:-webkit-autofill,
@@ -159,7 +159,7 @@
 .booking-form textarea:-webkit-autofill,
 .booking-form textarea:-webkit-autofill:hover,
 .booking-form textarea:-webkit-autofill:focus {
-  -webkit-text-fill-color: #1A1A1A !important;
-  box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  -webkit-text-fill-color: hsl(var(--foreground)) !important;
+  box-shadow: 0 0 0px 1000px hsl(var(--background)) inset !important;
   transition: background-color 5000s ease-in-out 0s;
 }

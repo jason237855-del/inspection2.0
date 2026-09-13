@@ -4,12 +4,21 @@ import Navigation from "@/components/Navigation";
 import BookingForm from "@/components/BookingForm";
 import LineBookingBinder from "@/components/LineBookingBinder";
 import Footer from "@/components/Footer";
+import { usePrefersDarkMode } from "@/hooks/usePrefersDarkMode";
 
 
 const BookingPage = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
+
+  const prefersDarkMode = usePrefersDarkMode();
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", prefersDarkMode);
+    return () => {
+      document.documentElement.classList.remove("dark");
+    };
+  }, [prefersDarkMode]);
 
   return (
     <>

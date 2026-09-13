@@ -2,7 +2,7 @@ import logoWhite from "@/assets/logo-mark-white.png";
 
 const Footer = () => {
   return (
-    <footer className="bg-foreground text-background py-20 lg:py-24">
+    <footer className="bg-[hsl(var(--footer-background))] text-[hsl(var(--footer-foreground))] py-20 lg:py-24">
       <div className="container mx-auto px-6 lg:px-12">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-10 lg:gap-16">
           {/* Brand */}
@@ -29,7 +29,7 @@ const Footer = () => {
             <h3 className="text-sm font-semibold tracking-[0.08em] leading-relaxed mb-2 opacity-90">
               服務地區
             </h3>
-            <div className="flex flex-wrap md:justify-end gap-x-6 gap-y-2 text-sm font-light leading-relaxed tracking-wide text-background/70">
+            <div className="flex flex-wrap md:justify-end gap-x-6 gap-y-2 text-sm font-light leading-relaxed tracking-wide text-[hsl(var(--footer-foreground))]/70">
               <span>台北</span>
               <span>新北</span>
               <span>基隆</span>
@@ -44,11 +44,11 @@ const Footer = () => {
           </div>
         </div>
 
-        <p className="text-background/70 text-sm font-light leading-relaxed tracking-wide mt-4 max-w-md">
+        <p className="text-[hsl(var(--footer-foreground))]/70 text-sm font-light leading-relaxed tracking-wide mt-4 max-w-md">
           交屋前，多一次仔細；入住後，多一份安心。
         </p>
 
-        <div className="border-t border-background/15 pt-8 mt-14 text-center text-background/50 text-xs font-light tracking-wide">
+        <div className="border-t border-[hsl(var(--footer-foreground))]/15 pt-8 mt-14 text-center text-[hsl(var(--footer-foreground))]/50 text-xs font-light tracking-wide">
           <p>&copy; 2026 診斷室驗屋 Home Inspection &amp; Diagnostics. All rights reserved.</p>
         </div>
       </div>

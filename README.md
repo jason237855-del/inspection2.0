@@ -121,6 +121,14 @@ npm run dev
 
 依時間新到舊排列，每筆記錄實際做了什麼變動、為什麼。
 
+- **2026-09-13（十二）** — 新增 `/booking` 頁面自動跟隨系統深色/淺色模式（使用者要求，只限定這個頁面，其他頁面不受影響）。
+  - 專案原本就有 `darkMode: ["class"]` 設定，`index.css` 也早就有一整組完整的 `.dark {...}` 深色 CSS 變數，只是從沒被啟用過；`src/components/ui/*`（Input／Select／Calendar 等）都只用語意化 token，理論上一加上 `dark` class 就會自動變深色，不用逐一手動加樣式。
+  - 新增 `src/hooks/usePrefersDarkMode.ts`（比照既有 `usePrefersReducedMotion.ts` 寫法），偵測 `prefers-color-scheme: dark`。
+  - `BookingPage.tsx` 掛載時依偵測結果把 `dark` class 加在 `document.documentElement`（`<html>`），離開頁面（unmount）時移除。之所以是切 `<html>` 而不是包一層 div：`BookingForm.tsx` 裡的 `<Select>`（如「房屋類型」欄位）用 Radix 的 Portal 直接掛到 `document.body`，如果只在頁面內部某個 div 上加 class，CSS 變數傳不到 Portal 那邊，下拉選單彈窗顏色會對不起來；切在 `<html>` 上、只在這個頁面掛載期間生效，可以同時解決這個問題又維持「只有這頁會變深色」。
+  - `Footer.tsx` 原本用 `bg-foreground text-background`（刻意把語意顏色反過來用）做出「不管什麼模式頁尾都固定深色」的效果，如果整站都能切 `dark` class，`--foreground`/`--background` 深淺互換後頁尾會反過來變成刺眼的亮色 bar。改成兩個新的、**不放進 `.dark` 覆寫範圍**的固定 token（`--footer-background`／`--footer-foreground`，數值就是原本淺色模式下 `--foreground`／`--background` 算出來的顏色），頁尾外觀完全不變、也不受這次的深色模式開關影響。
+  - `index.css` 裡 `.booking-form input/textarea` 原本用純 CSS 寫死文字顏色（`#1A1A1A`）、placeholder（`#888888`）、瀏覽器自動填入顏色，這些不會跟著 `dark` class 變化，深色模式下輸入框背景變深但文字還是被強制顯示深色、看不清楚；改成參照 `hsl(var(--foreground))`／`hsl(var(--muted-foreground))`／`hsl(var(--background))`。同時清掉一條孤兒 CSS 規則 `.booking-form .group:hover input::placeholder {...}`——這是稍早拿掉卡片 hover 變色效果時漏刪的殘留，卡片已經不會在 hover 時變深色了，這條規則留著也沒作用。
+  - `Navigation.tsx` 沒有變動：它自己的明暗（`variant` prop／捲動狀態）邏輯是獨立的一套，不受這次改動影響。
+  - `npx tsc --noEmit`、`npm run build` 皆通過。
 - **2026-09-13（十一）** — 兩項調整（使用者要求）：
   1. 拿掉預約表單卡片整個滑鼠懸停變色的效果（`BookingForm.tsx`）：原本整張卡片＋輸入框／下拉選單／方案按鈕／摘要區塊，滑鼠移上去會一起變成深色（`hover:bg-slate-900` 系列 + 對應的 `group-hover:*`），使用者回報這樣文字反而不明顯，全部移除，只保留卡片本身樣式；卡片上 `onMouseEnter/onMouseLeave` 觸發 `booking-hover` 自訂事件（用來讓固定導覽列在滑過預約卡片時保持顯示）維持不變，跟變色效果是兩件事。
   2. 後台「時段管理」新增可上下移動排序（使用者實測新增很多時段後，需要能自訂顯示順序，不想被綁死在依代碼字串排序）：`time_slots` 新增 `sort_order` 欄位（新 migration，尚未套用到正式 Supabase），既有資料依原本代碼排序回填初始值（間隔 10 方便之後插入）。後台清單新增排序欄位跟上/下箭頭按鈕，點擊會把該時段跟相鄰時段的 `sort_order`互換並存回資料庫；新增時段預設排在最後面。所有讀取 `time_slots` 的地方（後台名額管理、時段管理、客戶預約表單）都改成依 `sort_order` 排序，取代原本的代碼字串排序。
