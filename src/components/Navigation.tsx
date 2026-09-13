@@ -145,7 +145,7 @@ const Navigation = ({ variant = "default" }: NavigationProps) => {
         }`}
       >
         <div
-          className={`motion-reduce:transition-none transition-[padding,background-color,border-color,box-shadow,backdrop-filter,border-radius] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] will-change-[padding,box-shadow] ${
+          className={`motion-reduce:transition-none transition-[padding,background-color,border-color,box-shadow,backdrop-filter] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] will-change-[padding,box-shadow] ${
             isScrolled
               ? "px-4 lg:px-6 py-2 shadow-[0_10px_40px_-12px_rgba(0,0,0,0.28)]"
               : "px-5 lg:px-8 py-4 shadow-[0_2px_20px_-12px_rgba(0,0,0,0.15)]"
