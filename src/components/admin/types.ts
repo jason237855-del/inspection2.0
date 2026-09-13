@@ -33,6 +33,14 @@ export type Availability = {
   reason: string | null;
 };
 
+export type TimeSlot = {
+  id: string;
+  value: string;
+  label: string;
+  default_max_slots: number;
+  is_active: boolean;
+};
+
 export const statusLabels: Record<string, string> = {
   pending: "待確認",
   confirmed: "已確認",
@@ -94,13 +102,10 @@ export const regionOptions = [
   { value: "yilan", label: "宜蘭" },
 ];
 
-export const timeSlotOptions = [
-  { value: "morning", label: "上午 09:00–12:00" },
-  { value: "afternoon", label: "下午 13:00–17:00" },
-  { value: "evening", label: "傍晚 17:00–19:00" },
-];
-
-export const timeSlotLabels: Record<string, string> = {
+// Legacy display fallback for bookings created before time slots became
+// admin-managed (see time_slots table) — historical values only, not offered
+// as options anywhere.
+export const legacyTimeSlotLabels: Record<string, string> = {
   morning: "上午 09:00–12:00",
   afternoon: "下午 13:00–17:00",
   evening: "傍晚 17:00–19:00",

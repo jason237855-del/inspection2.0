@@ -128,6 +128,65 @@ export type Database = {
         }
         Relationships: []
       }
+      time_slot_availability: {
+        Row: {
+          date: string
+          max_slots: number
+          time_slot_id: string
+          updated_at: string
+        }
+        Insert: {
+          date: string
+          max_slots?: number
+          time_slot_id: string
+          updated_at?: string
+        }
+        Update: {
+          date?: string
+          max_slots?: number
+          time_slot_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_slot_availability_time_slot_id_fkey"
+            columns: ["time_slot_id"]
+            isOneToOne: false
+            referencedRelation: "time_slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      time_slots: {
+        Row: {
+          created_at: string
+          default_max_slots: number
+          id: string
+          is_active: boolean
+          label: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          default_max_slots?: number
+          id?: string
+          is_active?: boolean
+          label: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          default_max_slots?: number
+          id?: string
+          is_active?: boolean
+          label?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

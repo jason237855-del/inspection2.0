@@ -46,6 +46,7 @@ type Props = {
   bookings: BookingRequest[];
   availability: Record<string, Availability>;
   bookingCounts: Record<string, number>;
+  defaultDailyCapacity: number;
   onOpenBooking: (booking: BookingRequest) => void;
 };
 
@@ -97,7 +98,7 @@ export const TrendBadge = ({
   );
 };
 
-const OverviewDashboard = ({ bookings, availability, bookingCounts, onOpenBooking }: Props) => {
+const OverviewDashboard = ({ bookings, availability, bookingCounts, defaultDailyCapacity, onOpenBooking }: Props) => {
   const isMobile = useIsMobile();
   const now = new Date();
   const monthStart = format(startOfMonth(now), "yyyy-MM-dd");
@@ -133,8 +134,9 @@ const OverviewDashboard = ({ bookings, availability, bookingCounts, onOpenBookin
       const ds = format(d, "yyyy-MM-dd");
       const avail = availability[ds];
       if (avail?.is_blocked) return;
-      capacity += avail?.max_slots ?? 3;
-      used += Math.min(bookingCounts[ds] || 0, avail?.max_slots ?? 3);
+      const maxSlots = avail?.max_slots ?? defaultDailyCapacity;
+      capacity += maxSlots;
+      used += Math.min(bookingCounts[ds] || 0, maxSlots);
     });
     const usageRate = capacity > 0 ? Math.round((used / capacity) * 100) : 0;
 
@@ -149,7 +151,7 @@ const OverviewDashboard = ({ bookings, availability, bookingCounts, onOpenBookin
       capacity,
       usageRate,
     };
-  }, [bookings, availability, bookingCounts, monthStart, monthEnd, prevMonthStart, prevMonthEnd]);
+  }, [bookings, availability, bookingCounts, defaultDailyCapacity, monthStart, monthEnd, prevMonthStart, prevMonthEnd]);
 
   const revenueSummary = useMemo(() => {
     const eligible = bookings.filter((b) => b.status === "confirmed" || b.status === "completed");

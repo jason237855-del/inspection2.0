@@ -11,6 +11,7 @@ import {
   isSameMonth,
   isToday,
   parseISO,
+  getDay,
 } from "date-fns";
 import { zhTW } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
@@ -74,9 +75,9 @@ import {
   propertyOptions,
   regionLabels,
   regionOptions,
-  timeSlotLabels,
+  legacyTimeSlotLabels,
 } from "@/components/admin/types";
-import type { BookingRequest, Availability } from "@/components/admin/types";
+import type { BookingRequest, Availability, TimeSlot } from "@/components/admin/types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -131,6 +132,15 @@ const Admin = () => {
   const [bookings, setBookings] = useState<BookingRequest[]>([]);
   const [availability, setAvailability] = useState<Record<string, Availability>>({});
   const [bookingCounts, setBookingCounts] = useState<Record<string, number>>({});
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
+  // date -> time_slot_id -> override for that day (falls back to the slot's default_max_slots)
+  const [slotAvailability, setSlotAvailability] = useState<Record<string, Record<string, number>>>({});
+  // date -> time_slot value -> booking count for that day
+  const [slotBookingCounts, setSlotBookingCounts] = useState<Record<string, Record<string, number>>>({});
+  const [timeSlotDialogOpen, setTimeSlotDialogOpen] = useState(false);
+  const [editingTimeSlot, setEditingTimeSlot] = useState<TimeSlot | null>(null);
+  const [deleteTimeSlotTarget, setDeleteTimeSlotTarget] = useState<TimeSlot | null>(null);
+  const [slotForm, setSlotForm] = useState({ value: "", label: "", default_max_slots: 3 });
   const [loadingData, setLoadingData] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -160,6 +170,21 @@ const Admin = () => {
   );
   const [activeTab, setActiveTab] = useState("overview");
   const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const activeTimeSlots = useMemo(() => timeSlots.filter((s) => s.is_active), [timeSlots]);
+  const defaultDailyCapacity = useMemo(
+    () => activeTimeSlots.reduce((sum, s) => sum + s.default_max_slots, 0),
+    [activeTimeSlots]
+  );
+  const timeSlotLabelByValue = useMemo(() => {
+    const map: Record<string, string> = { ...legacyTimeSlotLabels };
+    timeSlots.forEach((s) => {
+      map[s.value] = s.label;
+    });
+    return map;
+  }, [timeSlots]);
+  const getSlotMax = (dateStr: string, slot: TimeSlot) =>
+    slotAvailability[dateStr]?.[slot.id] ?? slot.default_max_slots;
 
   useEffect(() => {
     if (adminLoading) return;
@@ -225,6 +250,12 @@ const Admin = () => {
             ...prev,
             [newBooking.preferred_date]: (prev[newBooking.preferred_date] || 0) + 1,
           }));
+          setSlotBookingCounts((prev) => {
+            const slotKey = newBooking.time_slot || "";
+            const day = { ...(prev[newBooking.preferred_date] || {}) };
+            day[slotKey] = (day[slotKey] || 0) + 1;
+            return { ...prev, [newBooking.preferred_date]: day };
+          });
           setNewBookingAlert(true);
           setUnreadCount((c) => c + 1);
           const desc = `${newBooking.name || "新客戶"} 預約了 ${format(
@@ -277,29 +308,68 @@ const Admin = () => {
     setLoadingData(true);
     const today = format(new Date(), "yyyy-MM-dd");
 
-    const [{ data: bookingsData }, { data: availabilityData }, { data: countsData }] = await Promise.all([
+    const [
+      { data: bookingsData },
+      { data: availabilityData },
+      { data: countsData },
+      { data: timeSlotsData },
+      { data: slotAvailData },
+    ] = await Promise.all([
       supabase.from("booking_requests").select("*").order("created_at", { ascending: false }),
       supabase.from("booking_availability").select("*").gte("date", today),
       supabase
         .from("booking_requests")
-        .select("preferred_date")
+        .select("preferred_date, time_slot")
         .gte("preferred_date", today)
         .in("status", ["pending", "confirmed"]),
+      supabase.from("time_slots").select("*").order("value", { ascending: true }),
+      supabase.from("time_slot_availability").select("*").gte("date", today),
     ]);
 
-    const availMap: Record<string, Availability> = {};
-    availabilityData?.forEach((row) => {
-      availMap[row.date] = row;
+    const slots = timeSlotsData || [];
+    const activeSlots = slots.filter((s) => s.is_active);
+
+    const slotOverrideMap: Record<string, Record<string, number>> = {};
+    slotAvailData?.forEach((row) => {
+      slotOverrideMap[row.date] ??= {};
+      slotOverrideMap[row.date][row.time_slot_id] = row.max_slots;
     });
 
+    const dayBlockMap: Record<string, { is_blocked: boolean; reason: string | null }> = {};
+    availabilityData?.forEach((row) => {
+      dayBlockMap[row.date] = { is_blocked: row.is_blocked, reason: row.reason };
+    });
+
+    const slotCounts: Record<string, Record<string, number>> = {};
     const counts: Record<string, number> = {};
     countsData?.forEach((row) => {
       counts[row.preferred_date] = (counts[row.preferred_date] || 0) + 1;
+      const slotKey = row.time_slot || "";
+      slotCounts[row.preferred_date] ??= {};
+      slotCounts[row.preferred_date][slotKey] = (slotCounts[row.preferred_date][slotKey] || 0) + 1;
+    });
+
+    const relevantDates = new Set([...Object.keys(dayBlockMap), ...Object.keys(slotOverrideMap)]);
+    const availMap: Record<string, Availability> = {};
+    relevantDates.forEach((dateStr) => {
+      const maxSlots = activeSlots.reduce(
+        (sum, slot) => sum + (slotOverrideMap[dateStr]?.[slot.id] ?? slot.default_max_slots),
+        0
+      );
+      availMap[dateStr] = {
+        date: dateStr,
+        max_slots: maxSlots,
+        is_blocked: dayBlockMap[dateStr]?.is_blocked ?? false,
+        reason: dayBlockMap[dateStr]?.reason ?? null,
+      };
     });
 
     setBookings(bookingsData || []);
     setAvailability(availMap);
     setBookingCounts(counts);
+    setTimeSlots(slots);
+    setSlotAvailability(slotOverrideMap);
+    setSlotBookingCounts(slotCounts);
     setLoadingData(false);
     setNewBookingAlert(false);
     setUnreadCount(0);
@@ -429,6 +499,141 @@ const Admin = () => {
     toast.success(`已更新 ${dates.length} 個日期`);
   };
 
+  const saveSlotAvailability = async (dateStr: string, slotId: string, maxSlots: number) => {
+    const { error } = await supabase
+      .from("time_slot_availability")
+      .upsert({ date: dateStr, time_slot_id: slotId, max_slots: maxSlots });
+    if (error) {
+      toast.error("儲存失敗");
+      return;
+    }
+
+    setSlotAvailability((prev) => ({
+      ...prev,
+      [dateStr]: { ...(prev[dateStr] || {}), [slotId]: maxSlots },
+    }));
+    setAvailability((prev) => {
+      const total = activeTimeSlots.reduce(
+        (sum, slot) => sum + (slot.id === slotId ? maxSlots : getSlotMax(dateStr, slot)),
+        0
+      );
+      const existing = prev[dateStr];
+      return {
+        ...prev,
+        [dateStr]: {
+          date: dateStr,
+          max_slots: total,
+          is_blocked: existing?.is_blocked ?? false,
+          reason: existing?.reason ?? null,
+        },
+      };
+    });
+    toast.success("時段名額已儲存");
+  };
+
+  const saveBatchSlotAvailability = async (dates: string[], maxSlots: number) => {
+    if (activeTimeSlots.length === 0 || dates.length === 0) return;
+    const payloads = dates.flatMap((dateStr) =>
+      activeTimeSlots.map((slot) => ({ date: dateStr, time_slot_id: slot.id, max_slots: maxSlots }))
+    );
+
+    const { error } = await supabase.from("time_slot_availability").upsert(payloads);
+    if (error) {
+      toast.error("批次儲存失敗");
+      return;
+    }
+
+    setSlotAvailability((prev) => {
+      const next = { ...prev };
+      dates.forEach((dateStr) => {
+        const day = { ...(next[dateStr] || {}) };
+        activeTimeSlots.forEach((slot) => {
+          day[slot.id] = maxSlots;
+        });
+        next[dateStr] = day;
+      });
+      return next;
+    });
+    setAvailability((prev) => {
+      const next = { ...prev };
+      dates.forEach((dateStr) => {
+        const existing = next[dateStr];
+        next[dateStr] = {
+          date: dateStr,
+          max_slots: maxSlots * activeTimeSlots.length,
+          is_blocked: existing?.is_blocked ?? false,
+          reason: existing?.reason ?? null,
+        };
+      });
+      return next;
+    });
+
+    setSelectedDates([]);
+    toast.success(`已更新 ${dates.length} 個日期`);
+  };
+
+  const createTimeSlot = async (input: { value: string; label: string; default_max_slots: number }) => {
+    const { data, error } = await supabase.from("time_slots").insert(input).select().single();
+    if (error || !data) {
+      toast.error("新增時段失敗", { description: error?.message });
+      return;
+    }
+    setTimeSlots((prev) => [...prev, data].sort((a, b) => a.value.localeCompare(b.value)));
+    toast.success("時段已新增");
+    setTimeSlotDialogOpen(false);
+  };
+
+  const updateTimeSlot = async (id: string, updates: Partial<TimeSlot>) => {
+    const { data, error } = await supabase.from("time_slots").update(updates).eq("id", id).select().single();
+    if (error || !data) {
+      toast.error("更新時段失敗", { description: error?.message });
+      return;
+    }
+    setTimeSlots((prev) => prev.map((s) => (s.id === id ? data : s)).sort((a, b) => a.value.localeCompare(b.value)));
+    toast.success("時段已更新");
+    setTimeSlotDialogOpen(false);
+    setEditingTimeSlot(null);
+  };
+
+  const deleteTimeSlot = async (slot: TimeSlot) => {
+    const { error } = await supabase.from("time_slots").delete().eq("id", slot.id);
+    if (error) {
+      toast.error("刪除失敗", { description: error.message });
+      return;
+    }
+    setTimeSlots((prev) => prev.filter((s) => s.id !== slot.id));
+    setDeleteTimeSlotTarget(null);
+    toast.success("時段已刪除");
+  };
+
+  const toggleTimeSlotActive = async (slot: TimeSlot) => {
+    await updateTimeSlot(slot.id, { is_active: !slot.is_active });
+  };
+
+  const openCreateTimeSlot = () => {
+    setEditingTimeSlot(null);
+    setSlotForm({ value: "", label: "", default_max_slots: 3 });
+    setTimeSlotDialogOpen(true);
+  };
+
+  const openEditTimeSlot = (slot: TimeSlot) => {
+    setEditingTimeSlot(slot);
+    setSlotForm({ value: slot.value, label: slot.label, default_max_slots: slot.default_max_slots });
+    setTimeSlotDialogOpen(true);
+  };
+
+  const submitTimeSlotForm = async () => {
+    if (!slotForm.value.trim() || !slotForm.label.trim()) {
+      toast.error("請填寫代碼與顯示名稱");
+      return;
+    }
+    if (editingTimeSlot) {
+      await updateTimeSlot(editingTimeSlot.id, slotForm);
+    } else {
+      await createTimeSlot(slotForm);
+    }
+  };
+
   const blockWeekends = async () => {
     const days = eachDayOfInterval({
       start: startOfMonth(currentMonth),
@@ -447,6 +652,7 @@ const Admin = () => {
     start: startOfMonth(currentMonth),
     end: endOfMonth(currentMonth),
   });
+  const leadingBlankDays = getDay(startOfMonth(currentMonth));
 
   const toggleDateSelection = (dateStr: string) => {
     setSelectedDates((prev) =>
@@ -723,6 +929,7 @@ const Admin = () => {
                   bookings={bookings}
                   availability={availability}
                   bookingCounts={bookingCounts}
+                  defaultDailyCapacity={defaultDailyCapacity}
                   onOpenBooking={(b) => {
                     setActiveTab("bookings");
                     openDetail(b);
@@ -764,6 +971,15 @@ const Admin = () => {
                       <Button variant="outline" size="sm" className="shrink-0" onClick={blockWeekends}>
                         關閉本週末
                       </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="shrink-0 md:hidden"
+                        onClick={() => setActiveTab("timeslots")}
+                      >
+                        <Clock className="h-3.5 w-3.5 mr-1.5" />
+                        時段管理
+                      </Button>
                       <div className="flex items-center gap-2 ml-1 shrink-0">
                         <Switch id="batchMode" checked={batchMode} onCheckedChange={setBatchMode} />
                         <Label htmlFor="batchMode" className="text-xs font-light cursor-pointer">
@@ -800,7 +1016,7 @@ const Admin = () => {
                         </PopoverTrigger>
                         <PopoverContent className="w-48">
                           <div className="space-y-2">
-                            <Label className="text-xs font-light">每日名額</Label>
+                            <Label className="text-xs font-light">每個時段的名額</Label>
                             <Input
                               type="number"
                               min={1}
@@ -809,12 +1025,14 @@ const Admin = () => {
                               onKeyDown={(e) => {
                                 if (e.key === "Enter") {
                                   const value = parseInt((e.target as HTMLInputElement).value) || 3;
-                                  saveBatchAvailability(selectedDates, { max_slots: value });
+                                  saveBatchSlotAvailability(selectedDates, value);
                                 }
                               }}
                               className="text-sm font-light"
                             />
-                            <p className="text-[10px] text-muted-foreground">按 Enter 套用</p>
+                            <p className="text-[10px] text-muted-foreground">
+                              按 Enter 套用到所選日期的每個啟用時段
+                            </p>
                           </div>
                         </PopoverContent>
                       </Popover>
@@ -834,11 +1052,14 @@ const Admin = () => {
                   </div>
 
                   <div className="grid grid-cols-7 gap-2">
+                    {Array.from({ length: leadingBlankDays }).map((_, i) => (
+                      <div key={`blank-${i}`} aria-hidden="true" />
+                    ))}
                     {calendarDays.map((day) => {
                       const dateStr = format(day, "yyyy-MM-dd");
                       const avail = availability[dateStr];
                       const count = bookingCounts[dateStr] || 0;
-                      const maxSlots = avail?.max_slots ?? 3;
+                      const maxSlots = avail?.max_slots ?? defaultDailyCapacity;
                       const isBlocked = avail?.is_blocked ?? false;
                       const isFull = !isBlocked && count >= maxSlots;
                       const isPast = day < startOfDay(new Date());
@@ -931,23 +1152,34 @@ const Admin = () => {
                           />
                         </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="maxSlots" className="text-sm font-light">
-                            每日可預約名額
-                          </Label>
-                          <Input
-                            id="maxSlots"
-                            type="number"
-                            min={1}
-                            max={20}
-                            value={availability[format(selectedDate, "yyyy-MM-dd")]?.max_slots ?? 3}
-                            onChange={(e) =>
-                              saveAvailability(format(selectedDate, "yyyy-MM-dd"), {
-                                max_slots: parseInt(e.target.value) || 3,
-                              })
-                            }
-                            className="text-sm font-light"
-                          />
+                        <div className="space-y-3">
+                          <Label className="text-sm font-light">各時段可預約名額</Label>
+                          {activeTimeSlots.length === 0 ? (
+                            <p className="text-xs text-muted-foreground">
+                              尚未設定任何時段，請先到「時段管理」新增。
+                            </p>
+                          ) : (
+                            <div className="space-y-2">
+                              {activeTimeSlots.map((slot) => {
+                                const dateStr = format(selectedDate, "yyyy-MM-dd");
+                                return (
+                                  <div key={slot.id} className="flex items-center justify-between gap-3">
+                                    <span className="text-xs font-light text-muted-foreground">{slot.label}</span>
+                                    <Input
+                                      type="number"
+                                      min={0}
+                                      max={20}
+                                      value={getSlotMax(dateStr, slot)}
+                                      onChange={(e) =>
+                                        saveSlotAvailability(dateStr, slot.id, parseInt(e.target.value) || 0)
+                                      }
+                                      className="w-24 text-sm font-light"
+                                    />
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
 
                         <div className="space-y-2">
@@ -968,6 +1200,150 @@ const Admin = () => {
                     )}
                   </DialogContent>
                 </Dialog>
+              </TabsContent>
+
+              <TabsContent value="timeslots" className="mt-0 space-y-6">
+                <Card className="border border-border shadow-soft p-4 md:p-6">
+                  <div className="flex items-center justify-between mb-6 gap-4">
+                    <div>
+                      <h2 className="text-lg font-light">時段管理</h2>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        新增／編輯預約時段，客戶預約表單與後台會即時同步這份清單
+                      </p>
+                    </div>
+                    <Button size="sm" onClick={openCreateTimeSlot}>
+                      <Plus className="h-3.5 w-3.5 mr-1.5" />
+                      新增時段
+                    </Button>
+                  </div>
+
+                  {timeSlots.length === 0 ? (
+                    <p className="text-sm text-muted-foreground py-8 text-center">尚未設定任何時段</p>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-[11px] uppercase tracking-wider font-normal">顯示名稱</TableHead>
+                          <TableHead className="text-[11px] uppercase tracking-wider font-normal">代碼</TableHead>
+                          <TableHead className="text-[11px] uppercase tracking-wider font-normal">預設每日名額</TableHead>
+                          <TableHead className="text-[11px] uppercase tracking-wider font-normal">啟用</TableHead>
+                          <TableHead className="text-[11px] uppercase tracking-wider font-normal text-right">操作</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {timeSlots.map((slot) => (
+                          <TableRow key={slot.id}>
+                            <TableCell className="text-sm font-light">{slot.label}</TableCell>
+                            <TableCell className="text-sm font-light text-muted-foreground">{slot.value}</TableCell>
+                            <TableCell className="text-sm font-light">{slot.default_max_slots}</TableCell>
+                            <TableCell>
+                              <Switch
+                                checked={slot.is_active}
+                                onCheckedChange={() => toggleTimeSlotActive(slot)}
+                              />
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button variant="ghost" size="sm" onClick={() => openEditTimeSlot(slot)}>
+                                <Pencil className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:text-destructive"
+                                onClick={() => setDeleteTimeSlotTarget(slot)}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </Card>
+
+                <Dialog open={timeSlotDialogOpen} onOpenChange={setTimeSlotDialogOpen}>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="font-light">
+                        {editingTimeSlot ? "編輯時段" : "新增時段"}
+                      </DialogTitle>
+                      <DialogDescription className="text-xs text-muted-foreground">
+                        設定時段的顯示名稱、代碼與預設每日名額
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="slotLabel" className="text-sm font-light">
+                          顯示名稱
+                        </Label>
+                        <Input
+                          id="slotLabel"
+                          value={slotForm.label}
+                          onChange={(e) => setSlotForm((prev) => ({ ...prev, label: e.target.value }))}
+                          placeholder="例如：16:00 晚間場"
+                          className="text-sm font-light"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="slotValue" className="text-sm font-light">
+                          代碼（開始時間，僅供系統辨識，不可跟其他時段重複）
+                        </Label>
+                        <Input
+                          id="slotValue"
+                          value={slotForm.value}
+                          onChange={(e) => setSlotForm((prev) => ({ ...prev, value: e.target.value }))}
+                          placeholder="例如：16:00"
+                          className="text-sm font-light"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="slotDefaultMax" className="text-sm font-light">
+                          預設每日名額
+                        </Label>
+                        <Input
+                          id="slotDefaultMax"
+                          type="number"
+                          min={0}
+                          max={20}
+                          value={slotForm.default_max_slots}
+                          onChange={(e) =>
+                            setSlotForm((prev) => ({ ...prev, default_max_slots: parseInt(e.target.value) || 0 }))
+                          }
+                          className="text-sm font-light"
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" size="sm" onClick={() => setTimeSlotDialogOpen(false)}>
+                        取消
+                      </Button>
+                      <Button size="sm" onClick={submitTimeSlotForm}>
+                        儲存
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
+                <AlertDialog open={!!deleteTimeSlotTarget} onOpenChange={() => setDeleteTimeSlotTarget(null)}>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>刪除時段「{deleteTimeSlotTarget?.label}」？</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        刪除後客戶預約表單將不再顯示此時段，已存在的歷史預約紀錄不受影響。此操作無法復原。
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>取消</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        onClick={() => deleteTimeSlotTarget && deleteTimeSlot(deleteTimeSlotTarget)}
+                      >
+                        刪除
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </TabsContent>
 
               <TabsContent value="bookings" className="mt-0 space-y-6">
@@ -1218,7 +1594,7 @@ const Admin = () => {
                                 <div className="space-y-0.5">
                                   <p>{format(parseISO(booking.preferred_date), "yyyy/MM/dd")}</p>
                                   <p className="text-xs text-muted-foreground">
-                                    {booking.time_slot ? timeSlotLabels[booking.time_slot] || booking.time_slot : "未指定時段"}
+                                    {booking.time_slot ? timeSlotLabelByValue[booking.time_slot] || booking.time_slot : "未指定時段"}
                                   </p>
                                 </div>
                               </TableCell>
@@ -1556,6 +1932,7 @@ const Admin = () => {
         onOpenChange={setEditorOpen}
         booking={editingBooking}
         onSaved={handleSaved}
+        timeSlots={activeTimeSlots}
       />
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>

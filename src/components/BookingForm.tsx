@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { LIFF_ID, LINE_OA_URL } from "@/config/line";
 import { supabase } from "@/integrations/supabase/client";
+import type { TimeSlot } from "@/components/admin/types";
 
 
 const slideVariants = {
@@ -41,11 +42,6 @@ const houseTypeLabels: Record<string, string> = {
   townhouse: "透天",
   other: "其他",
 };
-const timeSlots = [
-  { value: "09:00", label: "09:00 上午場" },
-  { value: "14:00", label: "14:00 下午場" },
-];
-
 const formatNT = (n: number) => `$NT ${n.toLocaleString("en-US")}`;
 
 interface BookingFormProps {
@@ -79,8 +75,10 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
   const [timeSlot, setTimeSlot] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const [availabilityMap, setAvailabilityMap] = useState<Record<string, { max_slots: number; is_blocked: boolean }>>({});
-  const [bookingCounts, setBookingCounts] = useState<Record<string, number>>({});
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
+  const [availabilityMap, setAvailabilityMap] = useState<Record<string, { is_blocked: boolean }>>({});
+  const [slotMaxMap, setSlotMaxMap] = useState<Record<string, Record<string, number>>>({});
+  const [slotCountMap, setSlotCountMap] = useState<Record<string, Record<string, number>>>({});
   const [loadingAvailability, setLoadingAvailability] = useState(true);
 
   const [bookingId, setBookingId] = useState<string | null>(null);
@@ -94,32 +92,59 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
       setLoadingAvailability(true);
       const today = format(startOfDay(new Date()), "yyyy-MM-dd");
 
-      const [{ data: availability }, { data: bookings }] = await Promise.all([
-        supabase.from("booking_availability").select("date, max_slots, is_blocked").gte("date", today),
+      const [{ data: availability }, { data: bookings }, { data: slots }, { data: slotAvail }] = await Promise.all([
+        supabase.from("booking_availability").select("date, is_blocked").gte("date", today),
         supabase
           .from("booking_requests")
-          .select("preferred_date")
+          .select("preferred_date, time_slot")
           .gte("preferred_date", today)
           .in("status", ["pending", "confirmed"]),
+        supabase.from("time_slots").select("*").eq("is_active", true).order("value", { ascending: true }),
+        supabase.from("time_slot_availability").select("*").gte("date", today),
       ]);
 
-      const map: Record<string, { max_slots: number; is_blocked: boolean }> = {};
+      const map: Record<string, { is_blocked: boolean }> = {};
       availability?.forEach((row) => {
-        map[row.date] = { max_slots: row.max_slots, is_blocked: row.is_blocked };
+        map[row.date] = { is_blocked: row.is_blocked };
       });
 
-      const counts: Record<string, number> = {};
+      const slotCounts: Record<string, Record<string, number>> = {};
       bookings?.forEach((row) => {
-        counts[row.preferred_date] = (counts[row.preferred_date] || 0) + 1;
+        const slotKey = row.time_slot || "";
+        slotCounts[row.preferred_date] ??= {};
+        slotCounts[row.preferred_date][slotKey] = (slotCounts[row.preferred_date][slotKey] || 0) + 1;
+      });
+
+      const slotMax: Record<string, Record<string, number>> = {};
+      slotAvail?.forEach((row) => {
+        slotMax[row.date] ??= {};
+        slotMax[row.date][row.time_slot_id] = row.max_slots;
       });
 
       setAvailabilityMap(map);
-      setBookingCounts(counts);
+      setSlotCountMap(slotCounts);
+      setSlotMaxMap(slotMax);
+      setTimeSlots(slots || []);
       setLoadingAvailability(false);
     };
 
     fetchAvailability();
   }, []);
+
+  const getSlotMaxForDate = (dateStr: string, slot: TimeSlot) => slotMaxMap[dateStr]?.[slot.id] ?? slot.default_max_slots;
+  const getSlotCountForDate = (dateStr: string, slot: TimeSlot) => slotCountMap[dateStr]?.[slot.value] || 0;
+  const isSlotFull = (dateStr: string, slot: TimeSlot) => getSlotCountForDate(dateStr, slot) >= getSlotMaxForDate(dateStr, slot);
+  const isDayFull = (dateStr: string) => timeSlots.length > 0 && timeSlots.every((slot) => isSlotFull(dateStr, slot));
+
+  useEffect(() => {
+    if (!preferredDate || !timeSlot) return;
+    const dateStr = format(preferredDate, "yyyy-MM-dd");
+    const selectedSlot = timeSlots.find((s) => s.value === timeSlot);
+    if (selectedSlot && isSlotFull(dateStr, selectedSlot)) {
+      setTimeSlot("");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preferredDate]);
 
   const pingNum = Math.max(0, parseInt(ping, 10) || 20);
   const basePrice = propertyType ? BASE_PRICE[propertyType] : 0;
@@ -189,8 +214,9 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
       toast.error("所選日期目前不開放預約，請選擇其他日期");
       return;
     }
-    if ((bookingCounts[dateStr] || 0) >= (avail?.max_slots ?? 3)) {
-      toast.error("所選日期已額滿，請選擇其他日期");
+    const selectedSlot = timeSlots.find((s) => s.value === timeSlot);
+    if (selectedSlot && isSlotFull(dateStr, selectedSlot)) {
+      toast.error("所選時段已額滿，請選擇其他時段");
       return;
     }
 
@@ -298,25 +324,30 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
     onClick,
     title,
     desc,
+    disabled,
   }: {
     active: boolean;
     onClick: () => void;
     title: string;
     desc: string;
+    disabled?: boolean;
   }) => (
     <button
       type="button"
-      onClick={onClick}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
       className={cn(
         "text-left rounded-xl border px-5 py-4 transition-all duration-300 w-full",
-        active
-          ? "border-primary bg-primary/5 shadow-soft"
-          : "border-border hover:border-primary/50 group-hover:border-slate-600",
+        disabled
+          ? "border-border/50 opacity-50 cursor-not-allowed"
+          : active
+            ? "border-primary bg-primary/5 shadow-soft"
+            : "border-border hover:border-primary/50 group-hover:border-slate-600",
       )}
     >
       <span className="flex items-center justify-between">
         <span className="text-sm font-medium text-card-foreground">{title}</span>
-        {active && <CheckCircle className="h-4 w-4 text-primary" />}
+        {active && !disabled && <CheckCircle className="h-4 w-4 text-primary" />}
       </span>
       <span className="mt-1 block text-xs font-light text-muted-foreground">{desc}</span>
     </button>
@@ -609,7 +640,7 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
                           if (date < startOfDay(new Date())) return true;
                           const avail = availabilityMap[dateStr];
                           if (avail?.is_blocked) return true;
-                          return (bookingCounts[dateStr] || 0) >= (avail?.max_slots ?? 3);
+                          return isDayFull(dateStr);
                         }}
                       />
                     )}
@@ -622,15 +653,20 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
                         預約時段
                       </Label>
                       <div className="grid grid-cols-2 gap-3">
-                        {timeSlots.map((slot) => (
-                          <OptionButton
-                            key={slot.value}
-                            active={timeSlot === slot.value}
-                            onClick={() => setTimeSlot(slot.value)}
-                            title={slot.value}
-                            desc={slot.label.replace(`${slot.value} `, "")}
-                          />
-                        ))}
+                        {timeSlots.map((slot) => {
+                          const dateStr = preferredDate ? format(preferredDate, "yyyy-MM-dd") : "";
+                          const full = dateStr ? isSlotFull(dateStr, slot) : false;
+                          return (
+                            <OptionButton
+                              key={slot.value}
+                              active={timeSlot === slot.value}
+                              onClick={() => setTimeSlot(slot.value)}
+                              title={slot.value}
+                              desc={full ? "已額滿" : slot.label.replace(`${slot.value} `, "")}
+                              disabled={full}
+                            />
+                          );
+                        })}
                       </div>
                     </div>
 

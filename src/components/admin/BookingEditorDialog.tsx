@@ -28,7 +28,7 @@ import {
   propertyOptions,
   regionOptions,
   statusOptions,
-  timeSlotOptions,
+  TimeSlot,
 } from "./types";
 
 type Props = {
@@ -36,6 +36,7 @@ type Props = {
   onOpenChange: (open: boolean) => void;
   booking: BookingRequest | null; // null = create mode
   onSaved: (booking: BookingRequest, mode: "create" | "update") => void;
+  timeSlots: TimeSlot[];
 };
 
 type FormState = {
@@ -54,12 +55,12 @@ type FormState = {
   price: string;
 };
 
-const emptyForm = (): FormState => ({
+const emptyForm = (defaultTimeSlot = ""): FormState => ({
   name: "",
   phone: "",
   email: "",
   preferred_date: format(new Date(), "yyyy-MM-dd"),
-  time_slot: "morning",
+  time_slot: defaultTimeSlot,
   inspection_type: "newfirst",
   property_type: "apartment",
   region: "taipei",
@@ -70,7 +71,7 @@ const emptyForm = (): FormState => ({
   price: "",
 });
 
-const BookingEditorDialog = ({ open, onOpenChange, booking, onSaved }: Props) => {
+const BookingEditorDialog = ({ open, onOpenChange, booking, onSaved, timeSlots }: Props) => {
   const isEdit = !!booking;
   const [form, setForm] = useState<FormState>(emptyForm());
   const [saving, setSaving] = useState(false);
@@ -94,9 +95,9 @@ const BookingEditorDialog = ({ open, onOpenChange, booking, onSaved }: Props) =>
         price: booking.price != null ? String(booking.price) : "",
       });
     } else {
-      setForm(emptyForm());
+      setForm(emptyForm(timeSlots[0]?.value ?? ""));
     }
-  }, [open, booking]);
+  }, [open, booking, timeSlots]);
 
   const set = (key: keyof FormState, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -223,9 +224,9 @@ const BookingEditorDialog = ({ open, onOpenChange, booking, onSaved }: Props) =>
                 <SelectValue placeholder="選擇時段" />
               </SelectTrigger>
               <SelectContent>
-                {timeSlotOptions.map((o) => (
-                  <SelectItem key={o.value} value={o.value}>
-                    {o.label}
+                {timeSlots.map((slot) => (
+                  <SelectItem key={slot.id} value={slot.value}>
+                    {slot.label}
                   </SelectItem>
                 ))}
               </SelectContent>
