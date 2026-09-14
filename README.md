@@ -121,6 +121,7 @@ npm run dev
 
 依時間新到舊排列，每筆記錄實際做了什麼變動、為什麼。
 
+- **2026-09-14** — 補齊 Supabase CLI 的本機設定，並修正 migration 追蹤紀錄（環境維護，非功能異動）。原本這台機器沒登入過 `supabase` CLI 也沒 link 過專案；補跑 `supabase login`（互動登入需要真正的終端機視窗，`!` 前綴的非互動環境跑不動）與 `supabase link --project-ref gzewuphhnxzyhiwnhjpm`。用 `supabase migration list` 檢查時發現正式資料庫**完全沒有** `supabase_migrations.schema_migrations` 追蹤表（這個專案的 schema 一直是用 Dashboard 手動下 SQL／Lovable 平台改的，從沒透過 CLI 的 migration 機制跑過），導致 CLI 誤以為全部 14 個 migration（含最早 2026-08-28 那批）都沒套用過；若當下直接 `supabase db push` 會逐一重跑，第一個 `create table` 就會因表已存在而報錯。實際查證（`supabase db query --linked` 查 `information_schema`／`pg_policies`）確認（八）（十一）兩筆的 `time_slots`／`time_slot_availability` 表、欄位、RLS policy、trigger 其實早就都在正式庫上，且 `time_slots` 已有 14 筆真實時段資料（非僅 migration 檔裡的 2 筆種子資料），代表這個功能已經上線被實際使用，先前（八）（十一）兩筆記錄裡「尚未套用到正式 Supabase」的註記已經過時、一併修正拿掉。最後執行 `supabase migration repair --status applied <14 個版本號>` 讓 CLI 的追蹤紀錄補上這 14 筆（純粹同步紀錄，未對資料庫做任何 schema 變更），`supabase db push --dry-run` 確認 `upToDate: true`。之後這台機器可以正常用 `supabase db push` 套用新 migration。
 - **2026-09-13（十三，重要）** — 修正客戶預約表單送出後會噴出 `ReferenceError: setBookingCounts is not defined` 的正式站 bug。這是（八）那次做「時段管理」功能時，把 `BookingForm.tsx` 的名額狀態從單一的 `bookingCounts`/`setBookingCounts` 改成分時段的 `slotCountMap`/`setSlotCountMap`，但漏改 `handleSubmit` 送出成功後、更新本地名額計數那一行，殘留呼叫了已經不存在的 `setBookingCounts`，一路推上了正式站。
   - **實際影響**：訂單本身**有**成功寫進資料庫（crash 發生在 insert 成功之後），但因為 crash 中斷了後續程式碼，緊接著要呼叫的 `send-line-notification`（通知內部 LINE 群組）**沒有執行到**，客戶端也不會看到預約成功的畫面，體驗上像是「送出失敗」。
   - **實測方式**：用使用者帳號在正式站 `/booking` 走完整流程送出一筆標記為測試的訂單，瀏覽器 Console 直接重現這個錯誤；比對後台「預約紀錄」確認訂單其實有進資料庫，且目前資料庫裡其餘既有訂單看起來都是先前測試用的資料（無法排除但未發現任何像是真實客戶的訂單卡在這個問題上）。修完後已把這筆測試訂單從後台刪除。
@@ -136,7 +137,7 @@ npm run dev
   - `npx tsc --noEmit`、`npm run build` 皆通過。
 - **2026-09-13（十一）** — 兩項調整（使用者要求）：
   1. 拿掉預約表單卡片整個滑鼠懸停變色的效果（`BookingForm.tsx`）：原本整張卡片＋輸入框／下拉選單／方案按鈕／摘要區塊，滑鼠移上去會一起變成深色（`hover:bg-slate-900` 系列 + 對應的 `group-hover:*`），使用者回報這樣文字反而不明顯，全部移除，只保留卡片本身樣式；卡片上 `onMouseEnter/onMouseLeave` 觸發 `booking-hover` 自訂事件（用來讓固定導覽列在滑過預約卡片時保持顯示）維持不變，跟變色效果是兩件事。
-  2. 後台「時段管理」新增可上下移動排序（使用者實測新增很多時段後，需要能自訂顯示順序，不想被綁死在依代碼字串排序）：`time_slots` 新增 `sort_order` 欄位（新 migration，尚未套用到正式 Supabase），既有資料依原本代碼排序回填初始值（間隔 10 方便之後插入）。後台清單新增排序欄位跟上/下箭頭按鈕，點擊會把該時段跟相鄰時段的 `sort_order`互換並存回資料庫；新增時段預設排在最後面。所有讀取 `time_slots` 的地方（後台名額管理、時段管理、客戶預約表單）都改成依 `sort_order` 排序，取代原本的代碼字串排序。
+  2. 後台「時段管理」新增可上下移動排序（使用者實測新增很多時段後，需要能自訂顯示順序，不想被綁死在依代碼字串排序）：`time_slots` 新增 `sort_order` 欄位（新 migration），既有資料依原本代碼排序回填初始值（間隔 10 方便之後插入）。後台清單新增排序欄位跟上/下箭頭按鈕，點擊會把該時段跟相鄰時段的 `sort_order`互換並存回資料庫；新增時段預設排在最後面。所有讀取 `time_slots` 的地方（後台名額管理、時段管理、客戶預約表單）都改成依 `sort_order` 排序，取代原本的代碼字串排序。
   - `npx tsc --noEmit`、`npm run build` 皆通過。
 - **2026-09-13（十）** — 修正「名額管理」單日設定視窗在時段很多時（使用者實測新增了 14 個半小時一個的時段）沒辦法上下滑動的問題：`Admin.tsx` 的 `DialogContent` 原本沒有限制高度也沒開 `overflow`，時段一多內容直接撐爆視窗高度，看不到也捲不到後面的項目。加上 `max-h-[85vh] overflow-y-auto`，超過視窗高度時視窗內部可以獨立捲動。`npx tsc --noEmit`、`npm run build` 皆通過。
 - **2026-09-13（九）** — 修正兩個問題（使用者實測回報）：
@@ -144,7 +145,7 @@ npm run dev
   2. 後台「名額管理」月曆格子的日期跟現實對不上（例如 2026 年 9 月 13 日明明是週日，卻被畫在「五」那一欄）：`calendarDays`（`Admin.tsx`）本來是 `eachDayOfInterval({start: startOfMonth, end: endOfMonth})` 直接產生「這個月每一天」的陣列，不管當月 1 號實際上是星期幾，畫格子時永遠讓 1 號從第一格（週日欄）開始排，等於每個月都可能整排位移。修法：用 `date-fns` 的 `getDay(startOfMonth(currentMonth))` 算出 1 號是星期幾，畫格子前先補對應數量的空白格，讓日期跟星期標題對齊。這是既有的舊 bug，這次剛好在測新功能時被發現一併修掉；`RevenueDashboard.tsx`／`OverviewDashboard.tsx` 裡其他用到 `eachDayOfInterval` 的地方都只是加總數字、不是畫週曆格子，沒有同樣問題。
   - `npx tsc --noEmit`、`npm run build` 皆通過。
 - **2026-09-13（八）** — 新增後台「時段管理」功能，讓時段可以自訂新增、每個時段各自設定每日名額，取代原本「一天只有一個共用名額」的設計。
-  - **資料庫**（新 migration `20260913081608_...sql`，尚未套用到正式 Supabase，需另外執行）：新增 `time_slots`（時段清單：代碼、顯示名稱、預設每日名額、啟用狀態）與 `time_slot_availability`（某天某時段的名額覆寫，`(date, time_slot_id)` 為主鍵）兩張表，RLS 比照既有 `booking_availability` 寫法（公開可讀、僅 admin 可寫）。種子資料建了原本寫死的兩個時段（09:00 上午場／14:00 下午場），不影響既有預約。舊的 `booking_availability.max_slots` 欄位保留但前端不再讀寫，日期層級的「不開放預約」開關不變。
+  - **資料庫**（新 migration `20260913081608_...sql`）：新增 `time_slots`（時段清單：代碼、顯示名稱、預設每日名額、啟用狀態）與 `time_slot_availability`（某天某時段的名額覆寫，`(date, time_slot_id)` 為主鍵）兩張表，RLS 比照既有 `booking_availability` 寫法（公開可讀、僅 admin 可寫）。種子資料建了原本寫死的兩個時段（09:00 上午場／14:00 下午場），不影響既有預約。舊的 `booking_availability.max_slots` 欄位保留但前端不再讀寫，日期層級的「不開放預約」開關不變。
   - **後台**（`Admin.tsx`）：新增「時段管理」頁籤（桌機側邊欄、手機從「名額管理」頁面按鈕進入），可新增／編輯／刪除／啟用停用時段。「名額管理」單日設定對話框從單一「每日可預約名額」改成列出每個啟用時段各自的名額輸入框；批次設定的「統一名額」改成套用到選取日期 × 所有啟用時段。月曆格子與「總覽」頁的名額使用率不用改內部邏輯，只是資料來源換成「各時段名額加總」。
   - **`BookingEditorDialog.tsx`**（後台手動新增/編輯預約）：時段下拉選單改用同一份動態時段清單，取代原本寫死的 `morning`/`afternoon`/`evening`（這組跟客戶端表單原本用的 `09:00`/`14:00` 是兩套不一致的資料，這次一併統一，歷史預約紀錄的顯示不受影響，`types.ts` 保留 `legacyTimeSlotLabels` 純供舊資料顯示用）。
   - **客戶預約表單**（`BookingForm.tsx`）：時段選項改成即時抓取後台設定的啟用時段；名額判斷從「整天共用一個名額」改成「每個時段各自判斷」，某時段額滿只會停用該時段按鈕（顯示「已額滿」），同一天其他時段仍可預約；只有當天所有時段都額滿，日期選擇器才會整天鎖住。

@@ -16,6 +16,7 @@ GitHub: https://github.com/jason237855-del/inspection2.0（`main` 分支，2026-
 - Node.js 透過 nvm 安裝（`~/.nvm`，目前 Node v24.20.0 / npm 11.19.0）。新開的 shell 需要先 `export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"` 才抓得到 node/npm
 - GitHub CLI (`gh`) 安裝在 `~/.local/bin/gh`（該目錄已在 PATH 中），已用 `gh auth login` 登入帳號 `jason237855-del`，並執行過 `gh auth setup-git` 設定 git 憑證
 - 專案的 `npm run dev` / `npm run build` 內建的 `predev`/`prebuild` 腳本（`scripts/generate-sitemap.ts`）原本寫死用 `bunx` 執行，這台機器沒裝 bun 會直接失敗；已改成 `tsx scripts/generate-sitemap.ts`（`tsx` 已加入 `devDependencies`），`npm run dev` / `npm run build` 現在可直接跑，不用再繞過 hook
+- Supabase CLI 透過 `npx supabase`（未全域安裝，`npx` 首次用會自動抓套件）使用，2026-09-14 已 `supabase login`（帳號 jason237855@gmail.com）並 `supabase link --project-ref gzewuphhnxzyhiwnhjpm`。**`supabase login` 的瀏覽器授權流程需要真正的互動式終端機（TTY）**，不能透過 Claude Code 的 `!` 前綴或 Bash 工具執行——會直接報 `non-TTY environments` 錯誤；要重新登入時請使用者另開 Terminal.app／iTerm 手動跑。這個專案的正式資料庫 schema 原本都是用 Supabase Dashboard 手動下 SQL／Lovable 平台改的，從沒透過 CLI 的 migration 機制套用過，所以 remote 一開始沒有 `supabase_migrations.schema_migrations` 追蹤表；已用 `supabase migration repair --status applied <全部版本號>` 補齊追蹤紀錄（純同步紀錄、未變更 schema），現在 `supabase db push` 可以正常用來套用新 migration 了，不用再擔心誤判成要重跑舊 migration
 
 ## 2026-09-05 所做的清理與設定
 
