@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { format, startOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -297,24 +298,6 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
     }
 
     goTo(4);
-  };
-
-  const handleReset = () => {
-    setDirection(-1);
-    setStep(1);
-    setPing("");
-    setPropertyType("");
-    setReinspection("none");
-    setName("");
-    setPhone("");
-    setEmail("");
-    setProjectRegion("");
-    setProjectName("");
-    setHouseType("");
-    setFloorUnit("");
-    setPreferredDate(undefined);
-    setTimeSlot("");
-    setBookingId(null);
   };
 
   const stepLabels = ["選擇方案", "填寫資料", "選擇時段"];
@@ -761,9 +744,9 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
                 <Button
                   variant="outline"
                   className="mt-6 rounded-md text-[11px] uppercase tracking-wider font-normal"
-                  onClick={handleReset}
+                  asChild
                 >
-                  再預約一筆
+                  <Link to="/">返回首頁</Link>
                 </Button>
               </motion.div>
             )}
