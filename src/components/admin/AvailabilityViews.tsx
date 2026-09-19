@@ -135,16 +135,14 @@ export const AvailabilityDayView = ({
 
   return (
     <div className="space-y-8">
-      <p className="text-xs font-light text-muted-foreground">
-        {isToday(date) ? (
-          <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] text-primary-foreground">今天</span>
-        ) : (
-          (() => {
+      {!isToday(date) && (
+        <p className="text-xs font-light text-muted-foreground">
+          {(() => {
             const diff = differenceInCalendarDays(date, new Date());
             return `${Math.abs(diff)} 天${diff > 0 ? "後" : "前"}`;
-          })()
-        )}
-      </p>
+          })()}
+        </p>
+      )}
 
       {isPast && (
         <p className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-xs text-muted-foreground font-light">
