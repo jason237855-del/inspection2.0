@@ -122,6 +122,13 @@ npm run dev
 
 依時間新到舊排列，每筆記錄實際做了什麼變動、為什麼。
 
+- **2026-09-19（資安）** — 收緊訪客新增預約訂單的規則（新 migration `20260919120000_harden_public_booking_insert.sql`，已用 `supabase db push` 套用到正式庫）。原因：資安檢視發現 `booking_requests` 的訪客新增政策 `with check` 是 `true`，任何人拿公開的 anon key 直接打 API 就能寫入任意內容（價格、狀態、`group_project_id` 等），前端的隱藏欄位／最短停留時間擋不住；團報上線後還可能有人灌 3 筆假訂單讓整團成團、全團被調成 9 折。
+  - **RLS**：訪客只能寫 `status=pending`、`source=web`、不帶 LINE 欄位與備註、日期不得為過去、欄位有長度上限的訂單；加入團報時建案必須是 `active`。
+  - **`enforce_public_booking_rules` BEFORE INSERT trigger**（僅約束 anon 與非管理員登入者；管理員、`service_role`、直接連資料庫者 `auth.role()` 為 null 皆放行）：忽略客戶端送來的價格，由資料庫依房屋類型／坪數／複驗自行計算（新成屋 $7,777、中古屋 $10,000、複驗 +$3,000、超過 20 坪每坪 +$400；一般預約再扣 LINE 好友價 $500，團報不扣，成團折扣仍由 `booking_group_pricing` 處理）；伺服器端檢查日期是否封鎖、時段是否存在且啟用、是否額滿（同日期＋時段用 advisory lock 排隊，避免同時搶最後名額超收）；頻率限制：同電話 1 小時最多 5 筆、全站 `web` 來源 10 分鐘最多 60 筆。
+  - **`limit_pending_group_proposals` trigger**：待審核的團報提案上限 30 筆。
+  - **!! 維護注意**：價格公式在前端 `BookingForm.tsx`（`BASE_PRICE`／`REINSPECTION_PRICE`／每坪 $400／LINE 折 $500）與這個 migration 的 trigger 各有一份，**調整價格時兩邊都要改**，否則客戶看到的價格與實際儲存的會不一致。
+  - **驗證**：先在正式庫用「交易內執行 migration＋測試後回滾」測過 16 種情境（正常單、中古＋複驗、團報、假狀態／來源／過去日期／假建案／待審核建案／假房屋類型／封鎖日／不存在時段／額滿／同電話超額／訪客直接建立 active 建案，以及管理員、service_role、直接 SQL 寫入不受限），過程中發現第一版直接 SQL 連線（`auth.role()` 為 null）會被誤套用限制，已修正；套用後再用匿名金鑰打正式 API 確認假狀態、假來源（401）與假房屋類型、不存在時段（400）都被拒且沒有寫入任何資料。
+  - **尚未處理的資安項目**：LINE 三個 Edge Function（`line-webhook` 簽章驗證、`send-line-notification` 防濫用、`bind-line-booking` 身分檢查）、`npm audit` 套件漏洞、儲存庫公開／`main` 分支保護／Dependabot。
 - **2026-09-19（建案團報）** — 新增「建案團報」功能：同建案多戶各自預約，滿 3 戶後全團享 9 折（含先報的戶，價格追溯調整）。使用者決策：折扣時機＝滿門檻後全團追溯；團報不與「LINE 好友折 $500」並用；未達門檻時前端顯示原價＋「滿 3 戶享 9 折」；建案來源＝後台可建立，客戶也可提出新建案（待後台核准）。
   - **資料庫**（新 migration `20260919100000_group_booking.sql`，2026-09-19 已透過 Dashboard SQL Editor 套用到正式庫，並用 `migration repair` 標記 applied，`db push --dry-run` 為 `upToDate`）：新增 `group_projects` 表（名稱、區域、狀態 `pending`/`active`/`closed`、成團門檻 `min_units` 預設 3、折扣 `discount_rate` 預設 0.9、提出人資料、排序）；`booking_requests` 新增 `group_project_id`（刪除建案時 `on delete set null`）。RLS：訪客只能看 `active` 建案、只能新增 `pending` 且預設條件的提案；admin 全權。`recalc_group_pricing()`（security definer）依團內未取消戶數重算該團所有未取消訂單的 `discounted_price`／`price`（達門檻＝`original_price × discount_rate`，未達＝原價），由 `booking_requests` 的新增／刪除／狀態或 `group_project_id` 變更，以及 `group_projects` 的門檻／折扣變更觸發。`get_group_project_counts()` 讓匿名訪客只能取得開放建案的戶數（訪客沒有 `booking_requests` 的 SELECT 權限）。
   - **官網**：首頁 Pricing 後新增「建案團報」區塊（`GroupBuying.tsx`，導覽列新增「建案團報」錨點），列出開放中建案、已報戶數與成團進度，「加入團報」導向 `/booking?group=<id>`；另有「提出新建案團報」對話框（含防灌水的隱藏欄位＋最短停留時間）。若資料表讀取失敗整個區塊會自動隱藏。
