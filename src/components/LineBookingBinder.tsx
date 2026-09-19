@@ -21,6 +21,8 @@ const LineBookingBinder = () => {
   const bookingId = params.get("booking_id");
   const { profile, lineUserId, login, available } = useLiffProfile();
   const [state, setState] = useState<"idle" | "binding" | "done" | "error">("idle");
+  // 後端回報這筆是否為團報訂單（團報不套用 LINE 好友折價）
+  const [isGroup, setIsGroup] = useState(false);
   const attempted = useRef(false);
   const redirected = useRef(false);
 
@@ -41,9 +43,10 @@ const LineBookingBinder = () => {
         setState("error");
         return;
       }
-      const { error } = await supabase.functions.invoke("bind-line-booking", {
+      const { data, error } = await supabase.functions.invoke("bind-line-booking", {
         body: { booking_id: bookingId, access_token: accessToken },
       });
+      if (!error && data?.is_group) setIsGroup(true);
       setState(error ? "error" : "done");
     })();
   }, [bookingId, lineUserId]);
@@ -77,10 +80,12 @@ const LineBookingBinder = () => {
         )}
         <p className="text-sm leading-relaxed text-foreground/80">
           {state === "done"
-            ? "綁定成功！已套用 LINE 好友折價 $500，預約憑證已發送至您的 LINE 聊天室，即將為您導向官方 LINE…"
+            ? isGroup
+              ? "綁定成功！預約憑證已發送至您的 LINE 聊天室（團報訂單依成團戶數計價，不與 LINE 好友折價並用），即將為您導向官方 LINE…"
+              : "綁定成功！已套用 LINE 好友折價 $500，預約憑證已發送至您的 LINE 聊天室，即將為您導向官方 LINE…"
             : state === "error"
               ? "綁定失敗，請稍後再試或直接於官方 LINE 聯繫我們。"
-              : "正在綁定您的 LINE 帳號並套用 $500 折抵優惠…"}
+              : "正在綁定您的 LINE 帳號…"}
         </p>
       </div>
     </div>

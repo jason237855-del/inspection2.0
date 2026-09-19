@@ -80,6 +80,8 @@ Deno.serve(async (req) => {
 
     // 已綁定過就不重複折價；若表單已預算 discounted_price 則直接使用
     const alreadyBound = Boolean(booking.line_user_id);
+    // 團報訂單依成團戶數計價，不與 LINE 好友折價並用（價格由資料庫的團報機制處理）
+    const isGroup = Boolean(booking.group_project_id);
     const discounted = alreadyBound
       ? booking.discounted_price ?? booking.price
       : booking.discounted_price ?? Math.max(0, (booking.price ?? 0) - LINE_FRIEND_DISCOUNT);
@@ -131,7 +133,9 @@ Deno.serve(async (req) => {
               contents: [
                 {
                   type: "text",
-                  text: `🎁 已套用 LINE 好友折價 ${fmt(LINE_FRIEND_DISCOUNT)} 優惠`,
+                  text: isGroup
+                    ? "🏢 團報訂單依成團戶數計價（不與 LINE 好友折價並用）"
+                    : `🎁 已套用 LINE 好友折價 ${fmt(LINE_FRIEND_DISCOUNT)} 優惠`,
                   size: "sm",
                   color: "#FFFFFF",
                   weight: "bold",
@@ -196,7 +200,7 @@ Deno.serve(async (req) => {
       return json({ success: true, bound: true, push: "failed", price: discounted });
     }
 
-    return json({ success: true, bound: true, push: "sent", price: discounted, discount_applied: !alreadyBound });
+    return json({ success: true, bound: true, push: "sent", price: discounted, discount_applied: !alreadyBound && !isGroup, is_group: isGroup });
   } catch (e) {
     console.error("bind-line-booking error", e);
     return json({ error: "internal_error" }, 500);

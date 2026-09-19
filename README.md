@@ -122,6 +122,9 @@ npm run dev
 
 依時間新到舊排列，每筆記錄實際做了什麼變動、為什麼。
 
+- **2026-09-19（實測後修正）** — 用真實團報預約＋真實 LINE 綁定實測 A（通知）與 B（LIFF 憑證驗證）：通知標記已寫入、LINE 綁定成功且收到憑證、團報單價格維持 $7,777（未被扣 $500）。實測抓到兩個問題並修正：
+  1. **團報單的折扣文字誤導**：綁定成功頁（`LineBookingBinder.tsx`）與 LINE 預約憑證（`bind-line-booking`）原本一律寫「已套用 LINE 好友折價 $500」，但團報訂單不與 LINE 折價並用。改為後端回傳 `is_group`，團報單顯示「依成團戶數計價（不與 LINE 好友折價並用）」，`discount_applied` 對團報單為 false；綁定中的提示文字也不再預先承諾 $500。
+  2. **新版部署後舊頁面整頁空白**：Console 錯誤 `Failed to fetch dynamically imported module: BookingPage-….js`——訪客開著舊版頁面、Vercel 發布新版後舊 chunk 檔名不存在，點擊載入該頁面時 React 整棵樹卸載成空白（前面兩次「預約頁空白」都是這個原因，發生在我剛 push 完新版時）。`src/main.tsx` 新增 `vite:preloadError` 監聽：偵測到 chunk 載入失敗時自動 `location.reload()` 一次改載新版，用 `sessionStorage` 旗標避免無限重整（載入成功 10 秒後清旗標）。
 - **2026-09-19（資安：LINE 綁定 `bind-line-booking`）** — 原本客戶端直接告訴後端「我的 LINE ID 是 X」，後端不驗證真偽，且已綁定的訂單可被改綁成別的 LINE 帳號。改為：前端 `LineBookingBinder.tsx` 傳 `{ booking_id, access_token }`（`access_token` 為 `liff.getAccessToken()`），後端拿憑證向 LINE `GET /v2/profile` 取得真正的 `userId`／`displayName`（憑證無效回 401），完全不採用客戶端自報的 LINE ID；若設定了環境變數 `LINE_LOGIN_CHANNEL_ID`，還會先呼叫 LINE `oauth2/v2.1/verify` 確認憑證屬於我們的 LINE Login channel（尚未設定時略過，可日後補設）；只允許綁定 72 小時內建立的訂單；已被其他 LINE 帳號綁定的訂單回 409 不可改綁（同一人重複綁定照常處理）；錯誤回應不再洩漏內部訊息。價格邏輯不變（仍沿用資料庫算好的 `discounted_price`，團報單不會被扣 $500）。
   - **測試**：憑證無效的拒絕路徑以正式站 API 測過；「真的在 LINE 裡綁定」需用真實 LINE App 走一遍（由使用者實測）。
   - **回退方式**：若 LINE 綁定出問題，`git revert` 這次 commit 後重新部署 `bind-line-booking` 即可恢復舊行為。
