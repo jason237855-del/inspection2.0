@@ -48,6 +48,7 @@ export type Database = {
           discounted_price: number | null
           email: string | null
           floor_unit: string | null
+          group_project_id: string | null
           house_type: string | null
           id: string
           inspection_type: string
@@ -76,6 +77,7 @@ export type Database = {
           discounted_price?: number | null
           email?: string | null
           floor_unit?: string | null
+          group_project_id?: string | null
           house_type?: string | null
           id?: string
           inspection_type: string
@@ -104,6 +106,7 @@ export type Database = {
           discounted_price?: number | null
           email?: string | null
           floor_unit?: string | null
+          group_project_id?: string | null
           house_type?: string | null
           id?: string
           inspection_type?: string
@@ -124,6 +127,56 @@ export type Database = {
           source?: string
           status?: string
           time_slot?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_requests_group_project_id_fkey"
+            columns: ["group_project_id"]
+            isOneToOne: false
+            referencedRelation: "group_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_projects: {
+        Row: {
+          created_at: string
+          discount_rate: number
+          id: string
+          min_units: number
+          name: string
+          proposer_name: string | null
+          proposer_phone: string | null
+          region: string
+          sort_order: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          discount_rate?: number
+          id?: string
+          min_units?: number
+          name: string
+          proposer_name?: string | null
+          proposer_phone?: string | null
+          region: string
+          sort_order?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          discount_rate?: number
+          id?: string
+          min_units?: number
+          name?: string
+          proposer_name?: string | null
+          proposer_phone?: string | null
+          region?: string
+          sort_order?: number
+          status?: string
           updated_at?: string
         }
         Relationships: []
@@ -219,6 +272,13 @@ export type Database = {
       add_admin_by_email: { Args: { _email: string }; Returns: string }
       admin_exists: { Args: never; Returns: boolean }
       bootstrap_first_admin: { Args: never; Returns: boolean }
+      get_group_project_counts: {
+        Args: never
+        Returns: {
+          group_project_id: string
+          unit_count: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

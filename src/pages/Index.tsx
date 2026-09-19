@@ -6,6 +6,7 @@ import QuickGuide from "@/components/QuickGuide";
 import Process from "@/components/Process";
 import Services from "@/components/Services";
 import Pricing from "@/components/Pricing";
+import GroupBuying from "@/components/GroupBuying";
 import Experience from "@/components/Experience";
 import Booking from "@/components/Booking";
 import Footer from "@/components/Footer";
@@ -22,6 +23,7 @@ const Index = () => {
       <Process />
       <Services />
       <Pricing />
+      <GroupBuying />
       <Booking />
       <Footer />
     </div>

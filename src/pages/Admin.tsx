@@ -65,6 +65,7 @@ import BookingEditorDialog from "@/components/admin/BookingEditorDialog";
 import MobileBottomNav from "@/components/admin/MobileBottomNav";
 import MobileBookingDetail from "@/components/admin/MobileBookingDetail";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import GroupBuyingAdmin from "@/components/admin/GroupBuyingAdmin";
 import {
   statusLabels,
   statusColors,
@@ -1234,6 +1235,10 @@ const Admin = () => {
                     )}
                   </DialogContent>
                 </Dialog>
+              </TabsContent>
+
+              <TabsContent value="group" className="mt-0">
+                <GroupBuyingAdmin bookings={bookings} onBookingsChanged={fetchData} />
               </TabsContent>
 
               <TabsContent value="timeslots" className="mt-0 space-y-6">

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { format, startOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -24,7 +24,8 @@ import {
 } from "lucide-react";
 import { LIFF_ID, LINE_OA_URL } from "@/config/line";
 import { supabase } from "@/integrations/supabase/client";
-import type { TimeSlot } from "@/components/admin/types";
+import type { TimeSlot, GroupProject } from "@/components/admin/types";
+import { formatDiscount } from "@/components/GroupBuying";
 
 
 const slideVariants = {
@@ -56,6 +57,12 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
 
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(0);
+
+  // 團報：從官網「建案團報」區塊帶 ?group=<id> 進來，建案資料鎖定，價格改用團報規則
+  const [searchParams] = useSearchParams();
+  const groupId = searchParams.get("group");
+  const [groupProject, setGroupProject] = useState<GroupProject | null>(null);
+  const [groupCount, setGroupCount] = useState(0);
 
   // Step 1
   const [propertyType, setPropertyType] = useState("");
@@ -132,6 +139,25 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
     fetchAvailability();
   }, []);
 
+  useEffect(() => {
+    if (!groupId) return;
+    const loadGroup = async () => {
+      const [{ data }, { data: countRows }] = await Promise.all([
+        supabase.from("group_projects").select("*").eq("id", groupId).eq("status", "active").maybeSingle(),
+        supabase.rpc("get_group_project_counts"),
+      ]);
+      if (!data) {
+        toast.error("找不到這個團報建案，或已停止加入，已改為一般預約");
+        return;
+      }
+      setGroupProject(data as GroupProject);
+      setGroupCount(countRows?.find((r) => r.group_project_id === groupId)?.unit_count ?? 0);
+      setProjectRegion(data.region);
+      setProjectName(data.name);
+    };
+    loadGroup();
+  }, [groupId]);
+
   const getSlotMaxForDate = (dateStr: string, slot: TimeSlot) => slotMaxMap[dateStr]?.[slot.id] ?? slot.default_max_slots;
   const getSlotCountForDate = (dateStr: string, slot: TimeSlot) => slotCountMap[dateStr]?.[slot.value] || 0;
   const isSlotFull = (dateStr: string, slot: TimeSlot) => getSlotCountForDate(dateStr, slot) >= getSlotMaxForDate(dateStr, slot);
@@ -150,7 +176,13 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
   const pingNum = Math.max(0, parseInt(ping, 10) || 20);
   const basePrice = propertyType ? BASE_PRICE[propertyType] : 0;
   const originalPrice = basePrice + (reinspection === "add" ? REINSPECTION_PRICE : 0) + Math.max(0, pingNum - 20) * 400;
-  const discountedPrice = originalPrice - 500;
+  // 團報：加入後戶數達門檻 → 全團原價 × 折扣；未達門檻先以原價計，達標後由資料庫自動回頭調整
+  const groupReached = !!groupProject && groupCount + 1 >= groupProject.min_units;
+  const discountedPrice = groupProject
+    ? groupReached
+      ? Math.round(originalPrice * groupProject.discount_rate)
+      : originalPrice
+    : originalPrice - 500;
   const estimatedPrice = discountedPrice;
   const inspectionTypeValue =
     propertyType === "resale" ? "resale" : reinspection === "add" ? "newfirst_recheck" : "newfirst";
@@ -243,6 +275,7 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
       original_price: originalPrice,
       discounted_price: discountedPrice,
       price: estimatedPrice,
+      group_project_id: groupProject?.id ?? null,
       needs_reinspection: reinspection === "add",
       name,
       phone,
@@ -286,7 +319,9 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
           region: projectRegion,
           date: format(preferredDate, "yyyy年MM月dd日"),
           time_slot: timeSlot,
-          price_info: `原價 ${formatNT(originalPrice)}／LINE 好友優惠價 ${formatNT(discountedPrice)}`,
+          price_info: groupProject
+            ? `團報「${groupProject.name}」（加入後第 ${groupCount + 1} 戶）原價 ${formatNT(originalPrice)}／滿 ${groupProject.min_units} 戶享 ${formatDiscount(groupProject.discount_rate)}${groupReached ? `，團報價 ${formatNT(discountedPrice)}` : "，目前尚未成團"}`
+            : `原價 ${formatNT(originalPrice)}／LINE 好友優惠價 ${formatNT(discountedPrice)}`,
         },
       });
       if (notifyError) throw notifyError;
@@ -416,6 +451,17 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
                 transition={{ duration: 0.3, ease: "easeInOut" }}
                 className="space-y-8"
               >
+                {groupProject && (
+                  <div className="rounded-xl border border-primary/30 bg-primary/5 px-5 py-4">
+                    <p className="text-[11px] uppercase tracking-wider text-primary mb-1">建案團報</p>
+                    <p className="text-base font-semibold text-card-foreground">
+                      {groupProject.region} {groupProject.name}
+                    </p>
+                    <p className="mt-1 text-xs font-light text-muted-foreground">
+                      同建案滿 {groupProject.min_units} 戶全團享 {formatDiscount(groupProject.discount_rate)}；團報不與 LINE 好友優惠並用。
+                    </p>
+                  </div>
+                )}
                 <div>
                   <Label htmlFor="ping" className={labelClass}>
                     <Home className="h-3 w-3" />
@@ -480,6 +526,29 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
                 <div className="rounded-xl border border-border bg-muted/40 px-5 py-4">
                   <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">預估費用</p>
                   {propertyType ? (
+                    groupProject ? (
+                      <div className="space-y-2">
+                        {groupReached ? (
+                          <div>
+                            <p className="text-lg text-muted-foreground line-through decoration-muted-foreground/60">
+                              {formatNT(originalPrice)}
+                            </p>
+                            <p className="text-3xl font-bold text-primary tracking-tight">
+                              團報價 {formatNT(discountedPrice)}
+                            </p>
+                          </div>
+                        ) : (
+                          <p className="text-3xl font-bold text-card-foreground tracking-tight">
+                            原價 {formatNT(originalPrice)}
+                          </p>
+                        )}
+                        <p className="text-xs font-medium text-primary">
+                          {groupReached
+                            ? `您加入後即成團，全團享 ${formatDiscount(groupProject.discount_rate)}`
+                            : `滿 ${groupProject.min_units} 戶全團享 ${formatDiscount(groupProject.discount_rate)}（目前已 ${groupCount} 戶，您加入後 ${groupCount + 1} 戶），成團後價格會自動調整`}
+                        </p>
+                      </div>
+                    ) : (
                     <div className="flex flex-wrap items-end gap-3">
                       <div>
                         <p className="text-lg text-muted-foreground line-through decoration-muted-foreground/60">
@@ -494,6 +563,7 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
                         🎉 預約完成加入官方 LINE 即享此優惠價！
                       </span>
                     </div>
+                    )
                   ) : (
                     <p className="text-3xl font-bold text-card-foreground tracking-tight">請先選擇房屋類型</p>
                   )}
@@ -549,14 +619,14 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
                       <MapPin className="h-3 w-3" />
                       建案區域
                     </Label>
-                    <Input id="projectRegion" value={projectRegion} onChange={(e) => setProjectRegion(e.target.value)} placeholder="新北市泰山區" className={inputClass} />
+                    <Input id="projectRegion" value={projectRegion} onChange={(e) => setProjectRegion(e.target.value)} placeholder="新北市泰山區" className={inputClass} readOnly={!!groupProject} />
                   </div>
                   <div>
                     <Label htmlFor="projectName" className={labelClass}>
                       <Building2 className="h-3 w-3" />
                       建案名稱
                     </Label>
-                    <Input id="projectName" value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="晴空樹" className={inputClass} />
+                    <Input id="projectName" value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="晴空樹" className={inputClass} readOnly={!!groupProject} />
                   </div>
                 </div>
 
@@ -677,8 +747,10 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
                       <div className="flex justify-between items-center border-t border-border pt-2 mt-2">
                         <span className="text-sm text-muted-foreground font-light">預估費用</span>
                         <div className="text-right">
-                          <span className="text-sm text-muted-foreground line-through decoration-muted-foreground/60 mr-2">{formatNT(originalPrice)}</span>
-                          <span className="text-xl font-bold text-[#06C755]">{formatNT(discountedPrice)}</span>
+                          {discountedPrice < originalPrice && (
+                            <span className="text-sm text-muted-foreground line-through decoration-muted-foreground/60 mr-2">{formatNT(originalPrice)}</span>
+                          )}
+                          <span className={cn("text-xl font-bold", groupProject ? "text-primary" : "text-[#06C755]")}>{formatNT(discountedPrice)}</span>
                         </div>
                       </div>
                     </div>
@@ -711,10 +783,12 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
               >
                 <CheckCircle className="mx-auto h-12 w-12 text-primary mb-5" />
                 <h3 className="text-xl font-bold text-card-foreground mb-2">
-                  🎉 預約成功！最後一步：領取 $500 折抵與預約憑證
+                  {groupProject ? "🎉 預約成功！最後一步：加入官方 LINE 領取預約憑證" : "🎉 預約成功！最後一步：領取 $500 折抵與預約憑證"}
                 </h3>
                 <p className="text-sm font-light text-muted-foreground mb-6">
-                  加入官方 LINE 即可自動綁定本筆預約，立即現折 $500 並取得電子預約憑證。
+                  {groupProject
+                    ? "加入官方 LINE 即可自動綁定本筆預約並取得電子預約憑證。團報價格以成團後為準，不與 LINE 好友優惠並用。"
+                    : "加入官方 LINE 即可自動綁定本筆預約，立即現折 $500 並取得電子預約憑證。"}
                 </p>
 
                 <a
@@ -732,7 +806,7 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
                   className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#06C755] hover:bg-[#05b34c] px-5 py-4 text-white text-sm font-semibold transition-colors shadow-soft cursor-pointer"
                 >
                   <Gift className="w-4 h-4" />
-                  點我加入官方 LINE 現折 $500 並領取預約憑證
+                  {groupProject ? "點我加入官方 LINE 並領取預約憑證" : "點我加入官方 LINE 現折 $500 並領取預約憑證"}
                 </a>
 
                 {bookingId && (

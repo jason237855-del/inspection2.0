@@ -63,7 +63,7 @@ const Navigation = ({ variant = "default" }: NavigationProps) => {
 
   // Scroll spy: highlight the menu item of the section currently in view
   useEffect(() => {
-    const ids = ["about", "experience", "process", "services", "pricing", "booking"];
+    const ids = ["about", "experience", "process", "services", "pricing", "group-buying", "booking"];
     const sections = ids
       .map((id) => document.getElementById(id))
       .filter((el): el is HTMLElement => Boolean(el));
@@ -109,13 +109,14 @@ const Navigation = ({ variant = "default" }: NavigationProps) => {
     { label: "服務流程", href: "/#process", isRoute: false },
     { label: "診斷項目", href: "/#services", isRoute: false },
     { label: "驗屋價格", href: "/#pricing", isRoute: false },
+    { label: "建案團報", href: "/#group-buying", isRoute: false },
     { label: "診斷筆記", href: "/journal", isRoute: true },
     { label: "常見問題", href: "/faq", isRoute: true },
   ];
 
   // Centered header menu (home page sections are already visible while scrolling)
   const desktopNavItems = navItems.filter((item) =>
-    ["驗屋價格", "診斷筆記", "常見問題"].includes(item.label)
+    ["驗屋價格", "建案團報", "診斷筆記", "常見問題"].includes(item.label)
   );
 
   const isActive = (item: { label: string; href: string; isRoute: boolean }) => {

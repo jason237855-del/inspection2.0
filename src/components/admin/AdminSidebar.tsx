@@ -1,4 +1,4 @@
-import { Home, ClipboardList, CalendarDays, Settings, Plus, LogOut, TrendingUp, Clock } from "lucide-react";
+import { Home, ClipboardList, CalendarDays, Settings, Plus, LogOut, TrendingUp, Clock, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoMark from "@/assets/logo-mark-black.png";
 
@@ -32,6 +32,7 @@ const AdminSidebar = ({ activeTab, onChange, onCreate, pendingCount, userEmail, 
         { value: "bookings", label: "預約紀錄", icon: ClipboardList, badge: pendingCount },
         { value: "availability", label: "名額管理", icon: CalendarDays },
         { value: "timeslots", label: "時段管理", icon: Clock },
+        { value: "group", label: "團報管理", icon: Users },
         { value: "revenue", label: "營收狀況", icon: TrendingUp },
       ],
     },

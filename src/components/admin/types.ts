@@ -9,6 +9,7 @@ export type BookingRequest = {
   project_region?: string | null;
   house_type?: string | null;
   floor_unit?: string | null;
+  group_project_id?: string | null;
   ping?: number | null;
   original_price?: number | null;
   discounted_price?: number | null;
@@ -24,6 +25,19 @@ export type BookingRequest = {
   created_at: string;
   line_user_id?: string | null;
   line_display_name?: string | null;
+};
+
+export type GroupProject = {
+  id: string;
+  name: string;
+  region: string;
+  status: "pending" | "active" | "closed";
+  min_units: number;
+  discount_rate: number;
+  proposer_name: string | null;
+  proposer_phone: string | null;
+  sort_order: number;
+  created_at: string;
 };
 
 export type Availability = {
