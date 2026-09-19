@@ -6,10 +6,15 @@ const LINE_PUSH_ENDPOINT = "https://api.line.me/v2/bot/message/push";
 const LINE_PROFILE_URL = "https://lin.ee/8S6eDLR";
 const LINE_FRIEND_DISCOUNT = 500;
 
+// LINE 身分由後端拿 LIFF 存取憑證向 LINE 查詢，不再信任客戶端自報的 line_user_id。
+const LINE_PROFILE_API = "https://api.line.me/v2/profile";
+const LINE_VERIFY_API = "https://api.line.me/oauth2/v2.1/verify";
+// 只允許綁定最近建立的訂單，避免拿舊訂單編號來改綁
+const MAX_BOOKING_AGE_MS = 72 * 60 * 60 * 1000;
+
 const BodySchema = z.object({
   booking_id: z.string().uuid(),
-  line_user_id: z.string().min(5).max(100),
-  line_display_name: z.string().max(100).optional().nullable(),
+  access_token: z.string().min(20).max(4000),
 });
 
 const propertyLabels: Record<string, string> = { newbuild: "新成屋", resale: "中古屋" };
@@ -35,7 +40,21 @@ Deno.serve(async (req) => {
   try {
     const parsed = BodySchema.safeParse(await req.json());
     if (!parsed.success) return json({ error: parsed.error.flatten().fieldErrors }, 400);
-    const { booking_id, line_user_id, line_display_name } = parsed.data;
+    const { booking_id, access_token } = parsed.data;
+
+    // 向 LINE 驗證憑證並取得真正的使用者身分
+    const expectedChannelId = Deno.env.get("LINE_LOGIN_CHANNEL_ID");
+    if (expectedChannelId) {
+      const vr = await fetch(`${LINE_VERIFY_API}?access_token=${encodeURIComponent(access_token)}`);
+      const vj = vr.ok ? await vr.json() : null;
+      if (!vj || String(vj.client_id) !== expectedChannelId) return json({ error: "invalid_line_token" }, 401);
+    }
+    const pr = await fetch(LINE_PROFILE_API, { headers: { Authorization: `Bearer ${access_token}` } });
+    if (!pr.ok) return json({ error: "invalid_line_token" }, 401);
+    const lineProfile = await pr.json();
+    const line_user_id: string = lineProfile?.userId;
+    const line_display_name: string | null = lineProfile?.displayName ?? null;
+    if (!line_user_id) return json({ error: "invalid_line_token" }, 401);
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -50,6 +69,14 @@ Deno.serve(async (req) => {
 
     if (readError) throw readError;
     if (!booking) return json({ error: "booking_not_found" }, 404);
+
+    if (Date.now() - new Date(booking.created_at).getTime() > MAX_BOOKING_AGE_MS) {
+      return json({ error: "booking_too_old" }, 400);
+    }
+    // 已被其他 LINE 帳號綁定的訂單不可改綁（同一人重複綁定則照常處理）
+    if (booking.line_user_id && booking.line_user_id !== line_user_id) {
+      return json({ error: "already_bound" }, 409);
+    }
 
     // 已綁定過就不重複折價；若表單已預算 discounted_price 則直接使用
     const alreadyBound = Boolean(booking.line_user_id);
@@ -172,6 +199,6 @@ Deno.serve(async (req) => {
     return json({ success: true, bound: true, push: "sent", price: discounted, discount_applied: !alreadyBound });
   } catch (e) {
     console.error("bind-line-booking error", e);
-    return json({ error: e instanceof Error ? e.message : "unknown_error" }, 500);
+    return json({ error: "internal_error" }, 500);
   }
 });

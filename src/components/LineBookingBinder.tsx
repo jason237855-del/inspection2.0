@@ -35,16 +35,18 @@ const LineBookingBinder = () => {
     attempted.current = true;
     setState("binding");
     (async () => {
+      // 後端用 LIFF 存取憑證向 LINE 驗證身分，不再接受客戶端自報的 LINE ID
+      const accessToken: string | null = window.liff?.getAccessToken?.() ?? null;
+      if (!accessToken) {
+        setState("error");
+        return;
+      }
       const { error } = await supabase.functions.invoke("bind-line-booking", {
-        body: {
-          booking_id: bookingId,
-          line_user_id: lineUserId,
-          line_display_name: profile?.displayName ?? null,
-        },
+        body: { booking_id: bookingId, access_token: accessToken },
       });
       setState(error ? "error" : "done");
     })();
-  }, [bookingId, lineUserId, profile]);
+  }, [bookingId, lineUserId]);
 
   // 綁定完成後導向官方 LINE 加入好友頁面；在 LINE App 內優先關閉 LIFF 視窗
   useEffect(() => {
