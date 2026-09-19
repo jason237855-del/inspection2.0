@@ -50,7 +50,7 @@ npm run dev
 - **QuickGuide**：六大診斷項目（電氣、給排水、防水、建築土建、設備、環境），每類有輪播圖與檢測項目清單
 - **Process**：服務流程五步驟（預約洽詢 → 行前準備 → 現場檢測 → 報告交付 → 複驗追蹤），含 Canvas 動態背景（`FlowField.tsx`）
 - **Services**：核心服務四項（新成屋驗屋／中古屋檢測／複驗服務／屋況諮詢）
-- **Pricing**：驗屋費用，三種方案分頁（新成屋初驗 $7,777 起、新成屋複驗 $3,000 起、中古屋 $10,000 起、團報優惠 $6,888 起），附方案差異比較表
+- **Pricing**：驗屋費用，三種方案分頁（新成屋初驗 $7,777 起、新成屋複驗 $3,000 起、中古屋 $10,000 起；團報優惠分頁不顯示價格，僅列同社區 3 戶以上適用與專屬服務內容），附方案差異比較表
 - **Booking**：預約 CTA，導向 `/booking`
 
 其他獨立頁面：
@@ -121,6 +121,7 @@ npm run dev
 
 依時間新到舊排列，每筆記錄實際做了什麼變動、為什麼。
 
+- **2026-09-19** — 官網「驗屋費用」（`src/components/Pricing.tsx`）的「新成屋團報優惠」分頁拿掉價格顯示（使用者要求，因為團報折扣方案還在規劃中）：卡片上的 $6,888、原價 $8,000、「現省」標籤、單位與每坪 $400 說明全部移除，只保留「同社區 3 戶以上適用」與團報專屬服務內容；`Plan` 型別的 `price`／`unit` 改為選填，沒有價格時不渲染價格區塊。方案差異比較表「複驗服務」列的團報欄原本顯示 `$3,000 起`，改成打勾。`Faq.tsx` 的團報說明本來就沒寫價格，未動。`npx tsc --noEmit` 通過。
 - **2026-09-15** — 補充記錄一個先前完全沒寫進這個 repo 的既有整合，並新增對應的 reference migration（`supabase/migrations/20260915100000_document_booking_intake_trigger.sql`，密鑰用 placeholder，已用 `migration repair` 標記 applied、不會被 `db push` 真的執行）：`booking_requests` 表上有一個 Database Webhook Trigger（名稱 `booking-intake`，AFTER INSERT OR DELETE），是直接在 Supabase Dashboard／SQL Editor 建在正式資料庫上的，從未寫進這個 repo。這個 trigger 會在 `booking_requests` 新增或刪除一筆資料時，呼叫另一個獨立系統「驗屋系統」（inspection-app repo，https://github.com/jason237855-del/inspection-app）的 Edge Function `booking-intake`，讓對方自動建立／刪除對應的驗屋場次：新增訂單 → 對方自動建案；刪除訂單 → 對方自動刪除對應案件（刪除同步是 2026-09-15 才加上的，之前只處理新增）。真正的 `x-webhook-secret` 密鑰值不寫進任何 git 檔案，請去 Supabase Dashboard → Database → Triggers → `booking-intake` 查目前值。**之後若異動 `booking_requests` 表結構、或整個重建這個 Supabase 專案，務必記得這個 trigger 要一併保留或重建，否則驗屋系統那邊就不會再自動同步訂單。**
 - **2026-09-15** — 預約表單（`src/components/BookingForm.tsx`）送出成功畫面（step 4）的「再預約一筆」按鈕，改成「返回首頁」並導向 `/`（原本用 `onClick={handleReset}` 重置表單回到第一步，讓客戶原地再填一筆；改為直接離開表單、回首頁）。因為按鈕行為已改變，原本只有這個按鈕在用的 `handleReset`（重置所有表單欄位/步驟/預約 ID 的 function）不再有任何呼叫端，一併刪除避免留下死程式碼；按鈕改用 `Button asChild` 包一層 `react-router-dom` 的 `Link`，沿用既有的 outline 樣式。`npx tsc --noEmit` 通過。
 - **2026-09-14** — 補齊 Supabase CLI 的本機設定，並修正 migration 追蹤紀錄（環境維護，非功能異動）。原本這台機器沒登入過 `supabase` CLI 也沒 link 過專案；補跑 `supabase login`（互動登入需要真正的終端機視窗，`!` 前綴的非互動環境跑不動）與 `supabase link --project-ref gzewuphhnxzyhiwnhjpm`。用 `supabase migration list` 檢查時發現正式資料庫**完全沒有** `supabase_migrations.schema_migrations` 追蹤表（這個專案的 schema 一直是用 Dashboard 手動下 SQL／Lovable 平台改的，從沒透過 CLI 的 migration 機制跑過），導致 CLI 誤以為全部 14 個 migration（含最早 2026-08-28 那批）都沒套用過；若當下直接 `supabase db push` 會逐一重跑，第一個 `create table` 就會因表已存在而報錯。實際查證（`supabase db query --linked` 查 `information_schema`／`pg_policies`）確認（八）（十一）兩筆的 `time_slots`／`time_slot_availability` 表、欄位、RLS policy、trigger 其實早就都在正式庫上，且 `time_slots` 已有 14 筆真實時段資料（非僅 migration 檔裡的 2 筆種子資料），代表這個功能已經上線被實際使用，先前（八）（十一）兩筆記錄裡「尚未套用到正式 Supabase」的註記已經過時、一併修正拿掉。最後執行 `supabase migration repair --status applied <14 個版本號>` 讓 CLI 的追蹤紀錄補上這 14 筆（純粹同步紀錄，未對資料庫做任何 schema 變更），`supabase db push --dry-run` 確認 `upToDate: true`。之後這台機器可以正常用 `supabase db push` 套用新 migration。

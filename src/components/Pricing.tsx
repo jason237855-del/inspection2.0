@@ -10,9 +10,9 @@ type Plan = {
   key: string;
   label: string;
   title: string;
-  price: number;
+  price?: number;
   originalPrice?: number;
-  unit: string;
+  unit?: string;
   extraNote?: string;
   description: string;
   featuresHeader: string;
@@ -93,10 +93,7 @@ const plansByTab: Record<TabKey, Plan[]> = {
       key: "group",
       label: "新成屋團報方案",
       title: "新成屋團報優惠",
-      price: 6888,
-      originalPrice: 8000,
-      unit: "起 / 20 坪以內．每戶",
-      extraNote: "每超過一坪 $400．同社區 3 戶以上適用",
+      extraNote: "同社區 3 戶以上適用",
       description: "同社區、同時段多戶一起檢測，成本更低、排程更順。",
       featuresHeader: "團報專屬：",
       features: [
@@ -128,7 +125,7 @@ const comparison: {
   { label: "管線老化評估", newBuild: false, group: false, resale: true },
   { label: "屋況風險評估", newBuild: false, group: false, resale: true },
   { label: "建商缺失溝通建議", newBuild: true, group: true, resale: false },
-  { label: "複驗服務", newBuild: "$3,000 起", group: "$3,000 起", resale: false },
+  { label: "複驗服務", newBuild: "$3,000 起", group: true, resale: false },
   { label: "專屬團報排程", newBuild: false, group: true, resale: false },
   { label: "假日驗屋費用", newBuild: false, group: false, resale: true },
 ];
@@ -228,7 +225,7 @@ const Pricing = () => {
         >
           {visiblePlans.map((p, i) => {
             const anim = enter(i);
-            const saved = p.originalPrice ? p.originalPrice - p.price : 0;
+            const saved = p.price !== undefined && p.originalPrice ? p.originalPrice - p.price : 0;
 
             return (
               <motion.div
@@ -268,6 +265,7 @@ const Pricing = () => {
                   )}
                 </div>
 
+                {p.price !== undefined && (
                 <div className="mb-3 flex items-baseline gap-2 flex-wrap">
                   <motion.span
                     key={`${p.key}-price`}
@@ -295,6 +293,7 @@ const Pricing = () => {
                     {p.unit}
                   </span>
                 </div>
+                )}
 
                 {saved > 0 && (
                   <span
