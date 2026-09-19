@@ -122,6 +122,7 @@ npm run dev
 
 依時間新到舊排列，每筆記錄實際做了什麼變動、為什麼。
 
+- **2026-09-19（資安：套件漏洞）** — 執行 `npm audit fix`（不含 `--force`，只更新 `package-lock.json`，`package.json` 未變）：正式環境依賴的漏洞從 13 個（11 個高風險，含 `glob`、`lodash`、`minimatch`、`nanoid`、`picomatch`、`postcss`、`ws`、`@remix-run/router` 等）降到 2 個中風險；`npx tsc --noEmit`、`npm run build` 通過。**刻意不處理的殘留項**：`react-router`／`react-router-dom` 6.x 的兩個中風險（`<Link>`／`useNavigate` 反斜線 open redirect、SSR hydration 的 `deserializeErrors`），修法是升級到 v7（大版本、有破壞性變更）；本站沒有把使用者可控網址傳給 `<Link>`／`navigate`（導向網址都寫死），也沒有 SSR，實際不可利用，故暫不升級；日後若要升 v7 需另外規劃並完整測試路由。另開啟 GitHub Dependabot 安全更新，之後有漏洞會自動開 PR。
 - **2026-09-19（資安：LINE 通知與 webhook）** — 資安檢視發現三個 LINE 相關 Edge Function 都是 `verify_jwt: false`（任何人不帶金鑰即可呼叫），其中 `send-line-notification` 可被用來對內部 LINE 群組灌假的「新預約」卡片、對任意 LINE 使用者推播、消耗 LINE 訊息額度。本次先修 `send-line-notification` 與 `line-webhook`（`bind-line-booking` 的 LIFF 憑證驗證需要用真的 LINE 實測，另案處理）。
   - **`send-line-notification`**：改成只接受 `{ booking_id }`，通知內容一律由資料庫的訂單資料組成（新增 `_shared/booking-notification.ts`，純函式、已在本機以範例資料測過），不再採用客戶端傳來的姓名／電話等欄位；只處理「10 分鐘內建立」的訂單，且用原子式更新新欄位 `booking_requests.admin_notified_at`（新 migration `20260919130000_booking_admin_notified_at.sql`）確保每筆訂單只通知一次（推播失敗會放回未通知狀態以便補發）；移除原本沒有正常用途的 `user_line_id` 客戶推播分支；錯誤回應不再洩漏內部訊息。訊息新增「團報建案」與「預估費用」兩列。前端 `BookingForm.tsx` 改成只傳 `booking_id`。
   - **`line-webhook`**：若設定了 `LINE_CHANNEL_SECRET`，用 `x-line-signature`（HMAC-SHA256）驗證請求，不符回 401（演算法已在本機以正確／錯誤簽章／內容被改／缺簽章／錯誤密鑰五種情境測過）；尚未設定時維持原行為並在日誌留警告。**若要啟用，需到 LINE Developers 後台複製 Channel secret，執行 `supabase secrets set LINE_CHANNEL_SECRET=...`。**
