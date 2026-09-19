@@ -51,6 +51,7 @@ npm run dev
 - **Process**：服務流程五步驟（預約洽詢 → 行前準備 → 現場檢測 → 報告交付 → 複驗追蹤），含 Canvas 動態背景（`FlowField.tsx`）
 - **Services**：核心服務四項（新成屋驗屋／中古屋檢測／複驗服務／屋況諮詢）
 - **Pricing**：驗屋費用，三種方案分頁（新成屋初驗 $7,777 起、新成屋複驗 $3,000 起、中古屋 $10,000 起；團報優惠分頁不顯示價格，僅列同社區 3 戶以上適用與專屬服務內容），附方案差異比較表
+- **GroupBuying**：建案團報區塊（`#group-buying`），列出開放中建案與成團進度，導向 `/booking?group=<id>`；資料來自 `group_projects`
 - **Booking**：預約 CTA，導向 `/booking`
 
 其他獨立頁面：
@@ -121,6 +122,13 @@ npm run dev
 
 依時間新到舊排列，每筆記錄實際做了什麼變動、為什麼。
 
+- **2026-09-19（建案團報）** — 新增「建案團報」功能：同建案多戶各自預約，滿 3 戶後全團享 9 折（含先報的戶，價格追溯調整）。使用者決策：折扣時機＝滿門檻後全團追溯；團報不與「LINE 好友折 $500」並用；未達門檻時前端顯示原價＋「滿 3 戶享 9 折」；建案來源＝後台可建立，客戶也可提出新建案（待後台核准）。
+  - **資料庫**（新 migration `20260919100000_group_booking.sql`，2026-09-19 已透過 Dashboard SQL Editor 套用到正式庫，並用 `migration repair` 標記 applied，`db push --dry-run` 為 `upToDate`）：新增 `group_projects` 表（名稱、區域、狀態 `pending`/`active`/`closed`、成團門檻 `min_units` 預設 3、折扣 `discount_rate` 預設 0.9、提出人資料、排序）；`booking_requests` 新增 `group_project_id`（刪除建案時 `on delete set null`）。RLS：訪客只能看 `active` 建案、只能新增 `pending` 且預設條件的提案；admin 全權。`recalc_group_pricing()`（security definer）依團內未取消戶數重算該團所有未取消訂單的 `discounted_price`／`price`（達門檻＝`original_price × discount_rate`，未達＝原價），由 `booking_requests` 的新增／刪除／狀態或 `group_project_id` 變更，以及 `group_projects` 的門檻／折扣變更觸發。`get_group_project_counts()` 讓匿名訪客只能取得開放建案的戶數（訪客沒有 `booking_requests` 的 SELECT 權限）。
+  - **官網**：首頁 Pricing 後新增「建案團報」區塊（`GroupBuying.tsx`，導覽列新增「建案團報」錨點），列出開放中建案、已報戶數與成團進度，「加入團報」導向 `/booking?group=<id>`；另有「提出新建案團報」對話框（含防灌水的隱藏欄位＋最短停留時間）。若資料表讀取失敗整個區塊會自動隱藏。
+  - **預約表單**（`BookingForm.tsx`）：帶 `?group=` 時載入該建案、鎖定建案區域／名稱、頂端顯示團報資訊；價格改用團報規則（不含 LINE 折扣）；LINE 通知的價格說明與成功頁文字改成團報版本。`bind-line-booking` Edge Function 在 `discounted_price` 已有值時直接沿用、不再扣 $500，所以不需修改。
+  - **後台**：新增「團報管理」分頁（`admin/GroupBuyingAdmin.tsx`）：新增／編輯（門檻、折數）／開關／刪除建案、核准客戶提案、查看各建案成員與價格。
+  - **已知限制**：`booking-intake` webhook 只在 INSERT／DELETE 觸發，成團後回頭調價（UPDATE）不會同步到驗屋系統；admin 手動改過的團報訂單價格，會在該團戶數或條件變動時被重算覆蓋。
+  - **測試**：在正式庫用「交易內模擬後 rollback」驗證計價邏輯（1、2 戶原價；第 3 戶起全團 $7,777→$6,999；一般單不受影響；取消一戶後其餘還原；恢復後再度折扣；改 8 折後重算），確認無殘留資料。另以 CLI 在正式庫新增 5 個 `active` 測試建案（大亮泊、大華菁耕、長耀IPARK、三松 Jade Park、恦品-里山，取自 nday.com.tw 公開團購清單），前端上線後會公開顯示，不需要時到後台關閉。`npx tsc --noEmit`、`npm run build` 皆通過。
 - **2026-09-19** — 官網「驗屋費用」（`src/components/Pricing.tsx`）的「新成屋團報優惠」分頁拿掉價格顯示（使用者要求，因為團報折扣方案還在規劃中）：卡片上的 $6,888、原價 $8,000、「現省」標籤、單位與每坪 $400 說明全部移除，只保留「同社區 3 戶以上適用」與團報專屬服務內容；`Plan` 型別的 `price`／`unit` 改為選填，沒有價格時不渲染價格區塊。方案差異比較表「複驗服務」列的團報欄原本顯示 `$3,000 起`，改成打勾。`Faq.tsx` 的團報說明本來就沒寫價格，未動。`npx tsc --noEmit` 通過。
 - **2026-09-15** — 補充記錄一個先前完全沒寫進這個 repo 的既有整合，並新增對應的 reference migration（`supabase/migrations/20260915100000_document_booking_intake_trigger.sql`，密鑰用 placeholder，已用 `migration repair` 標記 applied、不會被 `db push` 真的執行）：`booking_requests` 表上有一個 Database Webhook Trigger（名稱 `booking-intake`，AFTER INSERT OR DELETE），是直接在 Supabase Dashboard／SQL Editor 建在正式資料庫上的，從未寫進這個 repo。這個 trigger 會在 `booking_requests` 新增或刪除一筆資料時，呼叫另一個獨立系統「驗屋系統」（inspection-app repo，https://github.com/jason237855-del/inspection-app）的 Edge Function `booking-intake`，讓對方自動建立／刪除對應的驗屋場次：新增訂單 → 對方自動建案；刪除訂單 → 對方自動刪除對應案件（刪除同步是 2026-09-15 才加上的，之前只處理新增）。真正的 `x-webhook-secret` 密鑰值不寫進任何 git 檔案，請去 Supabase Dashboard → Database → Triggers → `booking-intake` 查目前值。**之後若異動 `booking_requests` 表結構、或整個重建這個 Supabase 專案，務必記得這個 trigger 要一併保留或重建，否則驗屋系統那邊就不會再自動同步訂單。**
 - **2026-09-15** — 預約表單（`src/components/BookingForm.tsx`）送出成功畫面（step 4）的「再預約一筆」按鈕，改成「返回首頁」並導向 `/`（原本用 `onClick={handleReset}` 重置表單回到第一步，讓客戶原地再填一筆；改為直接離開表單、回首頁）。因為按鈕行為已改變，原本只有這個按鈕在用的 `handleReset`（重置所有表單欄位/步驟/預約 ID 的 function）不再有任何呼叫端，一併刪除避免留下死程式碼；按鈕改用 `Button asChild` 包一層 `react-router-dom` 的 `Link`，沿用既有的 outline 樣式。`npx tsc --noEmit` 通過。
