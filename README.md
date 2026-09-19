@@ -122,6 +122,12 @@ npm run dev
 
 依時間新到舊排列，每筆記錄實際做了什麼變動、為什麼。
 
+- **2026-09-19（資安：LINE 通知與 webhook）** — 資安檢視發現三個 LINE 相關 Edge Function 都是 `verify_jwt: false`（任何人不帶金鑰即可呼叫），其中 `send-line-notification` 可被用來對內部 LINE 群組灌假的「新預約」卡片、對任意 LINE 使用者推播、消耗 LINE 訊息額度。本次先修 `send-line-notification` 與 `line-webhook`（`bind-line-booking` 的 LIFF 憑證驗證需要用真的 LINE 實測，另案處理）。
+  - **`send-line-notification`**：改成只接受 `{ booking_id }`，通知內容一律由資料庫的訂單資料組成（新增 `_shared/booking-notification.ts`，純函式、已在本機以範例資料測過），不再採用客戶端傳來的姓名／電話等欄位；只處理「10 分鐘內建立」的訂單，且用原子式更新新欄位 `booking_requests.admin_notified_at`（新 migration `20260919130000_booking_admin_notified_at.sql`）確保每筆訂單只通知一次（推播失敗會放回未通知狀態以便補發）；移除原本沒有正常用途的 `user_line_id` 客戶推播分支；錯誤回應不再洩漏內部訊息。訊息新增「團報建案」與「預估費用」兩列。前端 `BookingForm.tsx` 改成只傳 `booking_id`。
+  - **`line-webhook`**：若設定了 `LINE_CHANNEL_SECRET`，用 `x-line-signature`（HMAC-SHA256）驗證請求，不符回 401（演算法已在本機以正確／錯誤簽章／內容被改／缺簽章／錯誤密鑰五種情境測過）；尚未設定時維持原行為並在日誌留警告。**若要啟用，需到 LINE Developers 後台複製 Channel secret，執行 `supabase secrets set LINE_CHANNEL_SECRET=...`。**
+  - `supabase/config.toml` 明確寫出三個函式刻意 `verify_jwt = false` 的原因（LINE 平台與匿名訪客不會帶 Supabase JWT）。
+  - **已知空窗**：前端先上線、函式後部署，中間及仍開著舊版頁面的訪客送出預約時，訂單會成功但內部群組收不到通知（後台照常看得到）。
+  - **尚未處理**：`bind-line-booking`（客戶端自報 LINE ID、已綁定訂單可被改綁）、`npm audit` 套件漏洞、儲存庫公開／`main` 分支保護／Dependabot。
 - **2026-09-19（資安）** — 收緊訪客新增預約訂單的規則（新 migration `20260919120000_harden_public_booking_insert.sql`，已用 `supabase db push` 套用到正式庫）。原因：資安檢視發現 `booking_requests` 的訪客新增政策 `with check` 是 `true`，任何人拿公開的 anon key 直接打 API 就能寫入任意內容（價格、狀態、`group_project_id` 等），前端的隱藏欄位／最短停留時間擋不住；團報上線後還可能有人灌 3 筆假訂單讓整團成團、全團被調成 9 折。
   - **RLS**：訪客只能寫 `status=pending`、`source=web`、不帶 LINE 欄位與備註、日期不得為過去、欄位有長度上限的訂單；加入團報時建案必須是 `active`。
   - **`enforce_public_booking_rules` BEFORE INSERT trigger**（僅約束 anon 與非管理員登入者；管理員、`service_role`、直接連資料庫者 `auth.role()` 為 null 皆放行）：忽略客戶端送來的價格，由資料庫依房屋類型／坪數／複驗自行計算（新成屋 $7,777、中古屋 $10,000、複驗 +$3,000、超過 20 坪每坪 +$400；一般預約再扣 LINE 好友價 $500，團報不扣，成團折扣仍由 `booking_group_pricing` 處理）；伺服器端檢查日期是否封鎖、時段是否存在且啟用、是否額滿（同日期＋時段用 advisory lock 排隊，避免同時搶最後名額超收）；頻率限制：同電話 1 小時最多 5 筆、全站 `web` 來源 10 分鐘最多 60 筆。

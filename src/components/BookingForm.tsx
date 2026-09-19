@@ -307,22 +307,9 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
     }
 
     try {
+      // 後端只收訂單編號，通知內容由資料庫的訂單資料組成
       const { error: notifyError } = await supabase.functions.invoke("send-line-notification", {
-        body: {
-          name,
-          phone,
-          email,
-          address,
-          project_name: projectName,
-          inspection_type: `${inspectionTypeLabel}（${pingNum} 坪）`,
-          property_type: `${propertyLabels[propertyType]}／${houseTypeLabels[houseType]}`,
-          region: projectRegion,
-          date: format(preferredDate, "yyyy年MM月dd日"),
-          time_slot: timeSlot,
-          price_info: groupProject
-            ? `團報「${groupProject.name}」（加入後第 ${groupCount + 1} 戶）原價 ${formatNT(originalPrice)}／滿 ${groupProject.min_units} 戶享 ${formatDiscount(groupProject.discount_rate)}${groupReached ? `，團報價 ${formatNT(discountedPrice)}` : "，目前尚未成團"}`
-            : `原價 ${formatNT(originalPrice)}／LINE 好友優惠價 ${formatNT(discountedPrice)}`,
-        },
+        body: { booking_id: newId },
       });
       if (notifyError) throw notifyError;
       toast.success("預約已送出，我們會盡快與您聯繫");

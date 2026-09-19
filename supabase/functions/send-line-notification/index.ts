@@ -1,22 +1,17 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { createClient } from "npm:@supabase/supabase-js@2";
 import { z } from "npm:zod@3.23.8";
+import { buildAdminMessage, type NotificationBooking } from "../_shared/booking-notification.ts";
 
 const ADMIN_URL = "https://inspection20.vercel.app/admin";
 const LINE_PUSH_ENDPOINT = "https://api.line.me/v2/bot/message/push";
-const LINE_PROFILE_URL = "https://lin.ee/8S6eDLR";
+
+// 只接受「最近才建立」的訂單，且每筆訂單只通知一次，
+// 避免有人拿這個公開端點重複轟炸內部群組、消耗 LINE 訊息額度。
+const MAX_BOOKING_AGE_MS = 10 * 60 * 1000;
 
 const BodySchema = z.object({
-  name: z.string().min(1).max(100).optional(),
-  phone: z.string().min(1).max(50).optional(),
-  email: z.string().max(200).optional(),
-  project_name: z.string().max(200).optional().nullable(),
-  address: z.string().max(300).optional(),
-  inspection_type: z.string().max(100).optional(),
-  property_type: z.string().max(100).optional(),
-  region: z.string().max(100).optional(),
-  date: z.string().min(1).max(50),
-  time_slot: z.string().max(100).optional().nullable(),
-  user_line_id: z.string().max(100).optional().nullable(),
+  booking_id: z.string().uuid(),
 });
 
 async function pushMessage(token: string, to: string, messages: unknown[]) {
@@ -48,163 +43,67 @@ Deno.serve(async (req) => {
   try {
     const token = Deno.env.get("LINE_CHANNEL_ACCESS_TOKEN");
     // 管理員團隊群組 ID（優先），相容舊版單一管理員 User ID
-    const groupId = Deno.env.get("LINE_ADMIN_GROUP_ID");
-    const adminId = Deno.env.get("ADMIN_LINE_USER_ID");
-    const adminTarget = groupId || adminId;
+    const adminTarget = Deno.env.get("LINE_ADMIN_GROUP_ID") || Deno.env.get("ADMIN_LINE_USER_ID");
     if (!token) return json({ error: "LINE_CHANNEL_ACCESS_TOKEN 未設定" }, 500);
+    if (!adminTarget) return json({ success: true, results: { admin: "skipped_no_admin_target" } });
 
-    const parsed = BodySchema.safeParse(await req.json());
-    if (!parsed.success) {
-      return json({ error: parsed.error.flatten().fieldErrors }, 400);
-    }
-    const b = parsed.data;
-    const slot = b.time_slot || "待確認";
-    const project = b.project_name || "未提供";
+    const parsed = BodySchema.safeParse(await req.json().catch(() => null));
+    if (!parsed.success) return json({ error: "invalid_request" }, 400);
+    const { booking_id } = parsed.data;
 
-    const results: Record<string, string> = {};
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
 
-    // 【管理員團隊群組通知】Flex Message 卡片
-    if (adminTarget) {
-      const adminMessage = {
-        type: "flex",
-        altText: "🔔 收到新的驗屋預約！",
-        contents: {
-          type: "bubble",
-          body: {
-            type: "box",
-            layout: "vertical",
-            spacing: "sm",
-            contents: [
-              { type: "text", text: "🔔 收到新的驗屋預約！", weight: "bold", size: "lg", wrap: true },
-              { type: "separator", margin: "md" },
-              ...[
-                ["預約姓名", b.name || "未提供"],
-                ["聯絡電話", b.phone || "未提供"],
-                ["電子信箱", b.email || "未提供"],
-                ["建案名稱", project],
-                ["預約日期", b.date],
-                ["預約時段", slot],
-                ["檢測類型", b.inspection_type || "未提供"],
-                ["房屋類型", b.property_type || "未提供"],
-                ["房屋地區", b.region || "未提供"],
-                ["檢測地址", b.address || "未提供"],
-              ].map(([label, value]) => ({
-                type: "box",
-                layout: "baseline",
-                spacing: "sm",
-                margin: "md",
-                contents: [
-                  { type: "text", text: label, size: "sm", color: "#888888", flex: 2 },
-                  { type: "text", text: String(value), size: "sm", wrap: true, flex: 5 },
-                ],
-              })),
-            ],
-          },
-          footer: {
-            type: "box",
-            layout: "vertical",
-            contents: [
-              {
-                type: "button",
-                style: "primary",
-                color: "#0F172A",
-                action: { type: "uri", label: "開啟後台預約詳情", uri: ADMIN_URL },
-              },
-            ],
-          },
-        },
-      };
+    const { data: booking, error: readError } = await supabase
+      .from("booking_requests")
+      .select("*")
+      .eq("id", booking_id)
+      .maybeSingle();
+    if (readError) throw readError;
+    if (!booking) return json({ error: "booking_not_found" }, 404);
 
-      try {
-        await pushMessage(token, adminTarget, [adminMessage]);
-        results.admin = "sent";
-      } catch (e) {
-        console.error("admin group push error", e);
-        results.admin = "failed";
-      }
-    } else {
-      results.admin = "skipped_no_admin_target";
+    if (Date.now() - new Date(booking.created_at).getTime() > MAX_BOOKING_AGE_MS) {
+      return json({ error: "booking_too_old" }, 400);
     }
 
-    // 【客戶預約成功確認憑證】1對1 推播
-    if (b.user_line_id) {
-      const customerMessage = {
-        type: "flex",
-        altText: "✅ 診斷室驗屋｜預約成功確認憑證",
-        contents: {
-          type: "bubble",
-          body: {
-            type: "box",
-            layout: "vertical",
-            spacing: "sm",
-            contents: [
-              { type: "text", text: "診斷室驗屋", weight: "bold", size: "sm", color: "#0F766E" },
-              { type: "text", text: "✅ 預約成功確認憑證", weight: "bold", size: "lg", wrap: true },
-              {
-                type: "text",
-                text: "感謝您的預約！以下為您的預約確認資料，我們將於 24 小時內與您聯繫確認細節。",
-                size: "sm",
-                color: "#666666",
-                wrap: true,
-                margin: "md",
-              },
-              { type: "separator", margin: "md" },
-              ...[
-                ["預約姓名", b.name || "未提供"],
-                ["檢測項目", b.inspection_type || "未提供"],
-                ["預約日期", b.date],
-                ["預約時段", slot],
-                ["檢測地址", b.address || "未提供"],
-              ].map(([label, value]) => ({
-                type: "box",
-                layout: "baseline",
-                spacing: "sm",
-                margin: "md",
-                contents: [
-                  { type: "text", text: label, size: "sm", color: "#888888", flex: 2 },
-                  { type: "text", text: String(value), size: "sm", wrap: true, flex: 5 },
-                ],
-              })),
-              { type: "separator", margin: "md" },
-              {
-                type: "text",
-                text: "溫馨提醒：請於驗屋當天準備建商圖面與相關交屋文件，如有任何變更請提前與我們聯繫。",
-                size: "xs",
-                color: "#999999",
-                wrap: true,
-                margin: "md",
-              },
-            ],
-          },
-          footer: {
-            type: "box",
-            layout: "vertical",
-            contents: [
-              {
-                type: "button",
-                style: "primary",
-                color: "#0F766E",
-                action: { type: "uri", label: "聯繫客服（官方 LINE）", uri: LINE_PROFILE_URL },
-              },
-            ],
-          },
-        },
-      };
-
-      try {
-        await pushMessage(token, b.user_line_id, [customerMessage]);
-        results.customer = "sent";
-      } catch (e) {
-        console.error("customer push error", e);
-        results.customer = "failed";
-      }
-    } else {
-      results.customer = "skipped_no_line_id";
+    // 原子式「認領」：只有第一個把 admin_notified_at 從 null 改成現在時間的請求可以發送
+    const { data: claimed, error: claimError } = await supabase
+      .from("booking_requests")
+      .update({ admin_notified_at: new Date().toISOString() })
+      .eq("id", booking_id)
+      .is("admin_notified_at", null)
+      .select("id");
+    if (claimError) throw claimError;
+    if (!claimed || claimed.length === 0) {
+      return json({ success: true, results: { admin: "already_sent" } });
     }
 
-    return json({ success: results.admin !== "failed", results });
+    let groupName: string | null = null;
+    if (booking.group_project_id) {
+      const { data: group } = await supabase
+        .from("group_projects")
+        .select("name")
+        .eq("id", booking.group_project_id)
+        .maybeSingle();
+      groupName = group?.name ?? null;
+    }
+
+    try {
+      await pushMessage(token, adminTarget, [
+        buildAdminMessage(booking as NotificationBooking, groupName, ADMIN_URL),
+      ]);
+    } catch (e) {
+      console.error("admin group push error", e);
+      // 發送失敗就放回未通知狀態，讓（10 分鐘內的）重試還有機會補發
+      await supabase.from("booking_requests").update({ admin_notified_at: null }).eq("id", booking_id);
+      return json({ success: false, results: { admin: "failed" } });
+    }
+
+    return json({ success: true, results: { admin: "sent" } });
   } catch (e) {
     console.error("send-line-notification error", e);
-    return json({ error: e instanceof Error ? e.message : "unknown_error" }, 500);
+    return json({ error: "internal_error" }, 500);
   }
 });
