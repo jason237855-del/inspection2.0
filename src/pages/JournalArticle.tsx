@@ -4,8 +4,9 @@ import { ArrowLeft, ArrowRight, CalendarDays } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { getArticle, getCategory, journalArticles } from "@/data/journal";
+import { SITE_URL } from "@/config/site";
 
-const SITE = "https://hushed-haven-stays.lovable.app";
+const SITE = SITE_URL;
 
 const SectionHead = ({ en, zh }: { en: string; zh: string }) => (
   <div className="mb-6">

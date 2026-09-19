@@ -18,6 +18,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import Seo from "@/components/Seo";
 
 type FaqSection = {
   id: string;
@@ -189,6 +190,11 @@ const Faq = () => {
 
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden">
+      <Seo
+        title="驗屋常見問題｜費用、服務地區與團報｜診斷室驗屋"
+        description="從驗屋費用、服務地區到單戶預約與多戶團報，整理委託前最常遇到的實際問題，讓您在聯繫以前先掌握所需資料與安排方式。"
+        path="/faq"
+      />
       <Navigation variant="dark" />
       <main className="flex-1 pt-36 lg:pt-44 pb-24">
         {/* Hero */}

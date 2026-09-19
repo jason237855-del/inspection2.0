@@ -11,6 +11,7 @@ import {
   journalCategories,
   getCategory,
 } from "@/data/journal";
+import { SITE_URL } from "@/config/site";
 
 const formatDate = (d: string) =>
   new Date(d).toLocaleDateString("zh-TW", { year: "numeric", month: "2-digit" });
@@ -43,16 +44,16 @@ const Journal = () => {
           content="看見問題只是開始，理解問題，才能找到改善方向。"
         />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://hushed-haven-stays.lovable.app/journal" />
+        <meta property="og:url" content={`${SITE_URL}/journal`} />
         <meta property="og:site_name" content="診斷室驗屋" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="robots" content="index, follow, max-image-preview:large" />
-        <link rel="canonical" href="https://hushed-haven-stays.lovable.app/journal" />
+        <link rel="canonical" href={`${SITE_URL}/journal`} />
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Blog",
-            "@id": "https://hushed-haven-stays.lovable.app/journal",
+            "@id": `${SITE_URL}/journal`,
             name: "診斷筆記 Diagnostic Journal",
             description:
               "從建築現象出發的診斷筆記：滲漏水、電氣、給排水、建築與設備常見問題的觀察、可能原因與判讀方式。",
@@ -63,7 +64,7 @@ const Journal = () => {
               headline: a.title,
               description: a.excerpt,
               datePublished: a.date,
-              url: `https://hushed-haven-stays.lovable.app/journal/${a.slug}`,
+              url: `${SITE_URL}/journal/${a.slug}`,
             })),
           })}
         </script>
@@ -76,13 +77,13 @@ const Journal = () => {
                 "@type": "ListItem",
                 position: 1,
                 name: "首頁",
-                item: "https://hushed-haven-stays.lovable.app/",
+                item: `${SITE_URL}/`,
               },
               {
                 "@type": "ListItem",
                 position: 2,
                 name: "診斷筆記",
-                item: "https://hushed-haven-stays.lovable.app/journal",
+                item: `${SITE_URL}/journal`,
               },
             ],
           })}

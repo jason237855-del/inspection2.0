@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { User, Mail, MessageSquare, FileText, Phone, MapPin } from "lucide-react";
 import bannerImage from "@/assets/hero-inspection.jpg";
+import Seo from "@/components/Seo";
 
 const Contact = () => {
   const { toast } = useToast();
@@ -50,6 +51,11 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
+      <Seo
+        title="聯繫我們｜驗屋諮詢與預約｜診斷室驗屋"
+        description="與診斷室驗屋聯繫，詢問驗屋服務、費用評估與可預約時段。"
+        path="/contact"
+      />
       <Navigation />
 
       {/* Hero Image with Parallax */}

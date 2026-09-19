@@ -3,6 +3,7 @@ import { ShieldCheck, FileText, Users, Award, Clock, Search } from "lucide-react
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import bannerImage from "@/assets/hero-inspection.jpg";
+import Seo from "@/components/Seo";
 
 const values = [
   {
@@ -49,6 +50,11 @@ const About = () => {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
+      <Seo
+        title="關於診斷室驗屋｜品牌故事與檢測理念"
+        description="認識診斷室驗屋的品牌故事與檢測理念，以及為什麼房屋檢測是交屋與購屋前重要的一步。"
+        path="/about"
+      />
       <Navigation />
 
       {/* Hero Image with Parallax */}

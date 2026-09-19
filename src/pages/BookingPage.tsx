@@ -5,6 +5,7 @@ import BookingForm from "@/components/BookingForm";
 import LineBookingBinder from "@/components/LineBookingBinder";
 import Footer from "@/components/Footer";
 import { usePrefersDarkMode } from "@/hooks/usePrefersDarkMode";
+import { SITE_URL } from "@/config/site";
 
 
 const BookingPage = () => {
@@ -29,7 +30,7 @@ const BookingPage = () => {
           content="立即預約診斷室驗屋服務，填寫檢測類型、房屋類型、地區與聯絡資訊，我們將在 24 小時內與您聯繫確認檢測時間。"
         />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://hushed-haven-stays.lovable.app/booking" />
+        <link rel="canonical" href={`${SITE_URL}/booking`} />
       </Helmet>
 
       <div className="min-h-screen overflow-x-hidden bg-background">

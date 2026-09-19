@@ -10,10 +10,13 @@ import GroupBuying from "@/components/GroupBuying";
 import Experience from "@/components/Experience";
 import Booking from "@/components/Booking";
 import Footer from "@/components/Footer";
+import Seo from "@/components/Seo";
+import { SITE_TITLE, SITE_DESCRIPTION } from "@/config/site";
 
 const Index = () => {
   return (
     <div className="min-h-screen overflow-x-hidden">
+      <Seo title={SITE_TITLE} description={SITE_DESCRIPTION} path="/" />
       <Navigation variant="dark" />
       <Hero />
       <HeroStats />

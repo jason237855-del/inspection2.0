@@ -3,7 +3,7 @@
 import { readFileSync, writeFileSync } from "fs"
 import { resolve } from "path"
 
-const BASE_URL = "https://inspection20.vercel.app"
+import { SITE_URL as BASE_URL } from "../src/config/site"
 
 interface SitemapEntry {
   path: string
