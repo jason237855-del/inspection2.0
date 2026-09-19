@@ -1,4 +1,4 @@
-import { eachDayOfInterval, endOfMonth, format, isSameMonth, parseISO, startOfDay } from "date-fns";
+import { differenceInCalendarDays, eachDayOfInterval, endOfMonth, format, isSameMonth, isToday, parseISO, startOfDay } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -67,7 +67,14 @@ export const AvailabilityYearView = ({
               isCurrent ? "border-primary bg-primary/5" : "border-border bg-card"
             } ${isPastMonth ? "opacity-70" : ""}`}
           >
-            <p className="text-base font-light">{m + 1} 月</p>
+            <p className="flex items-center gap-2 text-base font-light">
+              {m + 1} 月
+              {isCurrent && (
+                <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-normal text-primary-foreground">
+                  本月
+                </span>
+              )}
+            </p>
             <p className="mt-2 text-xs text-muted-foreground font-light">
               預約 <span className="text-foreground text-sm">{bookingTotal}</span> 筆
             </p>
@@ -128,6 +135,17 @@ export const AvailabilityDayView = ({
 
   return (
     <div className="space-y-8">
+      <p className="text-xs font-light text-muted-foreground">
+        {isToday(date) ? (
+          <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] text-primary-foreground">今天</span>
+        ) : (
+          (() => {
+            const diff = differenceInCalendarDays(date, new Date());
+            return `${Math.abs(diff)} 天${diff > 0 ? "後" : "前"}`;
+          })()
+        )}
+      </p>
+
       {isPast && (
         <p className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-xs text-muted-foreground font-light">
           這是過去的日期，只能檢視，不能修改名額；後台也只保存「今天起」的名額設定。

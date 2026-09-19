@@ -698,6 +698,14 @@ const Admin = () => {
     }
   };
 
+  // 目前顯示的範圍是否包含今天（不包含時，標題旁顯示「回到今天」）
+  const calIncludesToday =
+    calView === "year"
+      ? currentMonth.getFullYear() === new Date().getFullYear()
+      : calView === "month"
+        ? isSameMonth(currentMonth, new Date())
+        : isToday(currentDay);
+
   const calTitle =
     calView === "year"
       ? `${format(currentMonth, "yyyy")}年`
@@ -1030,7 +1038,21 @@ const Admin = () => {
               <TabsContent value="availability" className="mt-0 space-y-6">
                 <Card className="border border-border shadow-soft p-4 md:p-6">
                   <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-                    <h2 className="text-lg font-light">{calTitle}</h2>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <h2 className="text-lg font-light">{calTitle}</h2>
+                      {calView === "day" && isToday(currentDay) && (
+                        <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] text-primary-foreground">今天</span>
+                      )}
+                      {!calIncludesToday && (
+                        <button
+                          type="button"
+                          onClick={() => switchCalView(calView)}
+                          className="text-xs text-primary underline-offset-2 hover:underline"
+                        >
+                          回到今天
+                        </button>
+                      )}
+                    </div>
                     <div className="flex items-center gap-2 flex-nowrap overflow-x-auto pb-1 -mx-1 px-1 md:flex-wrap md:overflow-visible md:mx-0 md:px-0 md:pb-0">
                       <div
                         role="group"
@@ -1200,6 +1222,7 @@ const Admin = () => {
                       const isFull = !isBlocked && count >= maxSlots;
                       const isPast = day < startOfDay(new Date());
                       const isSelected = selectedDates.includes(dateStr);
+                      const isTodayCell = isToday(day);
 
                       return (
                         <button
@@ -1216,7 +1239,7 @@ const Admin = () => {
                             isSelected
                               ? "ring-2 ring-primary ring-offset-1 ring-offset-background border-primary"
                               : ""
-                          } ${
+                          } ${isTodayCell && !isSelected ? "ring-2 ring-primary/70 ring-offset-1 ring-offset-background" : ""} ${
                             isPast
                               ? "bg-muted/30 border-border text-muted-foreground/50 cursor-not-allowed"
                               : isBlocked
@@ -1226,7 +1249,14 @@ const Admin = () => {
                               : "bg-card border-border hover:border-primary/50"
                           }`}
                         >
-                          <div className="font-light mb-1">{format(day, "d")}</div>
+                          <div className={cn("font-light mb-1 flex items-center gap-1", isTodayCell && "font-medium text-primary")}>
+                            {format(day, "d")}
+                            {isTodayCell && (
+                              <span className="rounded-full bg-primary px-1.5 py-px text-[9px] font-normal leading-none text-primary-foreground">
+                                今天
+                              </span>
+                            )}
+                          </div>
                           {!isPast && !isBlocked && (
                             <div className="text-[10px] opacity-80">
                               {count}/{maxSlots}
