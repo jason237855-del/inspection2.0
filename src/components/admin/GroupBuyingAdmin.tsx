@@ -336,7 +336,7 @@ const GroupBuyingAdmin = ({ bookings, onBookingsChanged }: Props) => {
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {membersOf?.name}　團報成員（{members.filter((b) => b.status !== "cancelled").length} 戶）
+              {membersOf?.name} 團報成員（{members.filter((b) => b.status !== "cancelled").length} 戶）
             </DialogTitle>
             <DialogDescription>已取消的訂單不計入戶數，也不會套用團報價格。</DialogDescription>
           </DialogHeader>
