@@ -47,7 +47,7 @@ const GroupProjectCard = ({ project: p, count }: Props) => {
       </p>
 
       <Button asChild className="mt-6 rounded-full text-[11px] uppercase tracking-wider font-normal">
-        <Link to={`/booking?group=${p.id}`}>加入團報</Link>
+        <Link to={`/booking?group=${p.id}`} data-cursor="加入">加入團報</Link>
       </Button>
       <Link
         to={groupPath(p.slug)}
