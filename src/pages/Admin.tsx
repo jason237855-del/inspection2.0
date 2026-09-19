@@ -913,47 +913,47 @@ const Admin = () => {
             transition={{ duration: 0.6, delay: 0.1 }}
             // 手機上只有「總覽」與「預約紀錄」顯示這排統計，其他分頁直接看內容（桌機每頁都顯示）
             className={cn(
-              "grid grid-cols-2 md:grid-cols-4 gap-4 mb-10",
+              "grid grid-cols-4 gap-2 md:gap-4 mb-6 md:mb-10",
               activeTab !== "overview" && activeTab !== "bookings" && "hidden md:grid",
             )}
           >
-            <Card className="p-6 border border-border shadow-soft">
-              <div className="flex items-center gap-3 mb-3">
+            <Card className="p-3 md:p-6 border border-border shadow-soft">
+              <div className="hidden md:flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                   <CalendarDays className="h-4 w-4 text-primary" />
                 </div>
               </div>
-              <p className="text-2xl font-light mb-1">{stats.total}</p>
+              <p className="text-xl md:text-2xl font-light mb-0.5 md:mb-1">{stats.total}</p>
               <p className="text-xs text-muted-foreground font-light">總預約數</p>
             </Card>
 
-            <Card className="p-6 border border-border shadow-soft">
-              <div className="flex items-center gap-3 mb-3">
+            <Card className="p-3 md:p-6 border border-border shadow-soft">
+              <div className="hidden md:flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                   <Clock className="h-4 w-4 text-primary" />
                 </div>
               </div>
-              <p className="text-2xl font-light mb-1">{stats.pending}</p>
+              <p className="text-xl md:text-2xl font-light mb-0.5 md:mb-1">{stats.pending}</p>
               <p className="text-xs text-muted-foreground font-light">待確認</p>
             </Card>
 
-            <Card className="p-6 border border-border shadow-soft">
-              <div className="flex items-center gap-3 mb-3">
+            <Card className="p-3 md:p-6 border border-border shadow-soft">
+              <div className="hidden md:flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
                   <Users className="h-4 w-4 text-secondary" />
                 </div>
               </div>
-              <p className="text-2xl font-light mb-1">{stats.confirmed}</p>
+              <p className="text-xl md:text-2xl font-light mb-0.5 md:mb-1">{stats.confirmed}</p>
               <p className="text-xs text-muted-foreground font-light">已確認</p>
             </Card>
 
-            <Card className="p-6 border border-border shadow-soft">
-              <div className="flex items-center gap-3 mb-3">
+            <Card className="p-3 md:p-6 border border-border shadow-soft">
+              <div className="hidden md:flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center">
                   <CalendarDays className="h-4 w-4 text-destructive" />
                 </div>
               </div>
-              <p className="text-2xl font-light mb-1">{stats.cancelled}</p>
+              <p className="text-xl md:text-2xl font-light mb-0.5 md:mb-1">{stats.cancelled}</p>
               <p className="text-xs text-muted-foreground font-light">已取消</p>
             </Card>
           </motion.div>
