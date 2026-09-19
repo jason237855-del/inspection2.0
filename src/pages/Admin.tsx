@@ -6,7 +6,7 @@ import {
   endOfMonth,
   eachDayOfInterval,
   addMonths,
-  subMonths,
+  addDays,
   startOfDay,
   isSameMonth,
   isToday,
@@ -101,7 +101,6 @@ import {
   Loader2,
   Search,
   Download,
-  RotateCcw,
   X,
   Filter,
   Bell,
@@ -123,6 +122,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { AvailabilityYearView, AvailabilityDayView } from "@/components/admin/AvailabilityViews";
 
 const PAGE_SIZE = 10;
 
@@ -147,6 +147,9 @@ const Admin = () => {
   const [slotForm, setSlotForm] = useState({ value: "", label: "", default_max_slots: 3 });
   const [loadingData, setLoadingData] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  // 名額管理的檢視範圍：年（12 個月概覽）／月（月曆，預設）／日（單日各時段與預約）
+  const [calView, setCalView] = useState<"year" | "month" | "day">("month");
+  const [currentDay, setCurrentDay] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [batchMode, setBatchMode] = useState(false);
@@ -670,6 +673,38 @@ const Admin = () => {
     }
   };
 
+  // 點「已選取」的檢視按鈕 = 回到今天
+  const switchCalView = (view: "year" | "month" | "day") => {
+    if (view === calView) {
+      const now = new Date();
+      setCurrentMonth(now);
+      setCurrentDay(now);
+      return;
+    }
+    if (view === "day") setCurrentDay(isSameMonth(currentMonth, new Date()) ? new Date() : startOfMonth(currentMonth));
+    if (view === "month" && calView === "day") setCurrentMonth(currentDay);
+    setCalView(view);
+  };
+
+  const shiftCalPeriod = (dir: 1 | -1) => {
+    if (calView === "year") {
+      setCurrentMonth((m) => addMonths(m, 12 * dir));
+    } else if (calView === "month") {
+      setCurrentMonth((m) => addMonths(m, dir));
+    } else {
+      const next = addDays(currentDay, dir);
+      setCurrentDay(next);
+      setCurrentMonth(next);
+    }
+  };
+
+  const calTitle =
+    calView === "year"
+      ? `${format(currentMonth, "yyyy")}年`
+      : calView === "day"
+        ? format(currentDay, "yyyy年M月d日 EEEE", { locale: zhTW })
+        : format(currentMonth, "yyyy年 MMMM", { locale: zhTW });
+
   const blockWeekends = async () => {
     const days = eachDayOfInterval({
       start: startOfMonth(currentMonth),
@@ -911,10 +946,10 @@ const Admin = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            // 手機上只有「總覽」與「預約紀錄」顯示這排統計，其他分頁直接看內容（桌機每頁都顯示）
+            // 只有「總覽」與「預約紀錄」顯示這排統計，其他分頁直接看內容
             className={cn(
               "grid grid-cols-4 gap-2 md:gap-4 mb-6 md:mb-10",
-              activeTab !== "overview" && activeTab !== "bookings" && "hidden md:grid",
+              activeTab !== "overview" && activeTab !== "bookings" && "hidden",
             )}
           >
             <Card className="p-3 md:p-6 border border-border shadow-soft">
@@ -995,22 +1030,51 @@ const Admin = () => {
               <TabsContent value="availability" className="mt-0 space-y-6">
                 <Card className="border border-border shadow-soft p-4 md:p-6">
                   <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-                    <h2 className="text-lg font-light">{format(currentMonth, "yyyy年 MMMM", { locale: zhTW })}</h2>
+                    <h2 className="text-lg font-light">{calTitle}</h2>
                     <div className="flex items-center gap-2 flex-nowrap overflow-x-auto pb-1 -mx-1 px-1 md:flex-wrap md:overflow-visible md:mx-0 md:px-0 md:pb-0">
-                      <Button variant="outline" size="sm" className="shrink-0" onClick={() => setCurrentMonth(new Date())}>
-                        <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
-                        今天
-                      </Button>
-                      <Button variant="outline" size="sm" className="shrink-0" onClick={() => setCurrentMonth((m) => subMonths(m, 1))}>
+                      <div
+                        role="group"
+                        aria-label="檢視範圍"
+                        className="inline-flex shrink-0 overflow-hidden rounded-md border border-input"
+                      >
+                        {(
+                          [
+                            ["year", "年"],
+                            ["month", "月"],
+                            ["day", "日"],
+                          ] as const
+                        ).map(([value, label]) => (
+                          <button
+                            key={value}
+                            type="button"
+                            aria-pressed={calView === value}
+                            title={calView === value ? "再點一次回到今天" : `切換到${label}檢視`}
+                            onClick={() => switchCalView(value)}
+                            className={cn(
+                              "h-9 px-4 text-sm font-light transition-colors border-r border-input last:border-r-0",
+                              calView === value
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-background hover:bg-accent/40",
+                            )}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                      <Button variant="outline" size="sm" className="shrink-0" onClick={() => shiftCalPeriod(-1)} aria-label="上一個">
                         <ChevronLeft className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm" className="shrink-0" onClick={() => setCurrentMonth((m) => addMonths(m, 1))}>
+                      <Button variant="outline" size="sm" className="shrink-0" onClick={() => shiftCalPeriod(1)} aria-label="下一個">
                         <ChevronRight className="h-4 w-4" />
                       </Button>
-                      <div className="w-px h-6 bg-border mx-1 hidden md:block" />
-                      <Button variant="outline" size="sm" className="shrink-0" onClick={blockWeekends}>
-                        關閉本週末
-                      </Button>
+                      {calView === "month" && (
+                        <>
+                          <div className="w-px h-6 bg-border mx-1 hidden md:block" />
+                          <Button variant="outline" size="sm" className="shrink-0" onClick={blockWeekends}>
+                            關閉本週末
+                          </Button>
+                        </>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"
@@ -1020,15 +1084,47 @@ const Admin = () => {
                         <Clock className="h-3.5 w-3.5 mr-1.5" />
                         時段管理
                       </Button>
-                      <div className="flex items-center gap-2 ml-1 shrink-0">
-                        <Switch id="batchMode" checked={batchMode} onCheckedChange={setBatchMode} />
-                        <Label htmlFor="batchMode" className="text-xs font-light cursor-pointer">
-                          批次選取
-                        </Label>
-                      </div>
+                      {calView === "month" && (
+                        <div className="flex items-center gap-2 ml-1 shrink-0">
+                          <Switch id="batchMode" checked={batchMode} onCheckedChange={setBatchMode} />
+                          <Label htmlFor="batchMode" className="text-xs font-light cursor-pointer">
+                            批次選取
+                          </Label>
+                        </div>
+                      )}
                     </div>
                   </div>
 
+                  {calView === "year" && (
+                    <AvailabilityYearView
+                      year={currentMonth.getFullYear()}
+                      bookings={bookings}
+                      availability={availability}
+                      bookingCounts={bookingCounts}
+                      defaultDailyCapacity={defaultDailyCapacity}
+                      onPickMonth={(month) => {
+                        setCurrentMonth(month);
+                        setCalView("month");
+                      }}
+                    />
+                  )}
+
+                  {calView === "day" && (
+                    <AvailabilityDayView
+                      date={currentDay}
+                      availability={availability}
+                      activeTimeSlots={activeTimeSlots}
+                      timeSlotLabelByValue={timeSlotLabelByValue}
+                      bookings={bookings}
+                      getSlotMax={getSlotMax}
+                      saveAvailability={saveAvailability}
+                      saveSlotAvailability={saveSlotAvailability}
+                      onOpenBooking={openDetail}
+                    />
+                  )}
+
+                  {calView === "month" && (
+                    <>
                   {batchMode && selectedDates.length > 0 && (
                     <div className="mb-4 p-4 rounded-lg border border-border bg-accent/30 flex flex-wrap items-center gap-3">
                       <span className="text-xs text-muted-foreground">
@@ -1165,6 +1261,8 @@ const Admin = () => {
                       <span>不開放</span>
                     </div>
                   </div>
+                    </>
+                  )}
                 </Card>
 
                 <Dialog open={!!selectedDate} onOpenChange={() => setSelectedDate(null)}>
