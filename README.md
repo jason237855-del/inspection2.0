@@ -125,6 +125,7 @@ npm run dev
 - **2026-09-19（SEO：修正舊網域、補各頁標題）** — 使用者詢問如何增加曝光度，先檢視現有 SEO 基礎，發現兩個實質問題並修正：
   1. **`診斷筆記` 列表／每篇文章、`預約` 頁的 canonical、`og:url`、JSON-LD 全部寫死舊的 Lovable 網域 `hushed-haven-stays.lovable.app`**：等於告訴 Google 這些頁面的正本在另一個網站，排名與流量會算到舊網域而不是現在的網站。改為統一讀新增的 `src/config/site.ts` 的 `SITE_URL`（`Journal.tsx`、`JournalArticle.tsx`、`BookingPage.tsx`）；`scripts/generate-sitemap.ts` 也改讀同一個值。**日後換成自己的網域，只要改 `src/config/site.ts` 的 `SITE_URL` 並同步 `public/robots.txt` 的 `Sitemap:` 行。**
   2. **首頁、關於、常見問題、聯絡、404 都沒有各自的標題／描述／canonical**，全部沿用 `index.html` 的同一組（Google 會看成重複內容）。新增可重用的 `src/components/Seo.tsx`（title、description、canonical、`og:*`、`twitter:*`、`robots`，支援 `noindex`），並套用到這些頁面，各給獨立的標題與描述；404 設為 `noindex`。
+  - **上線後驗證發現的追加修正**：`index.html` 寫死的 `description`／`og:*`／`twitter:card` 會和 Helmet 輸出的並存，同一頁出現兩組重複標籤（實測常見問題頁標題是新的、description 卻是首頁那句）。這些靜態標籤加上 `data-static-seo` 屬性（保留給不執行 JavaScript 的爬蟲當預設值），前端啟動時由 `src/main.tsx` 移除，改由各頁 `<Seo>` 輸出。
   - **尚未做（規劃中）**：`og:image` 分享預覽圖（需要品牌圖）、首頁「本地商家」結構化資料、每個團報建案的專屬公開頁面、預先渲染（prerender）讓 LINE／Facebook 爬蟲讀得到各頁標題、自訂網域、Google 商家檔案／Search Console。
 - **2026-09-19（實測後修正）** — 用真實團報預約＋真實 LINE 綁定實測 A（通知）與 B（LIFF 憑證驗證）：通知標記已寫入、LINE 綁定成功且收到憑證、團報單價格維持 $7,777（未被扣 $500）。實測抓到兩個問題並修正：
   1. **團報單的折扣文字誤導**：綁定成功頁（`LineBookingBinder.tsx`）與 LINE 預約憑證（`bind-line-booking`）原本一律寫「已套用 LINE 好友折價 $500」，但團報訂單不與 LINE 折價並用。改為後端回傳 `is_group`，團報單顯示「依成團戶數計價（不與 LINE 好友折價並用）」，`discount_applied` 對團報單為 false；綁定中的提示文字也不再預先承諾 $500。

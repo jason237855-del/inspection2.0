@@ -22,4 +22,8 @@ setTimeout(() => {
   }
 }, 10000);
 
+// index.html 內帶 data-static-seo 的 meta 是給「不執行 JavaScript 的爬蟲」看的預設值；
+// 前端載入後移除，改由各頁的 <Seo>（Helmet）輸出，避免同一頁出現兩組重複的 description／og 標籤。
+document.querySelectorAll("[data-static-seo]").forEach((el) => el.remove());
+
 createRoot(document.getElementById("root")!).render(<App />);
