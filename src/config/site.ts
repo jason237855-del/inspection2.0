@@ -9,4 +9,8 @@ export const SITE_TITLE = "診斷室驗屋 Home Inspection & Diagnostics｜專�
 export const SITE_DESCRIPTION =
   "診斷室驗屋提供專業驗屋檢測服務，涵蓋新成屋交屋驗收、中古屋買前檢測、商業建築評估與環境健康監測，報告詳盡、流程透明。";
 
+/** 分享預覽圖（LINE／Facebook 連結預覽），1200×630；換圖時用同檔名覆蓋 public/og-image.jpg 即可 */
+export const DEFAULT_OG_IMAGE = "/og-image.jpg";
+export const DEFAULT_OG_IMAGE_ALT = "診斷室驗屋 Home Inspection & Diagnostics";
+
 export const absoluteUrl = (path: string) => `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;

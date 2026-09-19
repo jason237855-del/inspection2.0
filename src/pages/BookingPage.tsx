@@ -5,7 +5,7 @@ import BookingForm from "@/components/BookingForm";
 import LineBookingBinder from "@/components/LineBookingBinder";
 import Footer from "@/components/Footer";
 import { usePrefersDarkMode } from "@/hooks/usePrefersDarkMode";
-import { SITE_URL } from "@/config/site";
+import { SITE_URL, DEFAULT_OG_IMAGE } from "@/config/site";
 
 
 const BookingPage = () => {
@@ -31,6 +31,8 @@ const BookingPage = () => {
         />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href={`${SITE_URL}/booking`} />
+        <meta property="og:image" content={`${SITE_URL}${DEFAULT_OG_IMAGE}`} />
+        <meta name="twitter:image" content={`${SITE_URL}${DEFAULT_OG_IMAGE}`} />
       </Helmet>
 
       <div className="min-h-screen overflow-x-hidden bg-background">

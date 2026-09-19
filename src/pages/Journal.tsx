@@ -11,7 +11,7 @@ import {
   journalCategories,
   getCategory,
 } from "@/data/journal";
-import { SITE_URL } from "@/config/site";
+import { SITE_URL, DEFAULT_OG_IMAGE } from "@/config/site";
 
 const formatDate = (d: string) =>
   new Date(d).toLocaleDateString("zh-TW", { year: "numeric", month: "2-digit" });
@@ -45,6 +45,8 @@ const Journal = () => {
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={`${SITE_URL}/journal`} />
+        <meta property="og:image" content={`${SITE_URL}${DEFAULT_OG_IMAGE}`} />
+        <meta name="twitter:image" content={`${SITE_URL}${DEFAULT_OG_IMAGE}`} />
         <meta property="og:site_name" content="診斷室驗屋" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="robots" content="index, follow, max-image-preview:large" />

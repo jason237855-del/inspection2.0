@@ -122,6 +122,10 @@ npm run dev
 
 依時間新到舊排列，每筆記錄實際做了什麼變動、為什麼。
 
+- **2026-09-19（SEO：分享預覽圖與本地商家結構化資料）** — 延續前一筆 SEO 修正。
+  - **分享預覽圖**：新增 `public/og-image.jpg`（1200×630，約 140 KB，以 HTML/CSS 排版＋Chrome 截圖製作，素材為既有的 Logo、首頁驗屋師照片與網站配色，文案取自頁尾標語與服務範圍，未新增宣傳語）。用途：把網站連結貼到 LINE／Facebook／Threads 時的連結預覽大圖。`src/config/site.ts` 新增 `DEFAULT_OG_IMAGE`／`DEFAULT_OG_IMAGE_ALT`，`<Seo>` 沒指定圖片時自動使用；`Journal.tsx`、`BookingPage.tsx`（自己用 Helmet）補上同一張；診斷筆記文章仍用各自的封面圖。`index.html` 也寫了 `og:image`／`og:url`／`twitter:image` 靜態預設值（帶 `data-static-seo`，給不執行 JavaScript 的 LINE／Facebook 爬蟲；前端啟動後由 `main.tsx` 移除、改由 `<Seo>` 輸出）。**換圖時用同檔名覆蓋 `public/og-image.jpg` 即可，不用改程式**（LINE／Facebook 有快取，換圖後可能要等一陣子或到各平台的除錯工具重新抓取）。
+  - **首頁「本地商家」結構化資料**（`Index.tsx`，schema.org `ProfessionalService`）：名稱、網址、Logo、描述、服務範圍（依常見問題頁：台中以北及花蓮、台東）、官方 LINE。**刻意沒有放電話、信箱、地址**，因為 `/contact` 頁目前顯示的是範本示範資料（見下）。
+  - **發現（未處理）**：`src/pages/Contact.tsx` 顯示的電話 `+86 10-1234 5678`（中國號碼）、信箱 `hello@homeinspection.tw`、地址「北京市朝陽區建國路 88 號 建外 SOHO 寫字樓 A 座 1206 室」看起來是 Lovable 範本的示範資料，並非診斷室驗屋真實資訊，且 `/contact` 在 sitemap 內會被搜尋引擎收錄；待使用者提供真實資訊或決定移除。
 - **2026-09-19（SEO：修正舊網域、補各頁標題）** — 使用者詢問如何增加曝光度，先檢視現有 SEO 基礎，發現兩個實質問題並修正：
   1. **`診斷筆記` 列表／每篇文章、`預約` 頁的 canonical、`og:url`、JSON-LD 全部寫死舊的 Lovable 網域 `hushed-haven-stays.lovable.app`**：等於告訴 Google 這些頁面的正本在另一個網站，排名與流量會算到舊網域而不是現在的網站。改為統一讀新增的 `src/config/site.ts` 的 `SITE_URL`（`Journal.tsx`、`JournalArticle.tsx`、`BookingPage.tsx`）；`scripts/generate-sitemap.ts` 也改讀同一個值。**日後換成自己的網域，只要改 `src/config/site.ts` 的 `SITE_URL` 並同步 `public/robots.txt` 的 `Sitemap:` 行。**
   2. **首頁、關於、常見問題、聯絡、404 都沒有各自的標題／描述／canonical**，全部沿用 `index.html` 的同一組（Google 會看成重複內容）。新增可重用的 `src/components/Seo.tsx`（title、description、canonical、`og:*`、`twitter:*`、`robots`，支援 `noindex`），並套用到這些頁面，各給獨立的標題與描述；404 設為 `noindex`。
