@@ -1465,10 +1465,6 @@ const Admin = () => {
                         共 {filteredBookings.length} 筆訂單，可新增、編輯、變更狀態與刪除
                       </p>
                     </div>
-                    <Button size="sm" onClick={openCreate} className="text-xs font-light">
-                      <Plus className="h-3.5 w-3.5 mr-1.5" />
-                      新增預約
-                    </Button>
                   </div>
 
                   <div className="flex items-center gap-2 mb-4 md:hidden">
