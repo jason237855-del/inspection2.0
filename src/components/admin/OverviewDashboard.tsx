@@ -210,6 +210,40 @@ const OverviewDashboard = ({ bookings, availability, bookingCounts, defaultDaily
 
   return (
     <div className="space-y-6">
+      {/* 近期預約（放在最上方，最常用） */}
+      <Card className="p-6 border border-border shadow-soft">
+        <h3 className="text-sm font-light mb-4">近期預約</h3>
+        {recent.length === 0 ? (
+          <p className="text-sm text-muted-foreground font-light py-6 text-center">尚無預約紀錄</p>
+        ) : (
+          <div className="divide-y divide-border">
+            {recent.map((b) => (
+              <button
+                key={b.id}
+                onClick={() => onOpenBooking(b)}
+                className="w-full flex items-center justify-between gap-3 py-3 text-left hover:bg-accent/30 -mx-2 px-2 rounded transition-colors"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-light truncate">
+                    {b.name || "未留姓名"}
+                    <span className="text-muted-foreground ml-2">
+                      {inspectionLabels[b.inspection_type] || b.inspection_type}
+                    </span>
+                  </p>
+                  <p className="text-xs text-muted-foreground font-light mt-0.5">
+                    {format(parseISO(b.preferred_date), "yyyy/MM/dd")} · {regionLabels[b.region] || b.region}
+                    {b.project_name ? ` · ${b.project_name}` : ""}
+                  </p>
+                </div>
+                <Badge variant="outline" className={`text-[10px] font-light shrink-0 ${statusColors[b.status]}`}>
+                  {statusLabels[b.status] || b.status}
+                </Badge>
+              </button>
+            ))}
+          </div>
+        )}
+      </Card>
+
       {/* 營收概況（僅手機版：桌面版有獨立的「營收狀況」分頁） */}
       {isMobile && (
         <div className="grid grid-cols-2 gap-4">
@@ -323,40 +357,6 @@ const OverviewDashboard = ({ bookings, availability, bookingCounts, defaultDaily
           ))}
         </Card>
       </div>
-
-      {/* 近期動態 */}
-      <Card className="p-6 border border-border shadow-soft">
-        <h3 className="text-sm font-light mb-4">近期預約</h3>
-        {recent.length === 0 ? (
-          <p className="text-sm text-muted-foreground font-light py-6 text-center">尚無預約紀錄</p>
-        ) : (
-          <div className="divide-y divide-border">
-            {recent.map((b) => (
-              <button
-                key={b.id}
-                onClick={() => onOpenBooking(b)}
-                className="w-full flex items-center justify-between gap-3 py-3 text-left hover:bg-accent/30 -mx-2 px-2 rounded transition-colors"
-              >
-                <div className="min-w-0">
-                  <p className="text-sm font-light truncate">
-                    {b.name || "未留姓名"}
-                    <span className="text-muted-foreground ml-2">
-                      {inspectionLabels[b.inspection_type] || b.inspection_type}
-                    </span>
-                  </p>
-                  <p className="text-xs text-muted-foreground font-light mt-0.5">
-                    {format(parseISO(b.preferred_date), "yyyy/MM/dd")} · {regionLabels[b.region] || b.region}
-                    {b.project_name ? ` · ${b.project_name}` : ""}
-                  </p>
-                </div>
-                <Badge variant="outline" className={`text-[10px] font-light shrink-0 ${statusColors[b.status]}`}>
-                  {statusLabels[b.status] || b.status}
-                </Badge>
-              </button>
-            ))}
-          </div>
-        )}
-      </Card>
     </div>
   );
 };
