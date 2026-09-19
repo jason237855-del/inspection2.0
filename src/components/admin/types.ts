@@ -80,12 +80,14 @@ export const statusOptions = [
 
 export const inspectionLabels: Record<string, string> = {
   newfirst: "新成屋初驗",
+  newfirst_recheck: "新成屋初驗 + 複驗方案",
   newrecheck: "新成屋複驗",
   resale: "中古屋驗屋",
 };
 
 export const inspectionOptions = [
   { value: "newfirst", label: "新成屋初驗" },
+  { value: "newfirst_recheck", label: "新成屋初驗 + 複驗方案" },
   { value: "newrecheck", label: "新成屋複驗" },
   { value: "resale", label: "中古屋驗屋" },
 ];

@@ -181,6 +181,49 @@ const GroupBuyingAdmin = ({ bookings, onBookingsChanged }: Props) => {
     onBookingsChanged();
   };
 
+  const renderActions = (p: GroupProject) => (
+    <>
+            {p.status === "pending" && (
+        <Button size="sm" className="mr-1" onClick={() => setStatus(p, "active")}>
+          <Check className="h-3.5 w-3.5 mr-1" />
+          核准上架
+        </Button>
+      )}
+      {p.status === "active" && (
+        <Button variant="outline" size="sm" className="mr-1" onClick={() => setStatus(p, "closed")}>
+          關閉
+        </Button>
+      )}
+      {p.status === "closed" && (
+        <Button variant="outline" size="sm" className="mr-1" onClick={() => setStatus(p, "active")}>
+          重新開放
+        </Button>
+      )}
+      {p.status === "active" && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+          title="複製建案頁面連結"
+          onClick={() => copyPageLink(p)}
+        >
+          <Link2 className="h-3.5 w-3.5" />
+        </Button>
+      )}
+      <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openEdit(p)}>
+        <Pencil className="h-3.5 w-3.5" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-8 w-8 p-0 text-destructive"
+        onClick={() => setDeleteTarget(p)}
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </Button>
+    </>
+  );
+
   const renderRows = (list: GroupProject[]) =>
     list.map((p) => {
       const count = activeCount(p.id);
@@ -223,47 +266,50 @@ const GroupBuyingAdmin = ({ bookings, onBookingsChanged }: Props) => {
           <TableCell className="text-sm font-light text-muted-foreground">
             滿 {p.min_units} 戶 {formatDiscount(p.discount_rate)}
           </TableCell>
-          <TableCell className="text-right whitespace-nowrap">
-            {p.status === "pending" && (
-              <Button size="sm" className="mr-1" onClick={() => setStatus(p, "active")}>
-                <Check className="h-3.5 w-3.5 mr-1" />
-                核准上架
-              </Button>
-            )}
-            {p.status === "active" && (
-              <Button variant="outline" size="sm" className="mr-1" onClick={() => setStatus(p, "closed")}>
-                關閉
-              </Button>
-            )}
-            {p.status === "closed" && (
-              <Button variant="outline" size="sm" className="mr-1" onClick={() => setStatus(p, "active")}>
-                重新開放
-              </Button>
-            )}
-            {p.status === "active" && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0"
-                title="複製建案頁面連結"
-                onClick={() => copyPageLink(p)}
-              >
-                <Link2 className="h-3.5 w-3.5" />
-              </Button>
-            )}
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openEdit(p)}>
-              <Pencil className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 text-destructive"
-              onClick={() => setDeleteTarget(p)}
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
-          </TableCell>
+          <TableCell className="text-right whitespace-nowrap">{renderActions(p)}</TableCell>
         </TableRow>
+      );
+    });
+
+  const renderCards = (list: GroupProject[]) =>
+    list.map((p) => {
+      const count = activeCount(p.id);
+      const reached = count >= p.min_units;
+      return (
+        <div key={p.id} className="rounded-xl border border-border bg-card p-4 space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-sm">{p.name}</p>
+              <p className="text-xs text-muted-foreground font-light mt-0.5">{p.region}</p>
+              {p.status === "active" && (
+                <p className="text-[11px] text-muted-foreground/70 mt-0.5 break-all">{decodeURIComponent(groupPath(p.slug))}</p>
+              )}
+              {p.status === "pending" && (p.proposer_name || p.proposer_phone) && (
+                <p className="text-xs text-muted-foreground font-light mt-0.5">
+                  提出人：{p.proposer_name || "-"}／{p.proposer_phone || "-"}
+                </p>
+              )}
+            </div>
+            <span className={`shrink-0 whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] ${groupStatusColors[p.status]}`}>
+              {groupStatusLabels[p.status]}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-xs font-light text-muted-foreground">
+            <button className="inline-flex items-center gap-1 underline-offset-2 hover:underline" onClick={() => setMembersOf(p)}>
+              <Users className="h-3.5 w-3.5" />
+              {count} 戶
+              {p.status !== "pending" && (
+                <span className={`ml-1.5 ${reached ? "text-emerald-600" : ""}`}>
+                  {reached ? "已成團" : `差 ${p.min_units - count} 戶`}
+                </span>
+              )}
+            </button>
+            <span>
+              滿 {p.min_units} 戶 {formatDiscount(p.discount_rate)}
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center justify-end gap-1">{renderActions(p)}</div>
+        </div>
       );
     });
 
@@ -287,10 +333,13 @@ const GroupBuyingAdmin = ({ bookings, onBookingsChanged }: Props) => {
         <Card className="border border-amber-500/30 shadow-soft p-4 md:p-6">
           <h2 className="text-lg font-light mb-1">客戶提出的新建案（{pendingProjects.length}）</h2>
           <p className="text-xs text-muted-foreground mb-4">核准後才會出現在官網「建案團報」區塊。</p>
-          <Table>
-            {tableHead}
-            <TableBody>{renderRows(pendingProjects)}</TableBody>
-          </Table>
+          <div className="hidden md:block">
+            <Table>
+              {tableHead}
+              <TableBody>{renderRows(pendingProjects)}</TableBody>
+            </Table>
+          </div>
+          <div className="md:hidden space-y-3">{renderCards(pendingProjects)}</div>
         </Card>
       )}
 
@@ -313,10 +362,15 @@ const GroupBuyingAdmin = ({ bookings, onBookingsChanged }: Props) => {
         ) : otherProjects.length === 0 ? (
           <p className="text-sm text-muted-foreground py-8 text-center">尚未建立任何團報建案</p>
         ) : (
-          <Table>
-            {tableHead}
-            <TableBody>{renderRows(otherProjects)}</TableBody>
-          </Table>
+          <>
+            <div className="hidden md:block">
+              <Table>
+                {tableHead}
+                <TableBody>{renderRows(otherProjects)}</TableBody>
+              </Table>
+            </div>
+            <div className="md:hidden space-y-3">{renderCards(otherProjects)}</div>
+          </>
         )}
       </Card>
 
@@ -367,6 +421,8 @@ const GroupBuyingAdmin = ({ bookings, onBookingsChanged }: Props) => {
           {members.length === 0 ? (
             <p className="text-sm text-muted-foreground py-6 text-center">目前沒有人加入</p>
           ) : (
+            <>
+              <div className="hidden md:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -402,6 +458,29 @@ const GroupBuyingAdmin = ({ bookings, onBookingsChanged }: Props) => {
                 ))}
               </TableBody>
             </Table>
+              </div>
+            <div className="md:hidden space-y-2">
+              {members.map((b) => (
+                <div key={b.id} className="rounded-lg border border-border p-3 text-sm space-y-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <span>{b.name}</span>
+                    <span className="text-xs text-muted-foreground font-light">{statusLabels[b.status] || b.status}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground font-light">{b.phone}</p>
+                  <p className="text-xs text-muted-foreground font-light">
+                    {b.floor_unit || "-"} ・ {b.preferred_date}
+                    {b.time_slot ? ` ${b.time_slot}` : ""}
+                  </p>
+                  <p className="text-xs text-right">
+                    {b.original_price != null && b.price != null && b.price < b.original_price && (
+                      <span className="mr-1.5 text-muted-foreground line-through">{formatNT(b.original_price)}</span>
+                    )}
+                    {formatNT(b.price)}
+                  </p>
+                </div>
+              ))}
+            </div>
+            </>
           )}
         </DialogContent>
       </Dialog>

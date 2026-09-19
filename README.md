@@ -123,6 +123,12 @@ npm run dev
 
 依時間新到舊排列，每筆記錄實際做了什麼變動、為什麼。
 
+- **2026-09-19（後台手機版修正）** — 用 390 像素寬的框（`iframe` 載入 `/admin`，沿用管理員登入狀態）逐頁檢查後台手機版（7 個分頁皆無橫向溢出），發現並修正四個問題：
+  1. **手機上進不去「團報管理」「營收狀況」**：底部導覽只有 總覽／預約紀錄／新增／名額管理／設定（「時段管理」只能從名額管理頁的按鈕進入）。`MobileBottomNav.tsx` 最右邊的「設定」改為「更多」，點開底部面板列出 時段管理、團報管理、營收狀況、管理者設定（與桌機側邊欄一致）；目前分頁在「更多」內時該按鈕會高亮。
+  2. **團報管理、時段管理在手機上表格被擠壓**（建案名稱一字一行、狀態標籤直排、操作按鈕被切在右邊）：`GroupBuyingAdmin.tsx`（建案清單、待審核提案、成員清單視窗）與 `Admin.tsx` 的時段管理，手機改成卡片式（`md:hidden`），桌機維持表格（`hidden md:block`）；團報的操作按鈕抽成 `renderActions`，表格與卡片共用。
+  3. **每個分頁最上面都先出現一整屏統計卡片**：手機上改為只有「總覽」與「預約紀錄」顯示那排統計，其他分頁直接看內容（桌機每頁仍顯示）。
+  4. **預約類型顯示原始代碼 `newfirst_recheck`（手機與桌機都有）**：`admin/types.ts` 的 `inspectionLabels` 缺這個類型（預約表單勾選「加購複驗」時會寫入），補上「新成屋初驗 + 複驗方案」，同時補進 `inspectionOptions`，「檢測類型」篩選與新增／編輯預約也可選。
+  - **未涵蓋**：「新增預約」「名額單日設定」等視窗在手機上的樣子、真機（iOS Safari／Android Chrome）的觸控與字體大小；本次是以寬度模擬，仍需在實機確認。
 - **2026-09-19（團報專區與各建案專屬頁面）** — 依 SEO 討論的方向，把團報從首頁一個區塊擴充成完整專區，並取代刪除的 `/contact`。
   - **資料庫**（新 migration `20260919140000_group_project_slug.sql`，已套用）：`group_projects` 新增 `slug`（唯一、不可為空；保留中文與英數，空白與 `/ \ ? # % & +` 換成 `-`，撞名加 `-2`、`-3`）。既有建案已回填（如 `大亮泊`、`三松-jade-park`）；新增時由 trigger 自動產生，**訪客提案一律由系統產生、不能自訂**，管理員／後端可自訂。已用「交易內測試後回滾」驗證回填、特殊字元、撞名、管理員自訂、訪客不能自訂。
   - **頁面**：`/group` 團報專區（`GroupHub.tsx`）與 `/group/:slug` 建案頁（`GroupProject.tsx`：進度條、加入團報、分享到 LINE／複製連結、團報流程、BreadcrumbList 結構化資料、每頁獨立標題描述與 canonical；找不到或已關閉的建案顯示說明並設 `noindex`）。可重用元件放 `src/components/group/`（`GroupProjectCard`、`ProposeGroupDialog`、`ShareButtons`、`GroupHowItWorks`），資料讀取 `src/hooks/useGroupProjects.ts`，`formatDiscount`／`groupPath`／`groupUrl` 在 `src/lib/group.ts`。首頁的團報區塊改用同一批元件並加「團報專區與流程說明」連結；導覽列「建案團報」改連 `/group`；`/contact` 導向 `/group`。

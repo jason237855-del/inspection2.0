@@ -122,6 +122,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 10;
 
@@ -910,7 +911,11 @@ const Admin = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10"
+            // 手機上只有「總覽」與「預約紀錄」顯示這排統計，其他分頁直接看內容（桌機每頁都顯示）
+            className={cn(
+              "grid grid-cols-2 md:grid-cols-4 gap-4 mb-10",
+              activeTab !== "overview" && activeTab !== "bookings" && "hidden md:grid",
+            )}
           >
             <Card className="p-6 border border-border shadow-soft">
               <div className="flex items-center gap-3 mb-3">
@@ -1259,6 +1264,8 @@ const Admin = () => {
                   {timeSlots.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-8 text-center">尚未設定任何時段</p>
                   ) : (
+                    <>
+                    <div className="hidden md:block">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -1321,6 +1328,47 @@ const Admin = () => {
                         ))}
                       </TableBody>
                     </Table>
+                    </div>
+                    <div className="md:hidden space-y-3">
+                      {timeSlots.map((slot, index) => (
+                        <div key={slot.id} className="rounded-xl border border-border bg-card p-4 space-y-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="text-sm">{slot.label}</p>
+                              <p className="text-xs text-muted-foreground font-light mt-0.5">
+                                代碼 {slot.value} ・ 預設每日名額 {slot.default_max_slots}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="text-xs text-muted-foreground font-light">
+                                {slot.is_active ? "啟用" : "停用"}
+                              </span>
+                              <Switch checked={slot.is_active} onCheckedChange={() => toggleTimeSlotActive(slot)} />
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1">
+                              <Button variant="outline" size="sm" className="h-8 w-8 p-0" disabled={index === 0} onClick={() => moveTimeSlot(slot, "up")} aria-label="上移">
+                                <ChevronUp className="h-4 w-4" />
+                              </Button>
+                              <Button variant="outline" size="sm" className="h-8 w-8 p-0" disabled={index === timeSlots.length - 1} onClick={() => moveTimeSlot(slot, "down")} aria-label="下移">
+                                <ChevronDown className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Button variant="outline" size="sm" onClick={() => openEditTimeSlot(slot)}>
+                                <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                                編輯
+                              </Button>
+                              <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => setDeleteTimeSlotTarget(slot)} aria-label="刪除">
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    </>
                   )}
                 </Card>
 
