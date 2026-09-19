@@ -149,6 +149,7 @@ export type Database = {
           proposer_name: string | null
           proposer_phone: string | null
           region: string
+          slug: string
           sort_order: number
           status: string
           updated_at: string
@@ -162,6 +163,7 @@ export type Database = {
           proposer_name?: string | null
           proposer_phone?: string | null
           region: string
+          slug?: string
           sort_order?: number
           status?: string
           updated_at?: string
@@ -175,6 +177,7 @@ export type Database = {
           proposer_name?: string | null
           proposer_phone?: string | null
           region?: string
+          slug?: string
           sort_order?: number
           status?: string
           updated_at?: string

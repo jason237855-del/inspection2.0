@@ -31,6 +31,7 @@ export type GroupProject = {
   id: string;
   name: string;
   region: string;
+  slug: string;
   status: "pending" | "active" | "closed";
   min_units: number;
   discount_rate: number;

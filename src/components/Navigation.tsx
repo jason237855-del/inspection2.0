@@ -109,7 +109,7 @@ const Navigation = ({ variant = "default" }: NavigationProps) => {
     { label: "服務流程", href: "/#process", isRoute: false },
     { label: "診斷項目", href: "/#services", isRoute: false },
     { label: "驗屋價格", href: "/#pricing", isRoute: false },
-    { label: "建案團報", href: "/#group-buying", isRoute: false },
+    { label: "建案團報", href: "/group", isRoute: true },
     { label: "診斷筆記", href: "/journal", isRoute: true },
     { label: "常見問題", href: "/faq", isRoute: true },
   ];
@@ -120,7 +120,7 @@ const Navigation = ({ variant = "default" }: NavigationProps) => {
   );
 
   const isActive = (item: { label: string; href: string; isRoute: boolean }) => {
-    if (item.isRoute) return location.pathname === item.href;
+    if (item.isRoute) return location.pathname === item.href || location.pathname.startsWith(`${item.href}/`);
     return isHomePage && activeSection === item.href.replace("/#", "");
   };
 

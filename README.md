@@ -59,8 +59,9 @@ npm run dev
 | 頁面 | 說明 |
 | --- | --- |
 | `About.tsx` | 關於我們獨立頁 |
-| `Contact.tsx` | 聯絡我們 |
 | `Faq.tsx` | 常見問題 |
+| `GroupHub.tsx` | 團報專區 `/group`（流程說明＋所有開放中的團報建案＋提出新建案） |
+| `GroupProject.tsx` | 單一建案團報頁 `/group/<slug>`（進度、加入團報、分享到 LINE／複製連結） |
 | `Journal.tsx` / `JournalArticle.tsx` | 診斷筆記部落格列表與文章頁 |
 | `BookingPage.tsx` | 獨立預約頁（承載 `BookingForm`） |
 | `Auth.tsx` | 登入頁（給後台管理員） |
@@ -122,10 +123,18 @@ npm run dev
 
 依時間新到舊排列，每筆記錄實際做了什麼變動、為什麼。
 
+- **2026-09-19（團報專區與各建案專屬頁面）** — 依 SEO 討論的方向，把團報從首頁一個區塊擴充成完整專區，並取代刪除的 `/contact`。
+  - **資料庫**（新 migration `20260919140000_group_project_slug.sql`，已套用）：`group_projects` 新增 `slug`（唯一、不可為空；保留中文與英數，空白與 `/ \ ? # % & +` 換成 `-`，撞名加 `-2`、`-3`）。既有建案已回填（如 `大亮泊`、`三松-jade-park`）；新增時由 trigger 自動產生，**訪客提案一律由系統產生、不能自訂**，管理員／後端可自訂。已用「交易內測試後回滾」驗證回填、特殊字元、撞名、管理員自訂、訪客不能自訂。
+  - **頁面**：`/group` 團報專區（`GroupHub.tsx`）與 `/group/:slug` 建案頁（`GroupProject.tsx`：進度條、加入團報、分享到 LINE／複製連結、團報流程、BreadcrumbList 結構化資料、每頁獨立標題描述與 canonical；找不到或已關閉的建案顯示說明並設 `noindex`）。可重用元件放 `src/components/group/`（`GroupProjectCard`、`ProposeGroupDialog`、`ShareButtons`、`GroupHowItWorks`），資料讀取 `src/hooks/useGroupProjects.ts`，`formatDiscount`／`groupPath`／`groupUrl` 在 `src/lib/group.ts`。首頁的團報區塊改用同一批元件並加「團報專區與流程說明」連結；導覽列「建案團報」改連 `/group`；`/contact` 導向 `/group`。
+  - **後台**「團報管理」：建案名稱下顯示頁面路徑，新增「複製建案頁面連結」按鈕（貼到社區群組用）。
+  - **sitemap**：`scripts/generate-sitemap.ts` 建置時向 Supabase 讀取「開放中」建案的 slug，加入 `/group` 與各 `/group/<slug>`（`<loc>` 已編碼）；讀取失敗只警告、不讓建置失敗。**限制：新增或關閉建案後，sitemap 要等下次部署才會更新。**
+  - **連結預覽（LINE／Facebook）**：這些爬蟲不執行 JavaScript，只讀原始 HTML。新增 Vercel 函式 `api/group-meta.js`，`vercel.json` 只把爬蟲的 User-Agent（`facebookexternalhit`（LINE 的預覽爬蟲也是這個）、`Facebot`、`Twitterbot`、`Slackbot`、`Discordbot`、`TelegramBot`、`WhatsApp`、`LinkedInBot`）對 `/group/:slug` 的請求轉過去，回傳該建案自己的標題、描述（含已報名戶數）與分享圖；一般訪客與 Google 不經過這裡（走 SPA）。函式讀資料庫用 `VITE_SUPABASE_URL`／`VITE_SUPABASE_PUBLISHABLE_KEY`（Vercel 已為建置設定），讀不到時回一般的團報預覽而不是壞掉的卡片；快取 5 分鐘。
+  - 測試：`tsc`、`eslint`、`npm run build` 通過；`api/group-meta.js` 已在本機以真實資料測過（有／無此建案、HTML 特殊字元轉義）。
+- **2026-09-19（移除 `/contact` 頁）** — 使用者不知道有這頁，決定刪除。原因：這頁顯示的電話 `+86 10-1234 5678`（中國號碼）、信箱 `hello@homeinspection.tw`、地址「北京市朝陽區建國路 88 號 建外 SOHO 寫字樓 A 座 1206 室」、營業時間都是 Lovable 範本的示範資料，並非診斷室驗屋的真實資訊；而且頁面內的聯絡表單是假的（`handleSubmit` 只寫了 `Simulate form submission`：等 1 秒後跳出「消息已發送」，資料沒有送到任何地方，曾在此頁填表的訪客訊息會遺失）。導覽列與頁尾原本就沒有連到這頁。處理：刪除 `src/pages/Contact.tsx`、`App.tsx` 的 lazy import 與路由，`/contact` 改為 `<Navigate to="/group" replace />` 導向團報專區（最初導向首頁，同一次上線時改為團報專區）（因為它在 sitemap 內、可能已被搜尋引擎收錄，直接變 404 較差），並從 `scripts/generate-sitemap.ts` 移除，重新產生 sitemap；README 的頁面結構表同步移除。目前對外聯絡管道為官方 LINE（`LINE_OA_URL`）與預約表單。
 - **2026-09-19（SEO：分享預覽圖與本地商家結構化資料）** — 延續前一筆 SEO 修正。
   - **分享預覽圖**：新增 `public/og-image.jpg`（1200×630，約 140 KB，以 HTML/CSS 排版＋Chrome 截圖製作，素材為既有的 Logo、首頁驗屋師照片與網站配色，文案取自頁尾標語與服務範圍，未新增宣傳語）。用途：把網站連結貼到 LINE／Facebook／Threads 時的連結預覽大圖。`src/config/site.ts` 新增 `DEFAULT_OG_IMAGE`／`DEFAULT_OG_IMAGE_ALT`，`<Seo>` 沒指定圖片時自動使用；`Journal.tsx`、`BookingPage.tsx`（自己用 Helmet）補上同一張；診斷筆記文章仍用各自的封面圖。`index.html` 也寫了 `og:image`／`og:url`／`twitter:image` 靜態預設值（帶 `data-static-seo`，給不執行 JavaScript 的 LINE／Facebook 爬蟲；前端啟動後由 `main.tsx` 移除、改由 `<Seo>` 輸出）。**換圖時用同檔名覆蓋 `public/og-image.jpg` 即可，不用改程式**（LINE／Facebook 有快取，換圖後可能要等一陣子或到各平台的除錯工具重新抓取）。
   - **首頁「本地商家」結構化資料**（`Index.tsx`，schema.org `ProfessionalService`）：名稱、網址、Logo、描述、服務範圍（依常見問題頁：台中以北及花蓮、台東）、官方 LINE。**刻意沒有放電話、信箱、地址**，因為 `/contact` 頁目前顯示的是範本示範資料（見下）。
-  - **發現（未處理）**：`src/pages/Contact.tsx` 顯示的電話 `+86 10-1234 5678`（中國號碼）、信箱 `hello@homeinspection.tw`、地址「北京市朝陽區建國路 88 號 建外 SOHO 寫字樓 A 座 1206 室」看起來是 Lovable 範本的示範資料，並非診斷室驗屋真實資訊，且 `/contact` 在 sitemap 內會被搜尋引擎收錄；待使用者提供真實資訊或決定移除。
+  - **發現的問題已在下一筆處理**：`/contact` 頁的電話、信箱、地址是範本示範資料（見下一筆）。
 - **2026-09-19（SEO：修正舊網域、補各頁標題）** — 使用者詢問如何增加曝光度，先檢視現有 SEO 基礎，發現兩個實質問題並修正：
   1. **`診斷筆記` 列表／每篇文章、`預約` 頁的 canonical、`og:url`、JSON-LD 全部寫死舊的 Lovable 網域 `hushed-haven-stays.lovable.app`**：等於告訴 Google 這些頁面的正本在另一個網站，排名與流量會算到舊網域而不是現在的網站。改為統一讀新增的 `src/config/site.ts` 的 `SITE_URL`（`Journal.tsx`、`JournalArticle.tsx`、`BookingPage.tsx`）；`scripts/generate-sitemap.ts` 也改讀同一個值。**日後換成自己的網域，只要改 `src/config/site.ts` 的 `SITE_URL` 並同步 `public/robots.txt` 的 `Sitemap:` 行。**
   2. **首頁、關於、常見問題、聯絡、404 都沒有各自的標題／描述／canonical**，全部沿用 `index.html` 的同一組（Google 會看成重複內容）。新增可重用的 `src/components/Seo.tsx`（title、description、canonical、`og:*`、`twitter:*`、`robots`，支援 `noindex`），並套用到這些頁面，各給獨立的標題與描述；404 設為 `noindex`。

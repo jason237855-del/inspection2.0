@@ -1,5 +1,16 @@
 {
   "rewrites": [
+    {
+      "source": "/group/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|Facebot|Twitterbot|Slackbot|Discordbot|TelegramBot|WhatsApp|LinkedInBot|line-poker).*"
+        }
+      ],
+      "destination": "/api/group-meta?slug=:slug"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

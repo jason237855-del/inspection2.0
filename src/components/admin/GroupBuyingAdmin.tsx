@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Pencil, Trash2, Check, Users } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, Users, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -26,6 +26,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { statusLabels, type BookingRequest, type GroupProject } from "./types";
+import { groupPath, groupUrl } from "@/lib/group";
 
 const groupStatusLabels: Record<GroupProject["status"], string> = {
   pending: "待審核",
@@ -87,6 +88,15 @@ const GroupBuyingAdmin = ({ bookings, onBookingsChanged }: Props) => {
     });
     return map;
   }, [bookings]);
+
+  const copyPageLink = async (p: GroupProject) => {
+    try {
+      await navigator.clipboard.writeText(groupUrl(p.slug));
+      toast.success(`已複製「${p.name}」的頁面連結，可貼到社區群組`);
+    } catch {
+      toast.error("複製失敗，請手動複製");
+    }
+  };
 
   const activeCount = (id: string) => (membersByProject[id] || []).filter((b) => b.status !== "cancelled").length;
 
@@ -180,6 +190,9 @@ const GroupBuyingAdmin = ({ bookings, onBookingsChanged }: Props) => {
           <TableCell className="text-sm font-light">
             <div>{p.name}</div>
             <div className="text-xs text-muted-foreground">{p.region}</div>
+            {p.status === "active" && (
+              <div className="text-[11px] text-muted-foreground/70 mt-0.5 break-all">{decodeURIComponent(groupPath(p.slug))}</div>
+            )}
             {p.status === "pending" && (p.proposer_name || p.proposer_phone) && (
               <div className="text-xs text-muted-foreground mt-0.5">
                 提出人：{p.proposer_name || "-"}／{p.proposer_phone || "-"}
@@ -225,6 +238,17 @@ const GroupBuyingAdmin = ({ bookings, onBookingsChanged }: Props) => {
             {p.status === "closed" && (
               <Button variant="outline" size="sm" className="mr-1" onClick={() => setStatus(p, "active")}>
                 重新開放
+              </Button>
+            )}
+            {p.status === "active" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+                title="複製建案頁面連結"
+                onClick={() => copyPageLink(p)}
+              >
+                <Link2 className="h-3.5 w-3.5" />
               </Button>
             )}
             <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openEdit(p)}>

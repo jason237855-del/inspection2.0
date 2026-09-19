@@ -12,13 +12,14 @@ import FloatingConsultButton from "./components/FloatingConsultButton";
 
 // 首頁以外的頁面改用 lazy load：一般訪客進站大多先看首頁，
 // 沒必要讓他們一次下載後台管理系統、預約表單等用不到的程式碼。
-const Contact = lazy(() => import("./pages/Contact"));
 const About = lazy(() => import("./pages/About"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Auth = lazy(() => import("./pages/Auth"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Journal = lazy(() => import("./pages/Journal"));
 const JournalArticle = lazy(() => import("./pages/JournalArticle"));
+const GroupHub = lazy(() => import("./pages/GroupHub"));
+const GroupProject = lazy(() => import("./pages/GroupProject"));
 const Faq = lazy(() => import("./pages/Faq"));
 const BookingPage = lazy(() => import("./pages/BookingPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -44,7 +45,10 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
+            {/* 已移除的舊頁面（原為範本示範資料）：導向團報專區，避免舊連結／搜尋引擎收錄的網址變成 404 */}
+            <Route path="/contact" element={<Navigate to="/group" replace />} />
+            <Route path="/group" element={<GroupHub />} />
+            <Route path="/group/:slug" element={<GroupProject />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/notes" element={<Navigate to="/journal" replace />} />

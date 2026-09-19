@@ -25,7 +25,7 @@ import {
 import { LIFF_ID, LINE_OA_URL } from "@/config/line";
 import { supabase } from "@/integrations/supabase/client";
 import type { TimeSlot, GroupProject } from "@/components/admin/types";
-import { formatDiscount } from "@/components/GroupBuying";
+import { formatDiscount } from "@/lib/group";
 
 
 const slideVariants = {
