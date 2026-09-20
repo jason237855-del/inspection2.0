@@ -100,6 +100,15 @@ const Navigation = ({ variant = "default" }: NavigationProps) => {
   const navigate = useNavigate();
   const isHomePage = location.pathname === "/";
 
+  // 已在首頁時，點 logo 平滑捲回最上面（並清掉網址列的 #區塊）；在其他頁面則照常回到首頁（由 ScrollToTop 捲到頂端）
+  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    setIsMobileMenuOpen(false);
+    if (location.pathname !== "/") return;
+    e.preventDefault();
+    if (window.location.hash) window.history.replaceState(null, "", "/");
+    window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+  };
+
   const handleBookNow = () => {
     navigate("/booking");
   };
@@ -162,7 +171,7 @@ const Navigation = ({ variant = "default" }: NavigationProps) => {
         >
         <div className="flex items-center justify-between gap-4 md:gap-6">
 
-          <Link to="/">
+          <Link to="/" onClick={handleLogoClick} aria-label="回到首頁最上方">
             <motion.div
               whileHover={reduceMotion ? undefined : { scale: 1.02 }}
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
