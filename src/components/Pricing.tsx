@@ -74,7 +74,7 @@ const plansByTab: Record<TabKey, Plan[]> = {
       label: "中古屋驗屋方案",
       title: "中古屋驗屋",
       price: 10000,
-      unit: "起 / 30 坪以內",
+      unit: "起 / 20 坪以內",
       extraNote: "每超過一坪 $400",
       description: "從現況、設備與潛在風險出發，看懂房子真正的健康狀態。",
       featuresHeader: "本方案包含：",
