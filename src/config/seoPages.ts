@@ -23,6 +23,18 @@ export const SEO_PAGES = [
     description:
       "同建案多戶一起報名驗屋，達成團戶數全團享折扣。找到自己的建案加入團報，每戶各自預約時段，也可以提出新的建案。",
   },
+  {
+    path: "/journal",
+    label: "診斷筆記",
+    title: "診斷筆記 Diagnostic Journal｜診斷室驗屋",
+    description: "從建築現象出發的診斷筆記：滲漏水、電氣、給排水、建築與設備常見問題的觀察、可能原因與判讀方式。",
+  },
+  {
+    path: "/privacy",
+    label: "隱私權政策",
+    title: "隱私權政策｜診斷室驗屋",
+    description: "說明診斷室驗屋如何蒐集、使用與保護您在預約、團報與瀏覽網站時提供的個人資料，以及您可行使的權利。",
+  },
 ] as const;
 
 export const SEO_TITLE_MAX = 70;

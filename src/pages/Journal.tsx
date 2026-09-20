@@ -12,6 +12,8 @@ import {
   getCategory,
 } from "@/data/journal";
 import { SITE_URL, DEFAULT_OG_IMAGE } from "@/config/site";
+import { seoDefaults } from "@/config/seoPages";
+import { useSeoOverrides } from "@/hooks/useSeoOverrides";
 
 const formatDate = (d: string) =>
   new Date(d).toLocaleDateString("zh-TW", { year: "numeric", month: "2-digit" });
@@ -19,6 +21,10 @@ const formatDate = (d: string) =>
 const Journal = () => {
   const [active, setActive] = useState<string>("all");
   const reduceMotion = usePrefersReducedMotion();
+  // 標題與說明可在後台「SEO 設定」調整，沒設定就用預設
+  const seoOverride = useSeoOverrides()["/journal"];
+  const seoTitle = seoOverride?.title || seoDefaults("/journal").title;
+  const seoDescription = seoOverride?.description || seoDefaults("/journal").description;
 
   const filtered = useMemo(
     () =>
@@ -33,12 +39,9 @@ const Journal = () => {
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden">
       <Helmet>
-        <title>診斷筆記 Diagnostic Journal｜診斷室驗屋</title>
-        <meta
-          name="description"
-          content="從建築現象出發的診斷筆記：滲漏水、電氣、給排水、建築與設備常見問題的觀察、可能原因與判讀方式。"
-        />
-        <meta property="og:title" content="診斷筆記 Diagnostic Journal｜診斷室驗屋" />
+        <title>{seoTitle}</title>
+        <meta name="description" content={seoDescription} />
+        <meta property="og:title" content={seoTitle} />
         <meta
           property="og:description"
           content="看見問題只是開始，理解問題，才能找到改善方向。"

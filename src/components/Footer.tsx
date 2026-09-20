@@ -47,6 +47,11 @@ const Footer = () => {
 
         <div className="border-t border-[hsl(var(--footer-foreground))]/15 pt-8 mt-14 text-center text-[hsl(var(--footer-foreground))]/50 text-xs font-light tracking-wide">
           <p>&copy; 2026 診斷室驗屋 Home Inspection &amp; Diagnostics. All rights reserved.</p>
+          <p className="mt-2">
+            <Link to="/privacy" className="transition-colors hover:text-[hsl(var(--footer-foreground))]">
+              隱私權政策
+            </Link>
+          </p>
         </div>
       </div>
     </footer>

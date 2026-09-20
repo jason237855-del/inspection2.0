@@ -744,6 +744,14 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
                   </div>
                 </div>
 
+                <p className="text-center text-xs font-light text-muted-foreground">
+                  送出預約即表示您同意我們依
+                  <Link to="/privacy" target="_blank" className="mx-0.5 text-primary underline-offset-4 hover:underline">
+                    隱私權政策
+                  </Link>
+                  蒐集與使用您填寫的資料，作為聯繫與安排驗屋之用。
+                </p>
+
                 <div className="flex gap-3">
                   <Button variant="outline" className="flex-1 rounded-md text-[11px] uppercase tracking-wider font-normal" onClick={() => goTo(2)} disabled={submitting}>
                     <ArrowLeft className="mr-2 h-4 w-4" />

@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import GroupProjectCard from "@/components/group/GroupProjectCard";
 import { useActiveGroupProjects } from "@/hooks/useGroupProjects";
 import { useGroupSettings } from "@/hooks/useGroupSettings";
-import { AREAS, areaPath, findArea } from "@/config/areas";
+import { AREAS, areaPath, areaSeo, findArea } from "@/config/areas";
+import { steps as processSteps } from "@/components/Process";
 import { SITE_URL } from "@/config/site";
 import { LINE_OA_URL } from "@/config/line";
 import { cityOf, districtOf, termsText } from "@/lib/group";
@@ -41,8 +42,7 @@ const Area = () => {
   if (!area) return <NotFound />;
 
   const path = areaPath(area.slug);
-  const title = `${area.name}驗屋｜新成屋・中古屋驗屋與建案團報｜診斷室驗屋`;
-  const description = `診斷室驗屋提供${area.name}地區新成屋交屋驗收與中古屋買前檢測，涵蓋電氣、給排水、防水、土建、設備與環境六大系統；同建案多戶可團報（${termsText(groupDefaults)}）。`;
+  const { title, description } = areaSeo(area.name, termsText(groupDefaults));
   const groupCity = area.cities[0];
 
   return (
@@ -112,6 +112,24 @@ const Area = () => {
                 常見問題
               </Link>
               。
+            </p>
+          </section>
+
+          <section aria-labelledby="area-process">
+            <h2 id="area-process" className="text-2xl font-semibold tracking-tight text-center mb-8">
+              在{area.name}預約驗屋的流程
+            </h2>
+            <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+              {processSteps.map((s) => (
+                <li key={s.step} className="rounded-2xl border border-border bg-card p-5">
+                  <p className="text-[11px] tracking-[0.2em] text-muted-foreground mb-2">STEP {s.step}</p>
+                  <h3 className="text-base font-semibold mb-2">{s.title}</h3>
+                  <p className="text-xs font-light leading-relaxed text-muted-foreground">{s.description}</p>
+                </li>
+              ))}
+            </ol>
+            <p className="mt-6 text-center text-sm font-light text-muted-foreground">
+              服務範圍為台中以北（雙北、基隆、桃園、新竹、苗栗、台中、宜蘭）及花蓮、台東；不確定您的地點是否在範圍內，歡迎先用 LINE 詢問。
             </p>
           </section>
 

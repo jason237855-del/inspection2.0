@@ -24,6 +24,7 @@ const GroupHub = lazy(() => import("./pages/GroupHub"));
 const GroupProject = lazy(() => import("./pages/GroupProject"));
 const Faq = lazy(() => import("./pages/Faq"));
 const Area = lazy(() => import("./pages/Area"));
+const Privacy = lazy(() => import("./pages/Privacy"));
 const BookingPage = lazy(() => import("./pages/BookingPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -61,6 +62,7 @@ const App = () => (
             <Route path="/journal/:slug" element={<JournalArticle />} />
             <Route path="/faq" element={<Faq />} />
             <Route path="/area/:slug" element={<Area />} />
+            <Route path="/privacy" element={<Privacy />} />
             <Route path="/booking" element={<BookingPage />} />
             <Route path="/admin" element={<Admin />} />
 

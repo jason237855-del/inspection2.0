@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { PhoneCall, ClipboardList, Search, FileCheck, RefreshCcw } from "lucide-react";
 import FlowField from "@/components/FlowField";
 
-const steps = [
+export const steps = [
   { icon: PhoneCall, step: "01", title: "預約洽詢", subtitle: "Enquiry", description: "line 或電話說明物件坪數、屋齡與交屋時程，我們評估所需人力與時間並報價。" },
   { icon: ClipboardList, step: "02", title: "行前準備", subtitle: "Preparation", description: "確認檢測範圍與時間，提醒您備妥權狀、平面圖、建材表與交屋文件。" },
   { icon: Search, step: "03", title: "現場檢測", subtitle: "On-site Inspection", description: "以專業儀器逐區檢查結構、水電、防水、門窗與空氣品質，現場標示缺失。" },

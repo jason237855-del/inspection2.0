@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -93,6 +94,13 @@ const ProposeGroupDialog = ({ open, onOpenChange }: Props) => {
             className="absolute left-[-9999px] h-0 w-0 opacity-0"
             aria-hidden="true"
           />
+          <p className="text-xs font-light text-muted-foreground">
+            送出即表示您同意我們依
+            <Link to="/privacy" target="_blank" className="mx-0.5 text-primary underline-offset-4 hover:underline">
+              隱私權政策
+            </Link>
+            使用您的姓名與電話，作為審核與聯繫之用。
+          </p>
         </div>
         <DialogFooter>
           <Button onClick={handlePropose} disabled={submitting}>
