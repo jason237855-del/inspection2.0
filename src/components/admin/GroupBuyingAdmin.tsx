@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Pencil, Trash2, Check, Users, Link2, ImagePlus, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, Users, Link2, ImagePlus, Loader2, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -87,6 +87,7 @@ const GroupBuyingAdmin = ({ bookings, onBookingsChanged }: Props) => {
   const defaultDiscountInput = String(Math.round(groupDefaults.default_discount_rate * 100) / 10);
   const [projects, setProjects] = useState<GroupProject[]>([]);
   const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState("");
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<GroupProject | null>(null);
@@ -137,8 +138,17 @@ const GroupBuyingAdmin = ({ bookings, onBookingsChanged }: Props) => {
 
   const activeCount = (id: string) => (membersByProject[id] || []).filter((b) => b.status !== "cancelled").length;
 
-  const pendingProjects = projects.filter((p) => p.status === "pending");
-  const otherProjects = projects.filter((p) => p.status !== "pending");
+  // 搜尋：建案名稱、區域、網址代稱都可以比對；多個關鍵字用空白隔開，需全部符合（例如「龜山 大亮」）
+  const tokens = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const matches = (p: GroupProject) => {
+    if (tokens.length === 0) return true;
+    const hay = `${p.name} ${p.region} ${p.slug ?? ""}`.toLowerCase();
+    return tokens.every((t) => hay.includes(t));
+  };
+  const pendingProjects = projects.filter((p) => p.status === "pending" && matches(p));
+  const otherProjects = projects.filter((p) => p.status !== "pending" && matches(p));
+  const searching = tokens.length > 0;
+  const matchedTotal = pendingProjects.length + otherProjects.length;
 
   const openCreate = () => {
     setEditing(null);
@@ -423,6 +433,30 @@ const GroupBuyingAdmin = ({ bookings, onBookingsChanged }: Props) => {
     <div className="space-y-6">
       <GroupDefaultsCard projects={projects} onProjectsChanged={fetchProjects} />
 
+      <div>
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="搜尋建案（名稱、區域，例如「龜山」「大亮」）"
+            aria-label="搜尋團報建案"
+            className="bg-card pl-10 pr-10"
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => setQuery("")}
+              aria-label="清除搜尋"
+              className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        {searching && !loading && <p className="mt-2 text-xs text-muted-foreground">找到 {matchedTotal} 個建案</p>}
+      </div>
+
       {pendingProjects.length > 0 && (
         <Card className="border border-amber-500/30 shadow-soft p-4 md:p-6">
           <h2 className="text-lg font-light mb-1">客戶提出的新建案（{pendingProjects.length}）</h2>
@@ -454,7 +488,9 @@ const GroupBuyingAdmin = ({ bookings, onBookingsChanged }: Props) => {
         {loading ? (
           <p className="text-sm text-muted-foreground py-8 text-center">載入中…</p>
         ) : otherProjects.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-8 text-center">尚未建立任何團報建案</p>
+          <p className="text-sm text-muted-foreground py-8 text-center">
+            {searching ? `沒有符合「${query.trim()}」的建案` : "尚未建立任何團報建案"}
+          </p>
         ) : (
           <>
             <div className="hidden md:block">
