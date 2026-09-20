@@ -240,3 +240,29 @@ html.custom-cursor-on :is(a[href], button:not(:disabled), [role="button"], summa
 html.custom-cursor-on :is(a[href], button:not(:disabled), [role="button"], summary, label[for], [data-cursor]) * {
   cursor: none !important;
 }
+
+/* ───────── 游標文字拖尾（照 typeserviceweb.com 的樣式；src/components/CursorTextTrail.tsx） ───────── */
+.cursor-trail {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9998;
+  pointer-events: none;
+}
+@media only screen and (max-width: 1024px) {
+  .cursor-trail {
+    display: none;
+  }
+}
+.cursor-trail span {
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: inline-block;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #000;
+  will-change: transform;
+}
