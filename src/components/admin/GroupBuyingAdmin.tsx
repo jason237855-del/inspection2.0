@@ -28,6 +28,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { statusLabels, type BookingRequest, type GroupProject } from "./types";
 import { groupPath, groupUrl } from "@/lib/group";
 import GroupCoverImage from "@/components/group/GroupCoverImage";
+import GroupDefaultsCard from "./GroupDefaultsCard";
+import { useGroupSettings } from "@/hooks/useGroupSettings";
 
 const groupStatusLabels: Record<GroupProject["status"], string> = {
   pending: "待審核",
@@ -81,6 +83,8 @@ type Props = {
 };
 
 const GroupBuyingAdmin = ({ bookings, onBookingsChanged }: Props) => {
+  const groupDefaults = useGroupSettings();
+  const defaultDiscountInput = String(Math.round(groupDefaults.default_discount_rate * 100) / 10);
   const [projects, setProjects] = useState<GroupProject[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -140,8 +144,8 @@ const GroupBuyingAdmin = ({ bookings, onBookingsChanged }: Props) => {
     setEditing(null);
     setFormName("");
     setFormRegion("");
-    setFormMinUnits("3");
-    setFormDiscount("9");
+    setFormMinUnits(String(groupDefaults.default_min_units));
+    setFormDiscount(defaultDiscountInput);
     setDialogOpen(true);
   };
 
@@ -417,6 +421,8 @@ const GroupBuyingAdmin = ({ bookings, onBookingsChanged }: Props) => {
 
   return (
     <div className="space-y-6">
+      <GroupDefaultsCard projects={projects} onProjectsChanged={fetchProjects} />
+
       {pendingProjects.length > 0 && (
         <Card className="border border-amber-500/30 shadow-soft p-4 md:p-6">
           <h2 className="text-lg font-light mb-1">客戶提出的新建案（{pendingProjects.length}）</h2>

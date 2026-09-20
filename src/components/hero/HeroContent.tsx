@@ -1,8 +1,11 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import { useGroupSettings } from "@/hooks/useGroupSettings";
+import { termsText } from "@/lib/group";
 
 const HeroContent = () => {
+  const groupDefaults = useGroupSettings();
   return (
     <div className="relative z-10 max-w-xl">
       <motion.div
@@ -63,7 +66,7 @@ const HeroContent = () => {
         transition={{ delay: 0.55, duration: 0.5 }}
         className="mt-5 text-sm font-light text-muted-foreground"
       >
-        同社區多戶一起驗屋，滿 3 戶享 9 折
+        {`同社區多戶一起驗屋，${termsText(groupDefaults)}`}
         <Link to="/group" className="ml-3 font-medium text-primary underline-offset-4 hover:underline">
           建案團報 →
         </Link>

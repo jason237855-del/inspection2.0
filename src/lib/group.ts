@@ -34,3 +34,9 @@ export const districtOf = (region: string) =>
     .trim()
     .replace(/^(新竹縣|新竹市|(台|臺)北市|新北市|基隆市|桃園市|苗栗縣|(台|臺)中市|宜蘭縣|花蓮縣|(台|臺)東縣|(台|臺)北|新北|基隆|桃園|苗栗|(台|臺)中|宜蘭|花蓮|(台|臺)東|新竹)/, "")
     .trim() || "其他";
+
+/** 團報預設條件（來自 group_settings，後台可調整） */
+export type GroupDefaults = { default_min_units: number; default_discount_rate: number };
+
+/** 「滿 3 戶享 9 折」 */
+export const termsText = (d: GroupDefaults) => `滿 ${d.default_min_units} 戶享 ${formatDiscount(d.default_discount_rate)}`;

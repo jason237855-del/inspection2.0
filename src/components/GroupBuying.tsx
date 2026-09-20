@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import usePrefersReducedMotion from "@/hooks/usePrefersReducedMotion";
 import { useActiveGroupProjects } from "@/hooks/useGroupProjects";
+import { useGroupSettings } from "@/hooks/useGroupSettings";
+import { formatDiscount } from "@/lib/group";
 import GroupProjectCard from "@/components/group/GroupProjectCard";
 import ProposeGroupDialog from "@/components/group/ProposeGroupDialog";
 
@@ -16,6 +18,7 @@ const HOME_LIMIT = 6;
 const GroupBuying = () => {
   const reduced = usePrefersReducedMotion();
   const { projects, counts, loading, failed } = useActiveGroupProjects();
+  const groupDefaults = useGroupSettings();
   const [proposeOpen, setProposeOpen] = useState(false);
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
@@ -44,7 +47,7 @@ const GroupBuying = () => {
           </span>
           <h2 className="text-3xl md:text-5xl font-bold mb-5 text-foreground tracking-tight">建案團報</h2>
           <p className="text-base text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
-            同建案 3 戶以上一起報名，全團享 9 折優惠。每戶各自預約時段，加入後再選日期即可。
+            {`同建案 ${groupDefaults.default_min_units} 戶以上一起報名，全團享 ${formatDiscount(groupDefaults.default_discount_rate)}優惠。每戶各自預約時段，加入後再選日期即可。`}
           </p>
         </motion.div>
 

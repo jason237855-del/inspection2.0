@@ -187,6 +187,27 @@ export type Database = {
         }
         Relationships: []
       }
+      group_settings: {
+        Row: {
+          default_discount_rate: number
+          default_min_units: number
+          id: boolean
+          updated_at: string
+        }
+        Insert: {
+          default_discount_rate?: number
+          default_min_units?: number
+          id?: boolean
+          updated_at?: string
+        }
+        Update: {
+          default_discount_rate?: number
+          default_min_units?: number
+          id?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       time_slot_availability: {
         Row: {
           date: string
