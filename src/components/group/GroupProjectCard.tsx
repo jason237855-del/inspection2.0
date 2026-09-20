@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Building2, MapPin, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import GroupCoverImage from "./GroupCoverImage";
 import { formatDiscount, groupPath } from "@/lib/group";
 import type { GroupProject } from "@/components/admin/types";
 
@@ -12,7 +13,11 @@ const GroupProjectCard = ({ project: p, count }: Props) => {
   const progress = Math.min(100, (count / p.min_units) * 100);
 
   return (
-    <div className="rounded-3xl border border-border bg-card p-7 shadow-soft flex flex-col">
+    <div className="flex flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-soft">
+      <Link to={groupPath(p.slug)} aria-label={`查看 ${p.name} 建案頁面`} tabIndex={-1}>
+        <GroupCoverImage project={p} />
+      </Link>
+      <div className="flex flex-1 flex-col p-7">
       <div className="flex items-start gap-3 mb-5">
         <div className="mt-0.5 rounded-full bg-primary/10 p-2 text-primary">
           <Building2 className="h-4 w-4" />
@@ -55,6 +60,7 @@ const GroupProjectCard = ({ project: p, count }: Props) => {
       >
         查看建案頁面與分享連結
       </Link>
+      </div>
     </div>
   );
 };

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import usePrefersReducedMotion from "@/hooks/usePrefersReducedMotion";
 import { useGroupProjectBySlug } from "@/hooks/useGroupProjects";
 import GroupHowItWorks from "@/components/group/GroupHowItWorks";
+import GroupCoverImage from "@/components/group/GroupCoverImage";
 import ShareButtons from "@/components/group/ShareButtons";
 import { formatDiscount, groupPath, groupUrl } from "@/lib/group";
 import { LINE_OA_URL } from "@/config/line";
@@ -69,6 +70,7 @@ const GroupProject = () => {
         title={`${project.name} 團購驗屋｜滿 ${project.min_units} 戶享 ${discount}｜診斷室驗屋`}
         description={`${project.region}「${project.name}」建案團購驗屋：同建案滿 ${project.min_units} 戶全團享 ${discount}，每戶各自預約時段。加入團報並邀請鄰居一起報名。`}
         path={groupPath(project.slug)}
+        image={project.cover_image_url ?? `/api/group-og?slug=${encodeURIComponent(project.slug)}`}
       >
         <script type="application/ld+json">
           {JSON.stringify({
@@ -96,6 +98,9 @@ const GroupProject = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
+            <div className="mb-8 overflow-hidden rounded-3xl border border-border shadow-soft">
+              <GroupCoverImage project={project} aspect="aspect-[16/8]" />
+            </div>
             <h1 className="text-3xl lg:text-4xl font-semibold mb-3 tracking-tight">{project.name} 團購驗屋</h1>
             <p className="mb-8 flex items-center gap-1.5 text-sm font-light text-muted-foreground">
               <MapPin className="h-4 w-4" />

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Pencil, Trash2, Check, Users, Link2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, Users, Link2, ImagePlus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -27,6 +27,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { statusLabels, type BookingRequest, type GroupProject } from "./types";
 import { groupPath, groupUrl } from "@/lib/group";
+import GroupCoverImage from "@/components/group/GroupCoverImage";
 
 const groupStatusLabels: Record<GroupProject["status"], string> = {
   pending: "待審核",
@@ -42,6 +43,37 @@ const groupStatusColors: Record<GroupProject["status"], string> = {
 
 const formatNT = (n: number | null | undefined) => (n == null ? "-" : `$NT ${n.toLocaleString("en-US")}`);
 const formatDiscount = (rate: number) => `${Number((rate * 10).toFixed(1))} 折`;
+
+const COVER_BUCKET = "group-covers";
+const MAX_COVER_WIDTH = 1600;
+
+/** 縮成最寬 1600px 的 JPEG（超過 2 MB 會自動降品質），避免上傳過大拖慢網站 */
+async function resizeToJpeg(file: File): Promise<Blob> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, MAX_COVER_WIDTH / bitmap.width);
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("無法處理圖片");
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  const toBlob = (quality: number) =>
+    new Promise<Blob>((resolve, reject) =>
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("圖片轉檔失敗"))), "image/jpeg", quality)
+    );
+  let blob = await toBlob(0.82);
+  if (blob.size > 2 * 1024 * 1024) blob = await toBlob(0.65);
+  return blob;
+}
+
+/** 從公開網址取出儲存空間內的檔案路徑（用來刪除舊照片） */
+const coverPathFromUrl = (url: string | null) => {
+  if (!url) return null;
+  const marker = `/object/public/${COVER_BUCKET}/`;
+  const i = url.indexOf(marker);
+  return i === -1 ? null : decodeURIComponent(url.slice(i + marker.length));
+};
 
 type Props = {
   bookings: BookingRequest[];
@@ -59,6 +91,7 @@ const GroupBuyingAdmin = ({ bookings, onBookingsChanged }: Props) => {
   const [formMinUnits, setFormMinUnits] = useState("3");
   const [formDiscount, setFormDiscount] = useState("9"); // 以「折」為單位輸入，9 = 9 折
   const [saving, setSaving] = useState(false);
+  const [coverBusy, setCoverBusy] = useState(false);
 
   const [membersOf, setMembersOf] = useState<GroupProject | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<GroupProject | null>(null);
@@ -121,6 +154,59 @@ const GroupBuyingAdmin = ({ bookings, onBookingsChanged }: Props) => {
     setDialogOpen(true);
   };
 
+  const handleCoverFile = async (file: File | undefined) => {
+    if (!file || !editing) return;
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type)) {
+      toast.error("請選擇 JPG、PNG 或 WebP 圖片");
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("圖片太大（超過 20 MB），請先縮小再上傳");
+      return;
+    }
+    setCoverBusy(true);
+    try {
+      const blob = await resizeToJpeg(file);
+      const path = `${editing.id}/${Date.now()}.jpg`;
+      const { error: upError } = await supabase.storage
+        .from(COVER_BUCKET)
+        .upload(path, blob, { contentType: "image/jpeg", cacheControl: "31536000" });
+      if (upError) throw upError;
+      const url = supabase.storage.from(COVER_BUCKET).getPublicUrl(path).data.publicUrl;
+      const { error: dbError } = await supabase.from("group_projects").update({ cover_image_url: url }).eq("id", editing.id);
+      if (dbError) {
+        await supabase.storage.from(COVER_BUCKET).remove([path]);
+        throw dbError;
+      }
+      const oldPath = coverPathFromUrl(editing.cover_image_url);
+      if (oldPath) await supabase.storage.from(COVER_BUCKET).remove([oldPath]);
+      setEditing({ ...editing, cover_image_url: url });
+      toast.success("封面照片已更新");
+      fetchProjects();
+    } catch (e) {
+      toast.error(`上傳失敗：${e instanceof Error ? e.message : "未知錯誤"}`);
+    } finally {
+      setCoverBusy(false);
+    }
+  };
+
+  const removeCover = async () => {
+    if (!editing?.cover_image_url) return;
+    setCoverBusy(true);
+    const { error } = await supabase.from("group_projects").update({ cover_image_url: null }).eq("id", editing.id);
+    if (error) {
+      setCoverBusy(false);
+      toast.error(`移除失敗：${error.message}`);
+      return;
+    }
+    const oldPath = coverPathFromUrl(editing.cover_image_url);
+    if (oldPath) await supabase.storage.from(COVER_BUCKET).remove([oldPath]);
+    setEditing({ ...editing, cover_image_url: null });
+    setCoverBusy(false);
+    toast.success("已移除照片，改用自動產生的設計圖");
+    fetchProjects();
+  };
+
   const handleSave = async () => {
     const minUnits = parseInt(formMinUnits, 10);
     const discount = parseFloat(formDiscount);
@@ -170,7 +256,9 @@ const GroupBuyingAdmin = ({ bookings, onBookingsChanged }: Props) => {
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
+    const coverPath = coverPathFromUrl(deleteTarget.cover_image_url);
     const { error } = await supabase.from("group_projects").delete().eq("id", deleteTarget.id);
+    if (!error && coverPath) await supabase.storage.from(COVER_BUCKET).remove([coverPath]);
     setDeleteTarget(null);
     if (error) {
       toast.error(`刪除失敗：${error.message}`);
@@ -400,6 +488,47 @@ const GroupBuyingAdmin = ({ bookings, onBookingsChanged }: Props) => {
                 <Label htmlFor="g-discount">折數（9 = 9 折）</Label>
                 <Input id="g-discount" type="number" step="0.1" min={0.1} max={10} value={formDiscount} onChange={(e) => setFormDiscount(e.target.value)} />
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label>封面照片（選填）</Label>
+              {editing ? (
+                <>
+                  <div className="overflow-hidden rounded-xl border border-border">
+                    <GroupCoverImage project={editing} aspect="aspect-[16/8]" />
+                  </div>
+                  <p className="text-xs font-light text-muted-foreground">
+                    沒有上傳照片時，會自動使用大樓輪廓的設計圖。請確認你擁有這張照片的使用權，不要直接使用建商或網路上的照片。
+                    上傳後會自動縮小（最寬 1600px）。
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button asChild variant="outline" size="sm" disabled={coverBusy}>
+                      <label className="cursor-pointer">
+                        {coverBusy ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <ImagePlus className="mr-1.5 h-3.5 w-3.5" />}
+                        {editing.cover_image_url ? "更換照片" : "上傳照片"}
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          className="sr-only"
+                          disabled={coverBusy}
+                          onChange={(e) => {
+                            handleCoverFile(e.target.files?.[0]);
+                            e.target.value = "";
+                          }}
+                        />
+                      </label>
+                    </Button>
+                    {editing.cover_image_url && (
+                      <Button variant="ghost" size="sm" disabled={coverBusy} onClick={removeCover}>
+                        移除照片
+                      </Button>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <p className="text-xs font-light text-muted-foreground">
+                  建立建案後，再按「編輯」就能上傳封面照片；沒上傳時會自動產生設計圖。
+                </p>
+              )}
             </div>
           </div>
           <DialogFooter>

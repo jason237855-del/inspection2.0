@@ -32,6 +32,7 @@ export type GroupProject = {
   name: string;
   region: string;
   slug: string;
+  cover_image_url: string | null;
   status: "pending" | "active" | "closed";
   min_units: number;
   discount_rate: number;

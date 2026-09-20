@@ -141,6 +141,7 @@ export type Database = {
       }
       group_projects: {
         Row: {
+          cover_image_url: string | null
           created_at: string
           discount_rate: number
           id: string
@@ -155,6 +156,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cover_image_url?: string | null
           created_at?: string
           discount_rate?: number
           id?: string
@@ -169,6 +171,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cover_image_url?: string | null
           created_at?: string
           discount_rate?: number
           id?: string

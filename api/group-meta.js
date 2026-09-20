@@ -13,7 +13,7 @@ const esc = (s) =>
 
 const discountText = (rate) => `${Number((Number(rate) * 10).toFixed(1))} 折`;
 
-function page({ title, description, path, status = 200 }) {
+function page({ title, description, path, status = 200, image = OG_IMAGE, imageIsPhoto = false }) {
   const url = `${SITE_URL}${path}`;
   const html = `<!doctype html>
 <html lang="zh-Hant-TW">
@@ -28,13 +28,12 @@ ${status === 200 ? "" : '<meta name="robots" content="noindex">\n'}<meta propert
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:url" content="${esc(url)}">
-<meta property="og:image" content="${OG_IMAGE}">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
+<meta property="og:image" content="${esc(image)}">
+${imageIsPhoto ? "" : '<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n'}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${esc(title)}">
 <meta name="twitter:description" content="${esc(description)}">
-<meta name="twitter:image" content="${OG_IMAGE}">
+<meta name="twitter:image" content="${esc(image)}">
 </head>
 <body>
 <h1>${esc(title)}</h1>
@@ -62,7 +61,7 @@ export default async function handler(req, res) {
     if (!base || !key || !slug) throw new Error("missing config");
     const headers = { apikey: key, Authorization: `Bearer ${key}` };
     const r = await fetch(
-      `${base}/rest/v1/group_projects?select=id,name,region,min_units,discount_rate&status=eq.active&slug=eq.${encodeURIComponent(slug)}`,
+      `${base}/rest/v1/group_projects?select=id,name,region,slug,cover_image_url,min_units,discount_rate&status=eq.active&slug=eq.${encodeURIComponent(slug)}`,
       { headers },
     );
     if (!r.ok) throw new Error(`supabase ${r.status}`);
@@ -94,6 +93,9 @@ export default async function handler(req, res) {
         title: `${p.name} 團購驗屋｜滿 ${p.min_units} 戶享 ${d}｜${SITE_NAME}`,
         description: `${p.region}「${p.name}」建案團購驗屋：${progress}。同建案滿 ${p.min_units} 戶全團享 ${d}，每戶各自預約時段，邀請鄰居一起加入。`,
         path,
+        // 後台有上傳封面照片就用照片，否則用自動產生的文字海報分享圖（api/group-og.js）
+        image: p.cover_image_url || `${SITE_URL}/api/group-og?slug=${encodeURIComponent(p.slug)}`,
+        imageIsPhoto: Boolean(p.cover_image_url),
       });
     }
   } catch (e) {
