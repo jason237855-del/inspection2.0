@@ -1,9 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
 import { LIFF_ID } from "@/config/line";
 
+// LIFF SDK 是從 LINE 的 CDN 動態載入的，這裡只宣告用到的部分
+export interface LiffSdk {
+  init(config: { liffId: string }): Promise<void>;
+  isLoggedIn?(): boolean;
+  login(config: { redirectUri: string; scope: string }): void;
+  getProfile(): Promise<{ userId: string; displayName?: string }>;
+  getDecodedIDToken?(): { email?: string } | null;
+  getAccessToken?(): string | null;
+  closeWindow?(): void;
+}
+
 declare global {
   interface Window {
-    liff?: any;
+    liff?: LiffSdk;
   }
 }
 
@@ -33,9 +44,9 @@ export interface LineProfile {
   email: string | null;
 }
 
-let initPromise: Promise<any | null> | null = null;
+let initPromise: Promise<LiffSdk | null> | null = null;
 
-async function ensureLiff(): Promise<any | null> {
+async function ensureLiff(): Promise<LiffSdk | null> {
   if (!LIFF_ID) return null;
   if (!initPromise) {
     initPromise = (async () => {
@@ -63,7 +74,7 @@ export function useLiffProfile() {
   const [loading, setLoading] = useState(false);
   const available = Boolean(LIFF_ID);
 
-  const readProfile = useCallback(async (liff: any): Promise<LineProfile | null> => {
+  const readProfile = useCallback(async (liff: LiffSdk): Promise<LineProfile | null> => {
     if (!liff?.isLoggedIn?.()) return null;
     const p = await liff.getProfile();
     let email: string | null = null;

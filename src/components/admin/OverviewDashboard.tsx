@@ -127,7 +127,8 @@ const OverviewDashboard = ({ bookings, availability, bookingCounts, defaultDaily
     const cancelRateTrend = prevCancelRate !== null ? cancelRate - prevCancelRate : null;
 
     // Slot usage: today → end of month
-    const days = eachDayOfInterval({ start: startOfDay(now), end: endOfMonth(now) });
+    const today = new Date();
+    const days = eachDayOfInterval({ start: startOfDay(today), end: endOfMonth(today) });
     let capacity = 0;
     let used = 0;
     days.forEach((d) => {
@@ -177,7 +178,8 @@ const OverviewDashboard = ({ bookings, availability, bookingCounts, defaultDaily
   }, [bookings, monthStart, monthEnd, prevMonthStart, prevMonthEnd]);
 
   const trend = useMemo(() => {
-    const days = eachDayOfInterval({ start: subDays(startOfDay(now), 29), end: startOfDay(now) });
+    const today = startOfDay(new Date());
+    const days = eachDayOfInterval({ start: subDays(today, 29), end: today });
     const counts = days.map((d) => {
       const ds = format(d, "yyyy-MM-dd");
       return {

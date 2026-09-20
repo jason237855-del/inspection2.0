@@ -4,12 +4,7 @@ import { CheckCircle, Loader2, Gift } from "lucide-react";
 import { useLiffProfile } from "@/hooks/useLiffProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { LINE_OA_URL } from "@/config/line";
-
-declare global {
-  interface Window {
-    liff?: any;
-  }
-}
+import "@/hooks/useLiffProfile"; // Window.liff 型別宣告
 
 /**
  * 當使用者從 LIFF 連結（?booking_id=xxx）開啟 /booking 時，
