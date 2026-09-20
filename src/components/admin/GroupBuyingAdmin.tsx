@@ -469,7 +469,7 @@ const GroupBuyingAdmin = ({ bookings, onBookingsChanged }: Props) => {
       </Card>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing ? "編輯團報建案" : "新增團報建案"}</DialogTitle>
             <DialogDescription>
