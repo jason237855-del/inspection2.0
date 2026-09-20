@@ -90,7 +90,7 @@ const GroupHub = () => {
             <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground mb-4">Group Inspection</p>
             <h1 className="text-3xl lg:text-4xl font-semibold mb-5 tracking-tight">建案團報</h1>
             <p className="text-muted-foreground font-light leading-relaxed">
-              同社區多戶一起報名驗屋，達成戶數，全團享折扣（滿 3 戶享 9 折），按「加入團報」就即開始。
+              同社區報名驗屋，全團享折扣（滿 3 戶享 9 折），按「加入團報」就即開始。
             </p>
           </motion.div>
         </div>
