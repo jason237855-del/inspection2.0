@@ -4,6 +4,8 @@
  * scripts/generate-sitemap.ts 也讀這個值。
  */
 export const SITE_URL = "https://inspection20.vercel.app";
+/** Google Analytics 4 評估 ID（公開值，本來就會出現在網頁原始碼；留空字串則不載入 GA） */
+export const GA_MEASUREMENT_ID = "G-MTT5Q95CFW";
 export const SITE_NAME = "診斷室驗屋";
 export const SITE_TITLE = "新成屋・中古屋驗屋｜診斷室驗屋 Home Inspection & Diagnostics";
 export const SITE_DESCRIPTION =
