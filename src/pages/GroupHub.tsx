@@ -1,10 +1,12 @@
-import { useState } from "react";
-import { Loader2, Plus } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Loader2, Plus, Search } from "lucide-react";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import Seo from "@/components/Seo";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { CITY_ORDER, cityOf } from "@/lib/group";
 import usePrefersReducedMotion from "@/hooks/usePrefersReducedMotion";
 import { useActiveGroupProjects } from "@/hooks/useGroupProjects";
 import GroupProjectCard from "@/components/group/GroupProjectCard";
@@ -14,10 +16,32 @@ import { LINE_OA_URL } from "@/config/line";
 import { SITE_URL } from "@/config/site";
 
 /** 團報專區：流程說明＋所有開放中的團報建案 */
+const PAGE_SIZE = 12;
+
 const GroupHub = () => {
   const reduced = usePrefersReducedMotion();
   const { projects, counts, loading, failed } = useActiveGroupProjects();
   const [proposeOpen, setProposeOpen] = useState(false);
+  const [city, setCity] = useState("全部");
+  const [query, setQuery] = useState("");
+  const [visible, setVisible] = useState(PAGE_SIZE);
+
+  // 各縣市的建案數（只列出有建案的縣市）
+  const cityCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    projects.forEach((p) => map.set(cityOf(p.region), (map.get(cityOf(p.region)) ?? 0) + 1));
+    return [...CITY_ORDER, "其他"].filter((c) => map.has(c)).map((c) => [c, map.get(c) as number] as const);
+  }, [projects]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return projects.filter(
+      (p) => (city === "全部" || cityOf(p.region) === city) && (!q || `${p.name}${p.region}`.toLowerCase().includes(q)),
+    );
+  }, [projects, city, query]);
+
+  // 換篩選條件時回到第一頁
+  useEffect(() => setVisible(PAGE_SIZE), [city, query]);
 
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden">
@@ -60,7 +84,41 @@ const GroupHub = () => {
           </section>
 
           <section aria-labelledby="group-list">
-            <h2 id="group-list" className="scroll-mt-32 text-2xl font-semibold tracking-tight text-center mb-10">開放中的團報建案</h2>
+            <h2 id="group-list" className="scroll-mt-32 text-2xl font-semibold tracking-tight text-center mb-8">
+              開放中的團報建案{!loading && !failed && projects.length > 0 ? `（${projects.length}）` : ""}
+            </h2>
+            {!loading && !failed && projects.length > PAGE_SIZE && (
+              <div className="mb-8 space-y-4">
+                <div className="relative mx-auto max-w-md">
+                  <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+                  <Input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="搜尋建案名稱或地區"
+                    aria-label="搜尋建案"
+                    className="rounded-full pl-10"
+                  />
+                </div>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {[["全部", projects.length] as const, ...cityCounts].map(([c, n]) => (
+                    <button
+                      key={c}
+                      type="button"
+                      aria-pressed={city === c}
+                      onClick={() => setCity(c)}
+                      className={`rounded-full border px-4 py-1.5 text-xs transition-colors ${
+                        city === c
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                      }`}
+                    >
+                      {c}
+                      <span className="ml-1.5 opacity-70">{n}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             {loading ? (
               <div className="flex justify-center py-10">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -73,12 +131,25 @@ const GroupHub = () => {
               <p className="text-center text-sm text-muted-foreground font-light py-6">
                 目前沒有開放中的團報建案，歡迎提出您的建案。
               </p>
+            ) : filtered.length === 0 ? (
+              <p className="text-center text-sm text-muted-foreground font-light py-6">
+                找不到符合的建案，你可以在下方提出新的建案。
+              </p>
             ) : (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {projects.map((p) => (
-                  <GroupProjectCard key={p.id} project={p} count={counts[p.id] || 0} />
-                ))}
-              </div>
+              <>
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {filtered.slice(0, visible).map((p) => (
+                    <GroupProjectCard key={p.id} project={p} count={counts[p.id] || 0} />
+                  ))}
+                </div>
+                {filtered.length > visible && (
+                  <div className="mt-10 text-center">
+                    <Button variant="outline" className="rounded-full" onClick={() => setVisible((v) => v + PAGE_SIZE)}>
+                      顯示更多（還有 {filtered.length - visible} 個）
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </section>
 

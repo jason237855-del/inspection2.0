@@ -8,6 +8,9 @@ import { useActiveGroupProjects } from "@/hooks/useGroupProjects";
 import GroupProjectCard from "@/components/group/GroupProjectCard";
 import ProposeGroupDialog from "@/components/group/ProposeGroupDialog";
 
+// 首頁只顯示前幾個建案，完整清單（含縣市篩選與搜尋）在 /group
+const HOME_LIMIT = 6;
+
 /** 首頁的「建案團報」區塊；完整內容在 /group 團報專區與 /group/<建案> 各建案頁面 */
 const GroupBuying = () => {
   const reduced = usePrefersReducedMotion();
@@ -46,7 +49,7 @@ const GroupBuying = () => {
           </p>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto">
-            {projects.map((p) => (
+            {projects.slice(0, HOME_LIMIT).map((p) => (
               <GroupProjectCard key={p.id} project={p} count={counts[p.id] || 0} />
             ))}
           </div>
@@ -60,7 +63,9 @@ const GroupBuying = () => {
               提出新建案團報
             </Button>
             <Button asChild variant="ghost" className="rounded-full">
-              <Link to="/group">團報專區與流程說明 →</Link>
+              <Link to="/group">
+                {projects.length > HOME_LIMIT ? `查看全部 ${projects.length} 個團報建案 →` : "團報專區與流程說明 →"}
+              </Link>
             </Button>
           </div>
         </div>
