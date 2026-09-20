@@ -5,9 +5,9 @@
  */
 export const SITE_URL = "https://inspection20.vercel.app";
 export const SITE_NAME = "診斷室驗屋";
-export const SITE_TITLE = "診斷室驗屋 Home Inspection & Diagnostics｜專業驗屋檢測服務";
+export const SITE_TITLE = "新成屋・中古屋驗屋｜診斷室驗屋 Home Inspection & Diagnostics";
 export const SITE_DESCRIPTION =
-  "診斷室驗屋提供專業驗屋檢測服務，涵蓋新成屋交屋驗收、中古屋買前檢測、商業建築評估與環境健康監測，報告詳盡、流程透明。";
+  "診斷室驗屋提供新成屋交屋驗收與中古屋買前檢測，結合紅外線熱顯像與水電、防水、環境檢測，服務台北、新北、桃園、新竹、台中等地；同建案多戶可團報享折扣。";
 
 /** 分享預覽圖（LINE／Facebook 連結預覽），1200×630；換圖時用同檔名覆蓋 public/og-image.jpg 即可 */
 export const DEFAULT_OG_IMAGE = "/og-image.jpg";

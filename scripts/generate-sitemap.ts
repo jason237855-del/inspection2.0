@@ -4,6 +4,7 @@ import { readFileSync, writeFileSync } from "fs"
 import { resolve } from "path"
 
 import { SITE_URL as BASE_URL } from "../src/config/site"
+import { AREAS, areaPath } from "../src/config/areas"
 
 interface SitemapEntry {
   path: string
@@ -82,6 +83,7 @@ const entries: SitemapEntry[] = [
     changefreq: "weekly",
     priority: "0.7",
   })),
+  ...AREAS.map((a): SitemapEntry => ({ path: areaPath(a.slug), changefreq: "monthly", priority: "0.7" })),
   { path: "/about", changefreq: "monthly", priority: "0.6" },
   { path: "/faq", changefreq: "monthly", priority: "0.6" },
 ]

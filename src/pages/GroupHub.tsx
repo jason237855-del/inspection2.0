@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { seoDefaults } from "@/config/seoPages";
 import { Loader2, Plus, Search } from "lucide-react";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
@@ -66,8 +67,8 @@ const GroupHub = () => {
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden">
       <Seo
-        title="建案團報｜同建案團購驗屋享折扣｜診斷室驗屋"
-        description="同建案多戶一起報名驗屋，達成團戶數全團享折扣。找到自己的建案加入團報，每戶各自預約時段，也可以提出新的建案。"
+        title={seoDefaults("/group").title}
+        description={seoDefaults("/group").description}
         path="/group"
       >
         <script type="application/ld+json">

@@ -66,6 +66,7 @@ import MobileBottomNav from "@/components/admin/MobileBottomNav";
 import MobileBookingDetail from "@/components/admin/MobileBookingDetail";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import GroupBuyingAdmin from "@/components/admin/GroupBuyingAdmin";
+import SeoAdmin from "@/components/admin/SeoAdmin";
 import {
   statusLabels,
   statusColors,
@@ -1368,6 +1369,10 @@ const Admin = () => {
                     )}
                   </DialogContent>
                 </Dialog>
+              </TabsContent>
+
+              <TabsContent value="seo" className="mt-0">
+                <SeoAdmin />
               </TabsContent>
 
               <TabsContent value="group" className="mt-0">

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Home, ClipboardList, CalendarDays, Plus, Clock, Users, TrendingUp, Settings, MoreHorizontal } from "lucide-react";
+import { Home, ClipboardList, CalendarDays, Plus, Clock, Users, TrendingUp, Settings, MoreHorizontal, Search } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 type Props = {
@@ -20,6 +20,7 @@ const moreItems = [
   { value: "timeslots", label: "時段管理", icon: Clock },
   { value: "group", label: "團報管理", icon: Users },
   { value: "revenue", label: "營收狀況", icon: TrendingUp },
+  { value: "seo", label: "SEO 設定", icon: Search },
   { value: "settings", label: "管理者設定", icon: Settings },
 ] as const;
 

@@ -1,4 +1,5 @@
 import Navigation from "@/components/Navigation";
+import { seoDefaults } from "@/config/seoPages";
 import Footer from "@/components/Footer";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -191,10 +192,20 @@ const Faq = () => {
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden">
       <Seo
-        title="驗屋常見問題｜費用、服務地區與團報｜診斷室驗屋"
-        description="從驗屋費用、服務地區到單戶預約與多戶團報，整理委託前最常遇到的實際問題，讓您在聯繫以前先掌握所需資料與安排方式。"
+        title={seoDefaults("/faq").title}
+        description={seoDefaults("/faq").description}
         path="/faq"
-      />
+      >
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: sections.flatMap((s) =>
+              s.items.map((i) => ({ "@type": "Question", name: i.q, acceptedAnswer: { "@type": "Answer", text: i.a } })),
+            ),
+          })}
+        </script>
+      </Seo>
       <Navigation variant="dark" />
       <main className="flex-1 pt-36 lg:pt-44 pb-24">
         {/* Hero */}

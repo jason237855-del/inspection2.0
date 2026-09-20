@@ -1,4 +1,6 @@
+import { Link } from "react-router-dom";
 import logoWhite from "@/assets/logo-mark-white.png";
+import { AREAS, areaPath } from "@/config/areas";
 
 const Footer = () => {
   return (
@@ -30,16 +32,11 @@ const Footer = () => {
               服務地區
             </h3>
             <div className="flex flex-wrap md:justify-end gap-x-6 gap-y-2 text-sm font-light leading-relaxed tracking-wide text-[hsl(var(--footer-foreground))]/70">
-              <span>台北</span>
-              <span>新北</span>
-              <span>基隆</span>
-              <span>桃園</span>
-              <span>新竹</span>
-              <span>苗栗</span>
-              <span>台中</span>
-              <span>宜蘭</span>
-              <span>花蓮</span>
-              <span>台東</span>
+              {AREAS.map((a) => (
+                <Link key={a.slug} to={areaPath(a.slug)} className="transition-colors hover:text-[hsl(var(--footer-foreground))]">
+                  {a.name}
+                </Link>
+              ))}
             </div>
           </div>
         </div>

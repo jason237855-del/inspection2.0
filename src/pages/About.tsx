@@ -1,4 +1,5 @@
 import { motion, useScroll, useTransform } from "framer-motion";
+import { seoDefaults } from "@/config/seoPages";
 import { ShieldCheck, FileText, Users, Award, Clock, Search } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -51,8 +52,8 @@ const About = () => {
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       <Seo
-        title="關於診斷室驗屋｜品牌故事與檢測理念"
-        description="認識診斷室驗屋的品牌故事與檢測理念，以及為什麼房屋檢測是交屋與購屋前重要的一步。"
+        title={seoDefaults("/about").title}
+        description={seoDefaults("/about").description}
         path="/about"
       />
       <Navigation />

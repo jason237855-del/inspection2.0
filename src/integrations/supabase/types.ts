@@ -208,6 +208,27 @@ export type Database = {
         }
         Relationships: []
       }
+      page_seo: {
+        Row: {
+          description: string
+          path: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          description: string
+          path: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          description?: string
+          path?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       time_slot_availability: {
         Row: {
           date: string

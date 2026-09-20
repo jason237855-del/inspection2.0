@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Helmet } from "react-helmet-async";
+import { useSeoOverrides } from "@/hooks/useSeoOverrides";
 import { SITE_NAME, DEFAULT_OG_IMAGE, DEFAULT_OG_IMAGE_ALT, absoluteUrl } from "@/config/site";
 
 type SeoProps = {
@@ -14,7 +15,11 @@ type SeoProps = {
   children?: ReactNode;
 };
 
-const Seo = ({ title, description, path, image, type = "website", noindex = false, children }: SeoProps) => {
+const Seo = ({ title: defaultTitle, description: defaultDescription, path, image, type = "website", noindex = false, children }: SeoProps) => {
+  // 後台「SEO 設定」有為這個路徑設定時以它為準，沒有就用頁面傳進來的預設值
+  const override = useSeoOverrides()[path];
+  const title = override?.title || defaultTitle;
+  const description = override?.description || defaultDescription;
   const url = absoluteUrl(path);
   const isDefaultImage = !image;
   const src = image ?? DEFAULT_OG_IMAGE;

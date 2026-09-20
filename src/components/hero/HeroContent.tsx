@@ -24,6 +24,7 @@ const HeroContent = () => {
         transition={{ delay: 0.25, duration: 0.6 }}
         className="mb-6 text-4xl font-bold leading-tight tracking-tight text-foreground md:text-5xl lg:text-6xl"
       >
+        <span className="sr-only">新成屋・中古屋驗屋：</span>
         看見問題，
         <br />
         不只指出問題。
