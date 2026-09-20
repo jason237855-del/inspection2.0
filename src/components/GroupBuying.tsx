@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import usePrefersReducedMotion from "@/hooks/usePrefersReducedMotion";
 import { useActiveGroupProjects } from "@/hooks/useGroupProjects";
 import GroupProjectCard from "@/components/group/GroupProjectCard";
@@ -16,6 +17,14 @@ const GroupBuying = () => {
   const reduced = usePrefersReducedMotion();
   const { projects, counts, loading, failed } = useActiveGroupProjects();
   const [proposeOpen, setProposeOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const navigate = useNavigate();
+
+  // 首頁只列前幾個建案；搜尋交給 /group（名稱、縣市、行政區都能搜）
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate(query.trim() ? `/group?q=${encodeURIComponent(query.trim())}` : "/group");
+  };
 
   // 資料表尚未建立或讀取失敗時，不顯示整個區塊，避免首頁出現壞掉的內容
   if (failed) return null;
@@ -38,6 +47,24 @@ const GroupBuying = () => {
             同建案 3 戶以上一起報名，全團享 9 折優惠。每戶各自預約時段，加入後再選日期即可。
           </p>
         </motion.div>
+
+        {!loading && projects.length > HOME_LIMIT && (
+          <form onSubmit={handleSearch} className="mx-auto mb-10 flex max-w-lg gap-2">
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="輸入建案名稱或地區，例如「龜山」"
+                aria-label="搜尋團報建案"
+                className="rounded-full pl-10"
+              />
+            </div>
+            <Button type="submit" className="rounded-full">
+              搜尋
+            </Button>
+          </form>
+        )}
 
         {loading ? (
           <div className="flex justify-center py-10">

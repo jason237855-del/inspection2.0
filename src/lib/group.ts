@@ -27,3 +27,10 @@ const CITY_PREFIX: [RegExp, string][] = [
 
 /** 從地區文字判斷縣市（容許「台中太平區」這種沒寫「市」的寫法） */
 export const cityOf = (region: string) => CITY_PREFIX.find(([re]) => re.test(region.trim()))?.[1] ?? "其他";
+
+/** 取出縣市之後的行政區，例如「桃園市龜山區」→「龜山區」、「台中太平區」→「太平區」 */
+export const districtOf = (region: string) =>
+  region
+    .trim()
+    .replace(/^(新竹縣|新竹市|(台|臺)北市|新北市|基隆市|桃園市|苗栗縣|(台|臺)中市|宜蘭縣|花蓮縣|(台|臺)東縣|(台|臺)北|新北|基隆|桃園|苗栗|(台|臺)中|宜蘭|花蓮|(台|臺)東|新竹)/, "")
+    .trim() || "其他";

@@ -6,7 +6,8 @@ import Footer from "@/components/Footer";
 import Seo from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CITY_ORDER, cityOf } from "@/lib/group";
+import { useSearchParams } from "react-router-dom";
+import { CITY_ORDER, cityOf, districtOf } from "@/lib/group";
 import usePrefersReducedMotion from "@/hooks/usePrefersReducedMotion";
 import { useActiveGroupProjects } from "@/hooks/useGroupProjects";
 import GroupProjectCard from "@/components/group/GroupProjectCard";
@@ -22,8 +23,11 @@ const GroupHub = () => {
   const reduced = usePrefersReducedMotion();
   const { projects, counts, loading, failed } = useActiveGroupProjects();
   const [proposeOpen, setProposeOpen] = useState(false);
-  const [city, setCity] = useState("全部");
-  const [query, setQuery] = useState("");
+  // 首頁搜尋框會用 /group?q=關鍵字（也可用 ?city=桃園市）帶進來
+  const [searchParams] = useSearchParams();
+  const [city, setCity] = useState(searchParams.get("city") || "全部");
+  const [district, setDistrict] = useState("全部");
+  const [query, setQuery] = useState(searchParams.get("q") || "");
   const [visible, setVisible] = useState(PAGE_SIZE);
 
   // 各縣市的建案數（只列出有建案的縣市）
@@ -33,15 +37,29 @@ const GroupHub = () => {
     return [...CITY_ORDER, "其他"].filter((c) => map.has(c)).map((c) => [c, map.get(c) as number] as const);
   }, [projects]);
 
+  // 選了縣市後，列出該縣市內有建案的行政區
+  const districtCounts = useMemo(() => {
+    if (city === "全部") return [];
+    const map = new Map<string, number>();
+    projects
+      .filter((p) => cityOf(p.region) === city)
+      .forEach((p) => map.set(districtOf(p.region), (map.get(districtOf(p.region)) ?? 0) + 1));
+    return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0], "zh-Hant"));
+  }, [projects, city]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return projects.filter(
-      (p) => (city === "全部" || cityOf(p.region) === city) && (!q || `${p.name}${p.region}`.toLowerCase().includes(q)),
+      (p) =>
+        (city === "全部" || cityOf(p.region) === city) &&
+        (district === "全部" || districtOf(p.region) === district) &&
+        (!q || `${p.name}${p.region}`.toLowerCase().includes(q)),
     );
-  }, [projects, city, query]);
+  }, [projects, city, district, query]);
 
-  // 換篩選條件時回到第一頁
-  useEffect(() => setVisible(PAGE_SIZE), [city, query]);
+  // 換縣市時清掉行政區；換任何篩選條件時回到第一頁
+  useEffect(() => setDistrict("全部"), [city]);
+  useEffect(() => setVisible(PAGE_SIZE), [city, district, query]);
 
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden">
@@ -117,6 +135,26 @@ const GroupHub = () => {
                     </button>
                   ))}
                 </div>
+                {districtCounts.length > 1 && (
+                  <div className="flex flex-wrap justify-center gap-2 border-t border-border pt-4">
+                    {[["全部", filtered.length] as const, ...districtCounts].map(([d, n], i) => (
+                      <button
+                        key={d}
+                        type="button"
+                        aria-pressed={district === d}
+                        onClick={() => setDistrict(d)}
+                        className={`rounded-full border px-3.5 py-1 text-xs transition-colors ${
+                          district === d
+                            ? "border-foreground bg-foreground text-background"
+                            : "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+                        }`}
+                      >
+                        {i === 0 ? `${city}全部` : d}
+                        <span className="ml-1.5 opacity-70">{i === 0 ? districtCounts.reduce((a, [, c]) => a + c, 0) : n}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
             {loading ? (
