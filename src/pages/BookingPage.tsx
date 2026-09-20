@@ -36,7 +36,9 @@ const BookingPage = () => {
       </Helmet>
 
       <div className="min-h-screen overflow-x-hidden bg-background">
-        <Navigation />
+        {/* 淺色模式時頂端是淺色背景，預設的「白字＋半透明白玻璃」導覽列會看不見，改用深色導覽列（同常見問題頁）；
+            深色模式（預約頁自動跟隨系統）背景本來就深，維持預設樣式。深色導覽列在深色模式下 bg-foreground 會變成近白色，所以不能用。 */}
+        <Navigation variant={prefersDarkMode ? "default" : "dark"} />
 
         <main className="pt-32 lg:pt-40 pb-24 lg:pb-32">
           <div className="container mx-auto px-6 lg:px-12">
