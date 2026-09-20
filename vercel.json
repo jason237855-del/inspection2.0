@@ -11,6 +11,14 @@
       ],
       "destination": "/api/group-meta?slug=:slug"
     },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "functions": {
+    "api/group-og.js": {
+      "includeFiles": "node_modules/harfbuzzjs/**"
+    }
+  }
 }
