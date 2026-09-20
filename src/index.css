@@ -171,6 +171,8 @@
   left: 0;
   z-index: 9998;
   pointer-events: none;
+  /* 白字 + difference：白底變黑、深底變白，文字在任何背景上都看得見（混合要套在容器上才會跟頁面混色） */
+  mix-blend-mode: difference;
 }
 @media only screen and (max-width: 1024px) {
   .cursor-trail {
@@ -186,6 +188,6 @@
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.06em;
-  color: #000;
+  color: #fff;
   will-change: transform;
 }
