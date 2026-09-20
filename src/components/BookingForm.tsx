@@ -36,6 +36,12 @@ const slideVariants = {
 
 const BASE_PRICE: Record<string, number> = { newbuild: 7777, resale: 10000 };
 const REINSPECTION_PRICE = 3000;
+// 團報（僅限新成屋）：基本費 $8,000、複驗加購固定 $2,500（不打成團折扣）
+// !! 資料庫的計價（migration 20260920170000_group_pricing_v2.sql）有一份相同的數字，調整時兩邊都要改
+const GROUP_BASE_PRICE = 8000;
+const GROUP_REINSPECTION_PRICE = 2500;
+// 複驗方案的官網原價，只用於畫面上的劃線價顯示
+const REINSPECTION_LIST_PRICE = 5000;
 
 const propertyLabels: Record<string, string> = { newbuild: "新成屋", resale: "中古屋" };
 const houseTypeLabels: Record<string, string> = {
@@ -67,6 +73,10 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
   // Step 1
   const [propertyType, setPropertyType] = useState("");
   const [reinspection, setReinspection] = useState<"none" | "add">("none");
+  // 團報只做新成屋：載入建案後直接選好，不提供中古屋
+  useEffect(() => {
+    if (groupProject) setPropertyType("newbuild");
+  }, [groupProject]);
   const [ping, setPing] = useState<string>("");
 
   // Step 2
@@ -174,13 +184,16 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
   }, [preferredDate]);
 
   const pingNum = Math.max(0, parseInt(ping, 10) || 20);
-  const basePrice = propertyType ? BASE_PRICE[propertyType] : 0;
-  const originalPrice = basePrice + (reinspection === "add" ? REINSPECTION_PRICE : 0) + Math.max(0, pingNum - 20) * 400;
+  const reinspectionPrice = groupProject ? GROUP_REINSPECTION_PRICE : REINSPECTION_PRICE;
+  const basePrice = groupProject ? GROUP_BASE_PRICE : propertyType ? BASE_PRICE[propertyType] : 0;
+  const reinspectionAmount = reinspection === "add" ? reinspectionPrice : 0;
+  const pingSurcharge = Math.max(0, pingNum - 20) * 400;
+  const originalPrice = basePrice + reinspectionAmount + pingSurcharge;
   // 團報：加入後戶數達門檻 → 全團原價 × 折扣；未達門檻先以原價計，達標後由資料庫自動回頭調整
   const groupReached = !!groupProject && groupCount + 1 >= groupProject.min_units;
   const discountedPrice = groupProject
     ? groupReached
-      ? Math.round(originalPrice * groupProject.discount_rate)
+      ? Math.round((basePrice + pingSurcharge) * groupProject.discount_rate) + reinspectionAmount // 複驗固定，不打折
       : originalPrice
     : originalPrice - 500;
   const estimatedPrice = discountedPrice;
@@ -338,7 +351,7 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
     active: boolean;
     onClick: () => void;
     title: string;
-    desc: string;
+    desc: React.ReactNode;
     disabled?: boolean;
   }) => (
     <button
@@ -478,14 +491,20 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
                       active={propertyType === "newbuild"}
                       onClick={() => setPropertyType("newbuild")}
                       title="新成屋"
-                      desc={`初驗方案 ${formatNT(BASE_PRICE.newbuild)} 起／20 坪以內`}
+                      desc={
+                        groupProject
+                          ? `團報初驗方案 ${formatNT(GROUP_BASE_PRICE)} 起／20 坪以內`
+                          : `初驗方案 ${formatNT(BASE_PRICE.newbuild)} 起／20 坪以內`
+                      }
                     />
-                    <OptionButton
-                      active={propertyType === "resale"}
-                      onClick={() => setPropertyType("resale")}
-                      title="中古屋"
-                      desc={`驗屋方案 ${formatNT(BASE_PRICE.resale)} 起／20 坪以內`}
-                    />
+                    {!groupProject && (
+                      <OptionButton
+                        active={propertyType === "resale"}
+                        onClick={() => setPropertyType("resale")}
+                        title="中古屋"
+                        desc={`驗屋方案 ${formatNT(BASE_PRICE.resale)} 起／20 坪以內`}
+                      />
+                    )}
                   </div>
                 </div>
 
@@ -505,7 +524,15 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
                       active={reinspection === "add"}
                       onClick={() => setReinspection("add")}
                       title="加購複驗方案"
-                      desc={`+ ${formatNT(REINSPECTION_PRICE)}．確認建商修繕是否完成`}
+                      desc={
+                        <>
+                          + {formatNT(reinspectionPrice)}
+                          <span className="ml-1.5 text-muted-foreground line-through decoration-muted-foreground/60">
+                            原價 {formatNT(REINSPECTION_LIST_PRICE)}
+                          </span>
+                          ．確認建商修繕是否完成
+                        </>
+                      }
                     />
                   </div>
                 </div>
@@ -556,6 +583,7 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
                   )}
                   <p className="mt-2 text-xs font-light text-muted-foreground">
                     基本坪數 20 坪，超出部分每坪 $400 加價計算；實際費用以現場評估後之報價為準。
+                    {groupProject && reinspection === "add" && `團報成團折扣不含複驗方案（複驗固定 ${formatNT(GROUP_REINSPECTION_PRICE)}）。`}
                   </p>
                 </div>
 
