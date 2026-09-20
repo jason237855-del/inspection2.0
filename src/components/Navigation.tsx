@@ -105,8 +105,18 @@ const Navigation = ({ variant = "default" }: NavigationProps) => {
     setIsMobileMenuOpen(false);
     if (location.pathname !== "/") return;
     e.preventDefault();
-    if (window.location.hash) window.history.replaceState(null, "", "/");
     window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+    // 網址帶 #區塊 時，先捲動、捲完才清掉錨點（在捲動前改網址會讓平滑捲動被卡住）
+    if (window.location.hash) {
+      let cleared = false;
+      const clearHash = () => {
+        if (cleared) return;
+        cleared = true;
+        window.history.replaceState(null, "", "/");
+      };
+      window.addEventListener("scrollend", clearHash, { once: true });
+      window.setTimeout(clearHash, 1500); // 不支援 scrollend、或本來就在最上方時的備援
+    }
   };
 
   const handleBookNow = () => {
