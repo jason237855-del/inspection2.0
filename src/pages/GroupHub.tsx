@@ -48,16 +48,14 @@ const GroupHub = () => {
             <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground mb-4">Group Inspection</p>
             <h1 className="text-3xl lg:text-4xl font-semibold mb-5 tracking-tight">建案團報</h1>
             <p className="text-muted-foreground font-light leading-relaxed">
-              同建案多戶一起報名驗屋，達成團戶數，全團享折扣（目前多數建案為滿 3 戶享 9 折）。
-              <br className="hidden sm:block" />
-              每戶各自預約時段，找到你的建案，按「加入團報」就可以開始。
+              同社區多戶一起報名驗屋，達成戶數，全團享折扣（滿 3 戶享 9 折），按「加入團報」就即開始。
             </p>
           </motion.div>
         </div>
 
         <div className="container mx-auto px-6 lg:px-12 max-w-5xl">
           <section aria-labelledby="group-how" className="mb-16 lg:mb-20">
-            <h2 id="group-how" className="sr-only">團報流程</h2>
+            <h2 id="group-how" className="text-2xl font-semibold tracking-tight text-center mb-10">報名流程</h2>
             <GroupHowItWorks />
           </section>
 

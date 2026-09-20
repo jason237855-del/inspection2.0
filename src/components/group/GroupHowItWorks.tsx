@@ -1,15 +1,15 @@
 import { CalendarDays, Users, BadgePercent } from "lucide-react";
 
 const steps = [
-  { icon: Users, title: "找到你的建案並加入", desc: "選擇自己的建案，按「加入團報」，建案資訊會自動帶入預約表單。" },
-  { icon: CalendarDays, title: "各戶各自選時段", desc: "每一戶各自預約，可以約同一天，也可以分開；每戶都會占用正常的預約名額。" },
-  { icon: BadgePercent, title: "成團後全團享折扣", desc: "同建案達到成團戶數，全團（包含先報名的住戶）享團報折扣，價格會自動調整。" },
+  { icon: Users, title: "選擇建案", desc: "選擇所購買的建案，按「加入團報」，資訊將生成預約表單。" },
+  { icon: CalendarDays, title: "自選時段", desc: "每戶屋主皆可自由選擇時間；優先保留已完成訂金支付之名額。" },
+  { icon: BadgePercent, title: "團體優惠", desc: "社區達到成團戶數，所有屋主皆享團報優惠。" },
 ];
 
 const notes = [
   "團報折扣不與「LINE 好友折價」並用，團報訂單依成團戶數計價。",
-  "尚未成團時先以原價計，成團後價格自動調整，不需要重新預約。",
-  "已取消的訂單不計入成團戶數。",
+  "尚未成團時先以原價計，無需重新預約。",
+  "已取消的訂單，不計入成團戶數。",
 ];
 
 /** 團報流程與須知（團報專區與各建案頁面共用） */

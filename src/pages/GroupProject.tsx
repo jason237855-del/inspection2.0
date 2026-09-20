@@ -126,7 +126,7 @@ const GroupProject = () => {
           </motion.div>
 
           <section className="mt-16" aria-labelledby="how">
-            <h2 id="how" className="text-2xl font-semibold tracking-tight text-center mb-10">團報怎麼運作</h2>
+            <h2 id="how" className="text-2xl font-semibold tracking-tight text-center mb-10">報名流程</h2>
             <GroupHowItWorks />
           </section>
 
