@@ -4,8 +4,6 @@
 // 後台有上傳封面照片的建案不會用到這裡（分享圖直接用照片）。
 //
 // 需要的環境變數：VITE_SUPABASE_URL、VITE_SUPABASE_PUBLISHABLE_KEY（Vercel 上本來就為建置設定過）
-import satori from "satori";
-import { Resvg } from "@resvg/resvg-js";
 
 const SITE_URL = "https://inspection20.vercel.app";
 const PALETTE = ["#3f5a78", "#3e6b6b", "#4d5687", "#5b6b7c", "#4a6a56", "#6b5b7b", "#7a6a55", "#3a4a63"];
@@ -55,6 +53,10 @@ export default async function handler(req, res) {
   };
 
   try {
+    // 動態載入：套件（含 resvg 的原生模組）載入失敗時也會進 catch、導向預設圖，不會讓函式直接崩潰
+    const { default: satori } = await import("satori");
+    const { Resvg } = await import("@resvg/resvg-js");
+
     let slug = req.query?.slug ?? "";
     try {
       slug = decodeURIComponent(slug);
@@ -121,6 +123,13 @@ export default async function handler(req, res) {
     res.end(buf);
   } catch (e) {
     console.error("group-og error", e);
+    // ?debug=1 時回傳錯誤訊息（只有訊息文字），方便在正式環境診斷
+    if (req.query?.debug === "1") {
+      res.statusCode = 500;
+      res.setHeader("Content-Type", "text/plain; charset=utf-8");
+      res.end(`group-og failed: ${e?.stack || e?.message || String(e)}`.slice(0, 1500));
+      return;
+    }
     return fallback();
   }
 }
