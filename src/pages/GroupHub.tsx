@@ -56,11 +56,11 @@ const GroupHub = () => {
         <div className="container mx-auto px-6 lg:px-12 max-w-5xl">
           <section aria-labelledby="group-how" className="mb-16 lg:mb-20">
             <h2 id="group-how" className="text-2xl font-semibold tracking-tight text-center mb-10">報名流程</h2>
-            <GroupHowItWorks />
+            <GroupHowItWorks cta={{ text: "找到你的建案，按「加入團報」開始報名。", label: "選擇建案", href: "#group-list" }} />
           </section>
 
           <section aria-labelledby="group-list">
-            <h2 id="group-list" className="text-2xl font-semibold tracking-tight text-center mb-10">開放中的團報建案</h2>
+            <h2 id="group-list" className="scroll-mt-32 text-2xl font-semibold tracking-tight text-center mb-10">開放中的團報建案</h2>
             {loading ? (
               <div className="flex justify-center py-10">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />

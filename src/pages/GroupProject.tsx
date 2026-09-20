@@ -127,7 +127,13 @@ const GroupProject = () => {
 
           <section className="mt-16" aria-labelledby="how">
             <h2 id="how" className="text-2xl font-semibold tracking-tight text-center mb-10">報名流程</h2>
-            <GroupHowItWorks />
+            <GroupHowItWorks
+              cta={{
+                text: "準備好了嗎？加入這個建案的團報，邀請鄰居一起報名。",
+                label: "加入團報",
+                to: `/booking?group=${project.id}`,
+              }}
+            />
           </section>
 
           <section className="mt-16 rounded-3xl border border-border bg-card p-8 text-center shadow-soft">
