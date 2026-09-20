@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Check, Minus, Users, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import usePrefersReducedMotion from "@/hooks/usePrefersReducedMotion";
+import { useGroupSettings } from "@/hooks/useGroupSettings";
 
 type TabKey = "newbuild" | "resale" | "group";
 
@@ -93,7 +94,7 @@ const plansByTab: Record<TabKey, Plan[]> = {
       key: "group",
       label: "新成屋團報方案",
       title: "新成屋團報優惠",
-      extraNote: "同社區 3 戶以上適用",
+      extraNote: "同社區 3 戶以上適用", // 顯示時改讀後台「預設條件」的成團戶數（見下方 render）
       description: "同社區、同時段多戶一起檢測，成本更低、排程更順。",
       featuresHeader: "團報專屬：",
       features: [
@@ -134,6 +135,7 @@ const formatPrice = (v: number) => `$ ${v.toLocaleString("en-US")}`;
 
 const Pricing = () => {
   const [tab, setTab] = useState<TabKey>("newbuild");
+  const groupDefaults = useGroupSettings();
   const [hoverCol, setHoverCol] = useState<number | null>(null);
   const reduced = usePrefersReducedMotion();
 
@@ -317,7 +319,7 @@ const Pricing = () => {
                       p.highlighted ? "text-primary-foreground/70" : "text-muted-foreground"
                     }`}
                   >
-                    {p.extraNote}
+                    {p.key === "group" ? `同社區 ${groupDefaults.default_min_units} 戶以上適用` : p.extraNote}
                   </p>
                 )}
 
