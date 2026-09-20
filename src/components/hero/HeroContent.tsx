@@ -55,6 +55,19 @@ const HeroContent = () => {
           了解服務
         </a>
       </motion.div>
+
+      {/* 建案團報入口：低調的一行提示，不搶「立即預約驗屋」的主要按鈕 */}
+      <motion.p
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.55, duration: 0.5 }}
+        className="mt-5 text-sm font-light text-muted-foreground"
+      >
+        同社區多戶一起驗屋，滿 3 戶享 9 折
+        <Link to="/group" className="ml-3 font-medium text-primary underline-offset-4 hover:underline">
+          建案團報 →
+        </Link>
+      </motion.p>
     </div>
   );
 };
