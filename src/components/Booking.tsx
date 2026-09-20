@@ -37,7 +37,7 @@ const Booking = () => {
               size="default"
               className="rounded-full smooth-hover animate-blink motion-reduce:animate-none text-[13px] tracking-wider font-normal px-8 py-6 h-auto bg-primary hover:bg-primary/90 text-primary-foreground"
             >
-              <Link to="/booking" data-cursor="預約">
+              <Link to="/booking">
                 <CalendarDays className="mr-2 h-4 w-4" />
                 立即預約
                 <ArrowRight className="ml-2 h-4 w-4" />

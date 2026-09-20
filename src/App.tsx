@@ -9,7 +9,6 @@ import { Loader2 } from "lucide-react";
 import Index from "./pages/Index";
 import ScrollToTop from "./components/ScrollToTop";
 import FloatingConsultButton from "./components/FloatingConsultButton";
-import CustomCursor from "@/components/CustomCursor";
 import CursorTextTrail from "@/components/CursorTextTrail";
 
 // 首頁以外的頁面改用 lazy load：一般訪客進站大多先看首頁，
@@ -42,7 +41,6 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <ScrollToTop />
-        <CustomCursor />
         <CursorTextTrail />
         <FloatingConsultButton />
         <Suspense fallback={<RouteFallback />}>

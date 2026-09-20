@@ -43,7 +43,6 @@ const HeroContent = () => {
       >
         <Link
           to="/booking"
-          data-cursor="預約"
           className="group inline-flex items-center gap-2 rounded-full bg-primary px-8 py-3.5 text-sm font-medium text-primary-foreground transition-all hover:opacity-90 hover:shadow-hover"
         >
           立即預約驗屋

@@ -163,7 +163,6 @@ const Journal = () => {
             {featured && (
               <Link
                 to={`/journal/${featured.slug}`}
-                data-cursor="閱讀"
                 className="group block mb-14 lg:mb-20"
               >
                 <article className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
@@ -208,7 +207,6 @@ const Journal = () => {
                 <Link
                   key={a.slug}
                   to={`/journal/${a.slug}`}
-                  data-cursor="閱讀"
                   className="group flex flex-col rounded-2xl border border-border/70 bg-card/40 overflow-hidden transition-colors duration-300 hover:border-primary/50"
                 >
                   <div className="aspect-[16/10] overflow-hidden bg-muted">

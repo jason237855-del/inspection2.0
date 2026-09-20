@@ -250,7 +250,6 @@ const Navigation = ({ variant = "default" }: NavigationProps) => {
                   : "bg-white/10 text-white hover:bg-primary/80 hover:text-white hover:border-primary/80"
               }`}
               onClick={handleBookNow}
-              data-cursor="預約"
             >
               立即預約
             </Button>
