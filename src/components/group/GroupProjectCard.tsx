@@ -18,6 +18,8 @@ const GroupProjectCard = ({ project: p, count }: Props) => {
         <GroupCoverImage project={p} />
       </Link>
       <div className="flex flex-1 flex-col p-7">
+      {/* 自動產生的封面上已有建案名稱與地區，這裡不重複；上傳了真實照片的建案（照片上沒有字）才顯示 */}
+      {p.cover_image_url && (
       <div className="flex items-start gap-3 mb-5">
         <div className="mt-0.5 rounded-full bg-primary/10 p-2 text-primary">
           <Building2 className="h-4 w-4" />
@@ -34,6 +36,7 @@ const GroupProjectCard = ({ project: p, count }: Props) => {
           </p>
         </div>
       </div>
+      )}
 
       <div className="mb-2 flex items-center justify-between text-xs font-light text-muted-foreground">
         <span className="inline-flex items-center gap-1">
