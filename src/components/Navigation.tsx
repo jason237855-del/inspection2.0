@@ -170,10 +170,12 @@ const Navigation = ({ variant = "default" }: NavigationProps) => {
               ? "px-4 lg:px-6 py-2 shadow-[0_10px_40px_-12px_rgba(0,0,0,0.28)]"
               : "px-5 lg:px-8 py-4 shadow-[0_2px_20px_-12px_rgba(0,0,0,0.15)]"
           } ${
+            // 選單／深色導覽列用固定的深藍灰（＝淺色主題的 foreground）。不能用 bg-foreground：
+            // 預約頁在系統深色模式會切成 .dark，foreground 變近白色，白字就整片看不見。
             menuChromeOpen
-              ? "bg-foreground rounded-3xl backdrop-blur-2xl"
+              ? "bg-[hsl(218_23%_23%)] rounded-3xl backdrop-blur-2xl border border-white/10"
               : isDark
-                ? "rounded-full bg-foreground/90 backdrop-blur-xl border border-white/10"
+                ? "rounded-full bg-[hsl(218_23%_23%)]/90 backdrop-blur-xl border border-white/10"
                 : isScrolled
                   ? "rounded-full bg-card/70 backdrop-blur-2xl border border-border/60"
                   : "rounded-full bg-white/10 backdrop-blur-md border border-white/20"
