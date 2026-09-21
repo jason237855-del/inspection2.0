@@ -194,11 +194,11 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
   const originalPrice = basePrice + reinspectionAmount + pingSurcharge;
   // 團報：加入後戶數達門檻 → 全團原價 × 折扣；未達門檻先以原價計，達標後由資料庫自動回頭調整
   const groupReached = !!groupProject && groupCount + 1 >= groupProject.min_units;
-  const discountedPrice = groupProject
-    ? groupReached
-      ? Math.round((basePrice + pingSurcharge) * groupProject.discount_rate) + reinspectionAmount // 複驗固定，不打折
-      : originalPrice
-    : originalPrice - 500;
+  // 成團後的團報價：基本費＋超出坪數加價打折，複驗固定不打折
+  const groupPrice = groupProject
+    ? Math.round((basePrice + pingSurcharge) * groupProject.discount_rate) + reinspectionAmount
+    : 0;
+  const discountedPrice = groupProject ? (groupReached ? groupPrice : originalPrice) : originalPrice - 500;
   const estimatedPrice = discountedPrice;
   const inspectionTypeValue =
     propertyType === "resale" ? "resale" : reinspection === "add" ? "newfirst_recheck" : "newfirst";
@@ -558,9 +558,14 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
                             </p>
                           </div>
                         ) : (
-                          <p className="text-3xl font-bold text-card-foreground tracking-tight">
-                            原價 {formatNT(originalPrice)}
-                          </p>
+                          <div>
+                            <p className="text-3xl font-bold text-card-foreground tracking-tight">
+                              原價 {formatNT(originalPrice)}
+                            </p>
+                            <p className="mt-1 text-xl font-bold text-primary tracking-tight">
+                              成團後 {formatNT(groupPrice)}
+                            </p>
+                          </div>
                         )}
                         <p className="text-xs font-medium text-primary">
                           {groupReached
@@ -588,7 +593,7 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
                     <p className="text-3xl font-bold text-card-foreground tracking-tight">請先選擇房屋類型</p>
                   )}
                   <p className="mt-2 text-xs font-light text-muted-foreground">
-                    基本坪數 20 坪，超出部分每坪 $400 加價計算；實際費用以現場評估後之報價為準。
+                    基本坪數 20 坪，超出部分每坪 $400 加價計算。
                     {groupProject && reinspection === "add" && `團報成團折扣不含複驗方案（複驗固定 ${formatNT(GROUP_REINSPECTION_PRICE)}）。`}
                   </p>
                 </div>
