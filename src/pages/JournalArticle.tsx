@@ -142,7 +142,7 @@ const JournalArticle = () => {
 
             {/* Observation */}
             <section className="mb-14">
-              <SectionHead en="Observation" zh="觀察" />
+              <SectionHead en={article.headings?.observation?.en ?? "Observation"} zh={article.headings?.observation?.zh ?? "觀察"} />
               <p className="font-light leading-loose text-muted-foreground mb-5">
                 {article.observation.intro}
               </p>
@@ -156,9 +156,10 @@ const JournalArticle = () => {
               </ul>
             </section>
 
-            {/* Possible causes */}
+            {/* Possible causes（流程型文章可省略） */}
+            {article.causes && (
             <section className="mb-14">
-              <SectionHead en="Possible Causes" zh="可能原因" />
+              <SectionHead en={article.headings?.causes?.en ?? "Possible Causes"} zh={article.headings?.causes?.zh ?? "可能原因"} />
               <p className="font-light leading-loose text-muted-foreground mb-5">
                 {article.causes.intro}
               </p>
@@ -171,10 +172,11 @@ const JournalArticle = () => {
                 ))}
               </ul>
             </section>
+            )}
 
             {/* How we read it */}
             <section className="mb-14">
-              <SectionHead en="How We Read It" zh="如何判讀" />
+              <SectionHead en={article.headings?.reading?.en ?? "How We Read It"} zh={article.headings?.reading?.zh ?? "如何判讀"} />
               <p className="font-light leading-loose text-muted-foreground mb-6">
                 {article.reading.intro}
               </p>
@@ -196,7 +198,7 @@ const JournalArticle = () => {
 
             {/* What to do next */}
             <section className="mb-14">
-              <SectionHead en="What To Do Next" zh="下一步" />
+              <SectionHead en={article.headings?.next?.en ?? "What To Do Next"} zh={article.headings?.next?.zh ?? "下一步"} />
               <p className="font-light leading-loose text-muted-foreground mb-6">
                 {article.next.intro}
               </p>

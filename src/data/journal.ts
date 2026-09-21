@@ -6,6 +6,11 @@ import equipmentImg from "@/assets/diag-equipment.jpg";
 import environmentImg from "@/assets/diag-environment.jpg";
 import equipmentImg2 from "@/assets/diag-equipment-2.jpg";
 import structureImg2 from "@/assets/diag-structure-2.jpg";
+import electricalImg2 from "@/assets/diag-electrical-2.jpg";
+import environmentImg2 from "@/assets/diag-environment-2.jpg";
+import equipmentImg3 from "@/assets/diag-equipment-3.jpg";
+import structureImg3 from "@/assets/diag-structure-3.jpg";
+import waterImg3 from "@/assets/diag-water-2.jpg";
 
 export const journalCategories = [
   { id: "all", en: "ALL", zh: "全部" },
@@ -33,7 +38,8 @@ export interface JournalArticle {
   metaDescription: string;
   lead: string[];
   observation: { intro: string; points: string[] };
-  causes: { intro: string; points: string[] };
+  /** 現象型文章才有；流程型文章可省略 */
+  causes?: { intro: string; points: string[] };
   reading: { intro: string; points: string[]; outro: string };
   next: { intro: string; steps: { when: string; action: string }[] };
   caseStudy?: {
@@ -44,6 +50,8 @@ export interface JournalArticle {
     outcome: string;
     lesson: string;
   };
+  /** 各區塊小標題覆寫（流程型文章用），沒設就用預設的「觀察／可能原因／如何判讀／下一步」 */
+  headings?: Partial<Record<"observation" | "causes" | "reading" | "next", { en: string; zh: string }>>;
   note: string;
   related: string[];
 }
@@ -734,6 +742,275 @@ export const journalArticles: JournalArticle[] = [
     },
     note: "熱水器的檢查，看的是設備與空間的關係。環境變了，安全條件就要重新確認一次。",
     related: ["electrical-outlet-inspection", "bathroom-drainage", "home-inspection-limitations"],
+  },
+  {
+    slug: "new-home-inspection-checklist",
+    category: "inspection",
+    title: "新成屋驗屋要檢查什麼？六大系統的重點整理",
+    titleLines: ["新成屋驗屋要檢查什麼？", "六大系統的重點整理"],
+    excerpt:
+      "新成屋看起來乾淨漂亮，不代表沒有問題。整理電氣、給排水、防水、建築土建、設備與環境六大系統的檢查範圍，讓你交屋前知道該看什麼。",
+    date: "2026-09-21",
+    image: electricalImg2,
+    imageAlt: "檢測人員手持三用電表，檢測牆面配電箱迴路的現場畫面",
+    seoTitle: "新成屋驗屋要檢查什麼？六大系統驗屋重點整理｜診斷筆記",
+    metaDescription:
+      "新成屋交屋前驗屋，不只是看牆面有沒有刮傷。整理電氣、給排水、防水、建築土建、設備與環境六大系統的檢查重點，讓你交屋前知道該看什麼。",
+    lead: [
+      "新成屋看起來乾淨漂亮，不代表沒有問題。施工過程中的水電、防水、泥作與設備安裝，很多問題要靠實際測試才看得出來。",
+      "驗屋的目的，是在正式交屋前把問題記錄清楚，請建商修繕，而不是入住之後才發現。以下依六大系統，說明我們會檢查什麼。",
+    ],
+    headings: {
+      observation: { en: "Six Systems", zh: "六大系統的檢查範圍" },
+      reading: { en: "After The Inspection", zh: "驗屋之後，缺失怎麼處理" },
+      next: { en: "What To Do Next", zh: "接下來可以做的事" },
+    },
+    observation: {
+      intro: "我們把新成屋的檢測分成六大系統，逐項確認：",
+      points: [
+        "電氣診斷：燈具開關與插座的功能及外觀、配電箱迴路與施工完整性、電箱單線圖圖面審核、全戶電壓相位、漏電斷路與弱電系統。",
+        "給排水診斷：全戶水壓與給水、排水系統、衛浴與廚具設備的給排水、空調排水，以及衛浴與陽台的洩水坡度。",
+        "防水診斷：牆面、天花板、衛浴空間與門窗框的滲漏水檢測，並以混凝土水分比與熱顯像儀輔助判讀。",
+        "建築土建診斷：壁磚與地磚空心與外觀、牆面垂直水平、室內地面水平、油漆施工品質，以及木地板與踢腳板。",
+        "設備診斷：門扇窗戶的外觀與功能、玻璃、防火門標章與膠條、淋浴拉門，以及廚具與衛浴設備的安裝。",
+        "環境診斷：全室空間的甲醛、PM2.5、噪音、電磁波，以及屋內水質。",
+      ],
+    },
+    reading: {
+      intro: "發現缺失，只是第一步。重點是讓缺失被清楚記錄，並且確實改善：",
+      points: [
+        "現場檢測時，每個缺失都拍照，並附上文字敘述。",
+        "檢測結束後，在現場與營造、屋主進行缺失彙報。",
+        "24 小時內取得數位電子報告書，標註缺失敘述、缺失照片與缺失位置。",
+        "依報告向建商提出缺失清單，約定修繕期限。",
+        "修繕完成後安排複驗，確認缺失確實改善，再進入簽收程序。",
+      ],
+      outro:
+        "儀器異常不等於一定有問題，缺失的判定需要交叉確認。這也是為什麼報告會同時附上敘述、照片與位置，讓後續溝通有依據。",
+    },
+    next: {
+      intro: "如果你正準備交屋，可以先做這幾件事：",
+      steps: [
+        { when: "接到建商的交屋或驗屋通知", action: "先確認建商規定的驗屋期間與修繕流程，再預約驗屋時間。" },
+        { when: "驗屋前", action: "備妥權狀、平面圖、建材表與交屋文件，並確保水電已開通。" },
+        { when: "驗屋完成後", action: "依報告向建商提出缺失清單，修繕後安排複驗，確認改善再簽收。" },
+      ],
+    },
+    note: "驗屋看的不只是外觀，而是把施工細節都測過一遍。缺失被記錄下來，才有機會被改善。",
+    related: ["when-to-inspect-new-home", "inspection-day-what-to-expect", "home-inspection-limitations"],
+  },
+  {
+    slug: "when-to-inspect-new-home",
+    category: "inspection",
+    title: "新成屋驗屋什麼時候做？交屋前的時間點與流程",
+    titleLines: ["新成屋驗屋什麼時候做？", "交屋前的時間點與流程"],
+    excerpt:
+      "建商通知交屋了，什麼時候驗？原則是在正式簽收之前。說明驗屋的時間點、預約前後要準備的事，以及發現缺失之後的處理順序。",
+    date: "2026-09-21",
+    image: environmentImg2,
+    imageAlt: "室內客廳桌面上擺放的兩台室內環境檢測儀器",
+    seoTitle: "新成屋驗屋什麼時候做？交屋前的時間點與流程｜診斷筆記",
+    metaDescription:
+      "新成屋驗屋最好在正式交屋、簽收之前完成。說明驗屋的時間點、建商通知後該怎麼安排，以及發現缺失後的處理順序。",
+    lead: [
+      "最常見的問題是：「建商通知我交屋了，我什麼時候驗？」原則是在正式簽收交屋之前。",
+      "簽收之後，責任認定會變得比較複雜，也比較難要求建商處理。所以驗屋要排在簽收之前，還要預留修繕與複驗的時間。",
+    ],
+    headings: {
+      observation: { en: "Timing", zh: "時間點的判斷" },
+      reading: { en: "Timeline", zh: "從通知到簽收的流程" },
+      next: { en: "Before You Book", zh: "預約前後要準備的事" },
+    },
+    observation: {
+      intro: "安排驗屋的時間點，可以先想這幾件事：",
+      points: [
+        "建商通知驗屋或交屋後，儘快預約，假日與交屋旺季的時段比較容易排滿。",
+        "驗屋要在正式簽收之前完成，避免簽收後才發現問題。",
+        "預留修繕的時間，修繕完成後還要安排複驗。",
+        "不確定建商的流程時，可以先了解通知內容，再判斷適合的時間點。",
+      ],
+    },
+    reading: {
+      intro: "從收到通知到簽收，大致是這樣的順序：",
+      points: [
+        "建商通知驗屋或交屋，先確認建商規定的驗屋期間與修繕流程。",
+        "預約驗屋，選擇日期與時段。",
+        "驗屋當天，屋主或委託人需要親自在場；檢測結束後，現場與營造、屋主等進行缺失彙報。",
+        "24 小時內收到數位電子報告書，標註缺失敘述、缺失照片與缺失位置。",
+        "依報告向建商提出缺失清單，約定修繕期限。",
+        "修繕完成後安排複驗，確認缺失確實改善，再進入簽收。",
+      ],
+      outro: "每個建商的交屋流程不同，實際的時限與規定，請以建商通知與買賣契約為準。",
+    },
+    next: {
+      intro: "預約前後，可以先備妥這些：",
+      steps: [
+        { when: "預約前", action: "確認建商通知的驗屋期間與修繕流程，決定預約的日期範圍。" },
+        { when: "驗屋前", action: "備妥權狀、平面圖、建材表與交屋文件（含客變資料）。驗屋第一個環節就是檢測全戶水電，所以需要先確認水電已開通。" },
+        { when: "驗屋當天", action: "屋主或委託人需要親自在場，方便檢測結束後在現場了解缺失。" },
+      ],
+    },
+    note: "驗屋是交屋之前的一道關卡。時間排得早，修繕與複驗才不會壓縮到簽收的期限。",
+    related: ["new-home-inspection-checklist", "inspection-day-what-to-expect", "home-inspection-limitations"],
+  },
+  {
+    slug: "resale-home-inspection-what-to-check",
+    category: "resale",
+    title: "中古屋買前驗屋要看什麼？屋況與風險的判斷重點",
+    titleLines: ["中古屋買前驗屋要看什麼？", "屋況與風險的判斷重點"],
+    excerpt:
+      "中古屋不像新成屋有施工缺失，而是要判斷現在的狀態與接下來的維護成本。整理買房前該看的重點，以及驗屋能做到與做不到的事。",
+    date: "2026-09-21",
+    image: equipmentImg3,
+    imageAlt: "檢測人員在廚房以手持工具檢視水槽與設備周邊的現場畫面",
+    seoTitle: "中古屋買前驗屋要看什麼？屋況與風險的判斷重點｜診斷筆記",
+    metaDescription:
+      "中古屋和新成屋的檢測重點不同。整理買房前該看的滲漏水跡象、管線與設備狀態、老化程度，以及驗屋能做到與做不到的事。",
+    lead: [
+      "中古屋不像新成屋有施工缺失，而是要判斷房子現在的狀態，以及接下來可能需要的維護成本。",
+      "驗屋的價值，是在下訂或簽約之前，把風險看清楚，讓議價與決定有依據。",
+    ],
+    headings: {
+      observation: { en: "What To Check", zh: "買前要看的重點" },
+      reading: { en: "How To Use The Report", zh: "拿到報告之後怎麼用" },
+      next: { en: "What To Do Next", zh: "下一步" },
+    },
+    observation: {
+      intro: "中古屋的驗屋，通常會把重點放在這幾類：",
+      points: [
+        "滲漏水的跡象：牆面與天花板的水痕、壁癌、油漆膨起，以及浴室、陽台與窗框周邊。",
+        "管線與設備：給排水管、電線與配電箱的年代與狀態。",
+        "熱水器與排氣：設備所在空間的通風條件，是優先檢查的安全項目。",
+        "老化與使用痕跡：磁磚、地板、門窗與五金的狀態。",
+        "結構相關現象：可以觀察並記錄明顯裂縫的位置與類型；如有結構安全的疑慮，需要再雙重確認建商所提供的保固部位，以及結構問題的相對措施。",
+      ],
+    },
+    reading: {
+      intro: "驗屋報告的用途，是幫你在簽約前把風險排出優先順序：",
+      points: [
+        "先看有沒有影響安全的項目，例如熱水器排氣與電氣，優先處理。",
+        "再看滲漏水與管線老化，評估後續的修繕範圍與費用。",
+        "最後是外觀與使用痕跡，通常可以在入住後再逐步處理。",
+      ],
+      outro:
+        "現場檢測只能判斷可見與可測的範圍，無法保證牆內或隱蔽處完全沒有問題。這也是驗屋能做到與做不到的界線。",
+    },
+    next: {
+      intro: "簽約前，可以這樣運用驗屋結果：",
+      steps: [
+        { when: "報告顯示有安全風險", action: "在簽約前要求賣方先處理，或把處理方式寫進履約條件。" },
+        { when: "報告顯示有修繕需求", action: "依修繕範圍評估費用，作為議價的依據。" },
+        { when: "風險超過你的預期", action: "重新考慮這間房子，不用勉強在時間壓力下做決定。" },
+      ],
+    },
+    note: "中古屋的驗屋，看的是現在的狀態，也是接下來要花多少維護成本的線索。",
+    related: ["resale-water-heater-ventilation", "home-inspection-limitations", "high-wall-moisture"],
+  },
+  {
+    slug: "inspection-day-what-to-expect",
+    category: "inspection",
+    title: "驗屋當天的流程：要花多久、屋主要做什麼、怎麼拿到報告",
+    titleLines: ["驗屋當天的流程", "要花多久、屋主要做什麼"],
+    excerpt:
+      "第一次驗屋，不知道當天會發生什麼？說明驗屋所需的時間、屋主需要配合的事、現場的檢測順序，以及報告如何交付。",
+    date: "2026-09-21",
+    image: structureImg3,
+    imageAlt: "檢測人員戴著口罩，在浴室壁磚前以工具檢查牆面設備的現場畫面",
+    seoTitle: "驗屋當天流程：要花多久、屋主要做什麼、怎麼拿到報告｜診斷筆記",
+    metaDescription:
+      "第一次驗屋不知道當天會發生什麼？說明驗屋當天的流程、所需時間、屋主需要準備與配合的事，以及報告如何交付。",
+    lead: [
+      "很多屋主第一次驗屋，會擔心「要不要全程陪著？」「要花多久？」把流程說清楚，預約時會更安心。",
+      "驗屋一般需要 1 到 3 小時，依坪數與現場屋況而定。當天屋主或委託人需要親自在場。",
+    ],
+    headings: {
+      observation: { en: "Before The Day", zh: "驗屋前要先準備的事" },
+      reading: { en: "On The Day", zh: "當天的流程" },
+      next: { en: "After The Inspection", zh: "驗屋之後" },
+    },
+    observation: {
+      intro: "驗屋當天，請先確認這幾件事：",
+      points: [
+        "屋主或委託人需要親自在場。",
+        "驗屋第一個環節就是檢測全戶水電，所以水電需要先開通。",
+        "備妥權狀、平面圖、建材表與交屋文件，方便對照。",
+        "盡量讓待檢區域淨空，有助於提高可檢視範圍。",
+      ],
+    },
+    reading: {
+      intro: "現場的檢測，大致依這個順序進行：",
+      points: [
+        "屋主或委託人到場。",
+        "第一個環節：檢測全戶水電，包含電氣與給排水。",
+        "以專業儀器逐區檢查結構、防水、門窗與空氣品質等項目。",
+        "每個缺失都現場拍照，並加上文字敘述。",
+        "檢測結束後，現場與營造、屋主等進行缺失彙報。",
+      ],
+      outro: "整個流程一般需要 1 到 3 小時，實際時間依坪數與現場屋況而定。",
+    },
+    next: {
+      intro: "驗屋結束之後：",
+      steps: [
+        { when: "24 小時內", action: "取得數位電子報告書，標註缺失敘述、缺失照片與缺失位置。" },
+        { when: "拿到報告之後", action: "依報告向建商提出缺失清單，約定修繕期限。" },
+        { when: "修繕完成後", action: "安排複驗，確認缺失確實改善。" },
+      ],
+    },
+    note: "驗屋當天看到的是現況，報告則是把缺失整理成後續溝通的依據。",
+    related: ["new-home-inspection-checklist", "when-to-inspect-new-home", "home-inspection-limitations"],
+  },
+  {
+    slug: "group-home-inspection-how-it-works",
+    category: "inspection",
+    title: "社區團購驗屋怎麼運作？同建案多戶一起驗屋",
+    titleLines: ["社區團購驗屋怎麼運作？", "同建案多戶一起驗屋"],
+    excerpt:
+      "同一個建案多戶一起預約驗屋，達成戶數可享團報折扣。說明團報的運作方式、每戶如何各自預約，以及適合什麼情況。",
+    date: "2026-09-21",
+    image: waterImg3,
+    imageAlt: "檢測人員在水龍頭上裝設壓力表量測水壓，後方另一人拍照記錄的現場畫面",
+    seoTitle: "社區團購驗屋怎麼運作？同建案多戶一起驗屋的好處與流程｜診斷筆記",
+    metaDescription:
+      "同一個建案多戶一起預約驗屋，達成戶數可享團報折扣。說明團報的運作方式、每戶如何各自預約，以及適合什麼情況。",
+    lead: [
+      "同一個社區的住戶，通常在差不多的時間交屋。多戶一起預約驗屋，屋主可以享有團報折扣，也能互相分享各戶遇到的情況。",
+      "團報的規則很單純：每戶各自預約，戶數達到門檻，全團享有優惠。",
+    ],
+    headings: {
+      observation: { en: "How It Works", zh: "團報的運作方式" },
+      reading: { en: "How To Join", zh: "怎麼加入" },
+      next: { en: "Good To Know", zh: "加入前可以先了解" },
+    },
+    observation: {
+      intro: "團報的運作規則如下（實際的戶數門檻與折數，以官網公告為準）：",
+      points: [
+        "每戶各自填寫預約，自己選日期與時段，不需要全部同一天。",
+        "同建案報名戶數達到門檻，全團享團報折扣。",
+        "未成團前先以原價計，不需要重新預約；成團後價格會自動調整。",
+        "已取消的訂單不計入成團戶數。",
+        "團報折扣不與 LINE 好友折扣併用，目前團報僅限新成屋。",
+      ],
+    },
+    reading: {
+      intro: "加入團報，只需要幾個步驟：",
+      points: [
+        "到官網「建案團報」，找到你的建案。",
+        "按「加入團報」，資訊會帶入預約表單。",
+        "填寫預約資料，選擇你要的日期與時段。",
+        "預約送出後，加入官方 LINE，領取預約憑證並取得後續的付款資訊。",
+      ],
+      outro: "如果找不到你的建案，可以在官網提出新建案，審核上架後，再邀請鄰居一起加入。",
+    },
+    next: {
+      intro: "加入之前，可以先了解幾件事：",
+      steps: [
+        { when: "適合誰", action: "同建案、交屋時間接近的鄰居，想一起了解驗屋的社區群組。" },
+        { when: "有人取消時", action: "成團後如有取消，可能影響其他住戶的成團優惠，請提早在群組告知。" },
+        { when: "需要更多資訊", action: "價格、付款與取消規則，以官網與預約時的說明為準，也可以用官方 LINE 詢問。" },
+      ],
+    },
+    note: "團報是一起預約，不是一起驗。每戶都有自己的時段，也各自拿到自己的報告。",
+    related: ["when-to-inspect-new-home", "new-home-inspection-checklist", "inspection-day-what-to-expect"],
   },
 ];
 
