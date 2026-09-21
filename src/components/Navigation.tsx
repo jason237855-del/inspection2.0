@@ -175,7 +175,7 @@ const Navigation = ({ variant = "default" }: NavigationProps) => {
             menuChromeOpen
               ? "bg-[hsl(218_23%_23%)] rounded-3xl backdrop-blur-2xl border border-white/10"
               : isDark
-                ? "rounded-full bg-[hsl(218_23%_23%)]/90 backdrop-blur-xl border border-white/10"
+                ? "rounded-full bg-[hsl(218_23%_23%/0.9)] backdrop-blur-xl border border-white/10"
                 : isScrolled
                   ? "rounded-full bg-card/70 backdrop-blur-2xl border border-border/60"
                   : "rounded-full bg-white/10 backdrop-blur-md border border-white/20"
