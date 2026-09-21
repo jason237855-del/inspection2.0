@@ -183,7 +183,10 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [preferredDate]);
 
-  const pingNum = Math.max(0, parseInt(ping, 10) || 20);
+  // 合約坪數常有小數（例如 32.56 坪）：四捨五入到整數再計價；資料庫的坪數欄位也是整數
+  const pingRaw = parseFloat(ping);
+  const pingNum = Math.max(0, Math.round(pingRaw) || 20);
+  const pingRounded = Number.isFinite(pingRaw) && pingRaw > 0 && pingRaw !== pingNum;
   const reinspectionPrice = groupProject ? GROUP_REINSPECTION_PRICE : REINSPECTION_PRICE;
   const basePrice = groupProject ? GROUP_BASE_PRICE : propertyType ? BASE_PRICE[propertyType] : 0;
   const reinspectionAmount = reinspection === "add" ? reinspectionPrice : 0;
@@ -219,7 +222,7 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
   };
 
   const handleStep1Continue = () => {
-    if (!ping || parseInt(ping, 10) <= 0) {
+    if (!ping || !(Math.round(parseFloat(ping)) >= 1)) {
       toast.error("請輸入有效的房屋坪數");
       return;
     }
@@ -471,6 +474,8 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
                     id="ping"
                     type="number"
                     min={1}
+                    step="any"
+                    inputMode="decimal"
                     value={ping}
                     onChange={(e) => setPing(e.target.value)}
                     placeholder="例如：25"
@@ -478,6 +483,7 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
                   />
                   <p className="mt-2 text-xs font-light text-muted-foreground">
                     坪數以合約「主建物 + 附屬建物」總和計算
+                    {pingRounded && `；有小數時四捨五入，${ping} 坪以 ${pingNum} 坪計價`}
                   </p>
                 </div>
 
@@ -747,7 +753,7 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
                       {[
                         ["檢測方案", inspectionTypeLabel],
                         ["房屋類型", propertyLabels[propertyType] || "-"],
-                        ["房屋坪數", `${pingNum} 坪`],
+                        ["房屋坪數", pingRounded ? `${ping} 坪（以 ${pingNum} 坪計價）` : `${pingNum} 坪`],
                         ["建案資訊", `${projectRegion} ${projectName}`],
                         ["建案種類", houseTypeLabels[houseType] || "-"],
                         ["樓層戶號", floorUnit || "-"],
