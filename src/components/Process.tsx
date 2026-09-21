@@ -7,7 +7,7 @@ export const steps = [
   { icon: PhoneCall, step: "01", title: "預約洽詢", subtitle: "Enquiry", description: "line 或電話說明物件坪數、屋齡與交屋時程，我們評估所需人力與時間並報價。" },
   { icon: ClipboardList, step: "02", title: "行前準備", subtitle: "Preparation", description: "確認檢測範圍與時間，提醒您備妥權狀、平面圖、建材表與交屋文件。" },
   { icon: Search, step: "03", title: "現場檢測", subtitle: "On-site Inspection", description: "以專業儀器逐區檢查結構、水電、防水、門窗與空氣品質，現場標示缺失。" },
-  { icon: FileCheck, step: "04", title: "報告交付", subtitle: "Report", description: "48 小時內交付圖文報告，標註缺失位置、風險等級與建議改善方式。" },
+  { icon: FileCheck, step: "04", title: "報告交付", subtitle: "Report", description: "24 小時內交付數位電子報告書，標註缺失敘述、缺失照片與缺失位置。" },
   { icon: RefreshCcw, step: "05", title: "複驗追蹤", subtitle: "Re-inspection", description: "建商或屋主修繕完成後安排複驗，確認缺失確實改善才算完成。" },
 ];
 
