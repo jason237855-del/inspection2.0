@@ -448,7 +448,7 @@ const Pricing = () => {
         <div className="max-w-4xl mx-auto mt-10 flex items-start justify-center gap-2 text-center">
           <Minus className="w-3.5 h-3.5 text-muted-foreground mt-0.5 shrink-0" />
           <p className="text-xs text-muted-foreground font-light leading-relaxed">
-            超出坪數以每坪 $400 加價計算；實際費用以現場評估後之報價為準。
+            超出坪數以每坪 $400 加價計算。
           </p>
         </div>
       </div>
