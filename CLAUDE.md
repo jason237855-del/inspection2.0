@@ -18,6 +18,13 @@ GitHub: https://github.com/jason237855-del/inspection2.0（`main` 分支，2026-
 - 專案的 `npm run dev` / `npm run build` 內建的 `predev`/`prebuild` 腳本（`scripts/generate-sitemap.ts`）原本寫死用 `bunx` 執行，這台機器沒裝 bun 會直接失敗；已改成 `tsx scripts/generate-sitemap.ts`（`tsx` 已加入 `devDependencies`），`npm run dev` / `npm run build` 現在可直接跑，不用再繞過 hook
 - Supabase CLI 透過 `npx supabase`（未全域安裝，`npx` 首次用會自動抓套件）使用，2026-09-14 已 `supabase login`（帳號 jason237855@gmail.com）並 `supabase link --project-ref gzewuphhnxzyhiwnhjpm`。**`supabase login` 的瀏覽器授權流程需要真正的互動式終端機（TTY）**，不能透過 Claude Code 的 `!` 前綴或 Bash 工具執行——會直接報 `non-TTY environments` 錯誤；要重新登入時請使用者另開 Terminal.app／iTerm 手動跑。這個專案的正式資料庫 schema 原本都是用 Supabase Dashboard 手動下 SQL／Lovable 平台改的，從沒透過 CLI 的 migration 機制套用過，所以 remote 一開始沒有 `supabase_migrations.schema_migrations` 追蹤表；已用 `supabase migration repair --status applied <全部版本號>` 補齊追蹤紀錄（純同步紀錄、未變更 schema），現在 `supabase db push` 可以正常用來套用新 migration 了，不用再擔心誤判成要重跑舊 migration
 
+## 前端測試與設計工具（2026-09-30 加入）
+
+- **Playwright 自動測試**：`npx playwright test`（會自動啟動 dev server）。設定在 `playwright.config.ts`，測試放 `tests/`，分 `desktop` 與 `mobile`（Pixel 7）兩組，只裝了 Chromium。改動頁面或樣式後應跑一次，失敗就修，測試沒過不要說完成。新增功能時可順手補測試。
+- **測試不可寫入資料庫**：本機 `.env` 連的是正式 Supabase，測試**不可送出預約表單、不可在後台新增/修改/刪除資料**，也不要登入真實帳號。需要測送出流程時，用 `page.route()` 攔截 Supabase 請求改回假資料，或先問使用者。
+- **設計 skill**：`.claude/skills/design-taste-frontend/`（Taste，來源 `Leonxlnx/taste-skill`，已檢查為純文字）。使用者要求設計或改版頁面時使用。網站已上線、有既有品牌風格，改版時用它的 **Redesign - Preserve** 方式：先檢視現有設計、沿用現有配色字型，除非使用者明確要換風格。
+- **不要另外安裝同類設計 skill**（例如 Impeccable），兩套同時載入會互相衝突；安裝任何第三方 skill 前先檢查內容並問使用者。
+
 ## 2026-09-05 所做的清理與設定
 
 - 移除 Lovable 初始範本殘留的「露營地/民宿」假資料頁面：`src/pages/Locations.tsx`、`src/pages/LocationDetail.tsx`、`src/data/locations.ts`、`src/data/bookings.ts`，並同步移除 `src/App.tsx` 裡對應的 `/locations`、`/location/:id` 路由，以及 `scripts/generate-sitemap.ts` 與 `public/sitemap.xml` 裡的 `/locations` 條目

@@ -29,3 +29,9 @@ supabase/.temp/
 *.njsproj
 *.sln
 *.sw?
+
+# Playwright 測試產出
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
