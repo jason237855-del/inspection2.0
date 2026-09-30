@@ -63,7 +63,7 @@ const Navigation = ({ variant = "default" }: NavigationProps) => {
 
   // Scroll spy: highlight the menu item of the section currently in view
   useEffect(() => {
-    const ids = ["about", "experience", "process", "services", "pricing", "group-buying", "booking"];
+    const ids = ["about", "experience", "diagnostics", "process", "services", "pricing", "group-buying", "booking"];
     const sections = ids
       .map((id) => document.getElementById(id))
       .filter((el): el is HTMLElement => Boolean(el));
@@ -126,7 +126,8 @@ const Navigation = ({ variant = "default" }: NavigationProps) => {
   const navItems = [
     { label: "關於診斷室驗屋", href: "/#about", isRoute: false },
     { label: "服務流程", href: "/#process", isRoute: false },
-    { label: "診斷項目", href: "/#services", isRoute: false },
+    { label: "診斷項目", href: "/#diagnostics", isRoute: false },
+    { label: "核心服務", href: "/#services", isRoute: false },
     { label: "驗屋價格", href: "/#pricing", isRoute: false },
     { label: "建案團報", href: "/group", isRoute: true },
     { label: "診斷筆記", href: "/journal", isRoute: true },
@@ -200,7 +201,7 @@ const Navigation = ({ variant = "default" }: NavigationProps) => {
               />
               <div className="flex flex-col leading-none">
                 <span className={`text-base font-semibold tracking-wide ${textColor}`}>診斷室驗屋</span>
-                <span className={`text-[11px] tracking-wider ${textColor} opacity-70`}>Home Inspection & Diagnostics</span>
+                <span className={`whitespace-nowrap md:hidden lg:block text-[11px] tracking-wider ${textColor} opacity-70`}>Home Inspection & Diagnostics</span>
               </div>
             </motion.div>
           </Link>
@@ -246,14 +247,14 @@ const Navigation = ({ variant = "default" }: NavigationProps) => {
             <Button
               variant="outline"
               size="default"
-              className={`rounded-full smooth-hover animate-blink motion-reduce:transition-none motion-reduce:transform-none motion-reduce:hover:scale-100 motion-reduce:animate-none text-[13px] tracking-wider font-normal whitespace-nowrap backdrop-blur-md border border-white/30 shadow-[0_4px_30px_rgba(0,0,0,0.1)] px-6 ${
+              className={`rounded-full smooth-hover motion-reduce:transition-none motion-reduce:transform-none motion-reduce:hover:scale-100 text-[13px] tracking-wider font-normal whitespace-nowrap backdrop-blur-md border border-white/30 shadow-[0_4px_30px_rgba(0,0,0,0.1)] px-6 ${
                 isLightSurface
                   ? "bg-white/20 text-foreground hover:bg-primary/80 hover:text-white hover:border-primary/80"
                   : "bg-white/10 text-white hover:bg-primary/80 hover:text-white hover:border-primary/80"
               }`}
               onClick={handleBookNow}
             >
-              立即預約
+              立即預約驗屋
             </Button>
           </div>
 
@@ -309,7 +310,7 @@ const Navigation = ({ variant = "default" }: NavigationProps) => {
                     handleBookNow();
                   }}
                 >
-                  立即預約
+                  立即預約驗屋
                 </Button>
               </div>
             </motion.div>

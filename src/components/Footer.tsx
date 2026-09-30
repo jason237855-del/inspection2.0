@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import logoWhite from "@/assets/logo-mark-white.png";
 import { AREAS, areaPath } from "@/config/areas";
+import { LINE_OA_URL } from "@/config/line";
 
 const Footer = () => {
   return (
@@ -44,6 +45,30 @@ const Footer = () => {
         <p className="text-[hsl(var(--footer-foreground))]/70 text-sm font-light leading-relaxed tracking-wide mt-4 max-w-md">
           交屋前，多一次仔細；入住後，多一份安心。
         </p>
+
+        {/* 聯絡方式：目前只有 LINE 官方帳號與線上預約；電話、Email、營業時間待確認後補上 */}
+        <div className="mt-10">
+          <h3 className="text-sm font-semibold tracking-[0.08em] leading-relaxed mb-3 opacity-90">聯絡我們</h3>
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-light leading-relaxed tracking-wide text-[hsl(var(--footer-foreground))]/70">
+            <a
+              href={LINE_OA_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-[hsl(var(--footer-foreground))]"
+            >
+              LINE 官方帳號
+            </a>
+            <Link to="/booking" className="transition-colors hover:text-[hsl(var(--footer-foreground))]">
+              線上預約
+            </Link>
+            <Link to="/faq" className="transition-colors hover:text-[hsl(var(--footer-foreground))]">
+              常見問題
+            </Link>
+            <Link to="/about" className="transition-colors hover:text-[hsl(var(--footer-foreground))]">
+              關於我們
+            </Link>
+          </div>
+        </div>
 
         <div className="border-t border-[hsl(var(--footer-foreground))]/15 pt-8 mt-14 text-center text-[hsl(var(--footer-foreground))]/50 text-xs font-light tracking-wide">
           <p>&copy; 2026 診斷室驗屋 Home Inspection &amp; Diagnostics. All rights reserved.</p>

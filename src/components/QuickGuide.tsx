@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Zap, Droplets, ShieldCheck, Building2, Wrench, Wind } from "lucide-react";
+import { Zap, Droplets, ShieldCheck, Building2, Wrench, Wind, Check, ChevronDown } from "lucide-react";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import diagElectrical from "@/assets/diag-electrical.jpg";
 import diagElectrical2 from "@/assets/diag-electrical-2.jpg";
@@ -130,26 +130,30 @@ const categories = [
   },
 ];
 
+// 清單預設只露出前幾項，其餘收合，避免六張卡片同時攤開約 50 個項目
+const VISIBLE_ITEMS = 4;
+
 const CardCarousel = ({
   images,
   alt,
-  delay,
+  playing,
 }: {
   images: string[];
   alt: string;
-  delay: number;
+  playing: boolean;
 }) => {
   const reduced = usePrefersReducedMotion();
   const [index, setIndex] = useState(0);
 
+  // 只在滑鼠停在該卡片上時自動換圖，六個輪播不會同時一直動；觸控裝置可點下方圓點切換
   useEffect(() => {
-    if (reduced || images.length < 2) return;
+    if (!playing || reduced || images.length < 2) return;
     const id = window.setInterval(
       () => setIndex((i) => (i + 1) % images.length),
-      5000
+      2500
     );
     return () => window.clearInterval(id);
-  }, [reduced, images.length]);
+  }, [playing, reduced, images.length]);
 
   return (
     <div className="relative aspect-[16/10] overflow-hidden bg-muted">
@@ -164,7 +168,6 @@ const CardCarousel = ({
           className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 group-hover:scale-105 [transition-property:opacity,transform] ${
             i === index ? "opacity-100" : "opacity-0"
           }`}
-          style={{ transitionDelay: `${delay}ms` }}
         />
       ))}
       <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
@@ -184,9 +187,81 @@ const CardCarousel = ({
   );
 };
 
+const CategoryCard = ({ cat, index }: { cat: (typeof categories)[number]; index: number }) => {
+  const Icon = cat.icon;
+  const [hovered, setHovered] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const hiddenCount = cat.items.length - VISIBLE_ITEMS;
+  const items = expanded ? cat.items : cat.items.slice(0, VISIBLE_ITEMS);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.45, delay: index * 0.06 }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="group h-full bg-card border border-border rounded-xl overflow-hidden hover:border-primary/30 hover:shadow-soft transition-all duration-300"
+    >
+      <CardCarousel images={cat.images} alt={cat.alt} playing={hovered} />
+      <div className="relative flex flex-col h-full p-6 lg:p-7 overflow-hidden">
+        {/* watermark icon */}
+        <Icon
+          aria-hidden
+          strokeWidth={1}
+          className="pointer-events-none absolute -right-4 top-1/2 -translate-y-1/2 h-56 w-56 text-primary/[0.14] transition-transform duration-500 group-hover:scale-105"
+        />
+        <div className="relative">
+          <h3 className="text-base font-bold text-card-foreground mb-4 text-center">
+            {cat.title}
+          </h3>
+
+          <div className="mb-5 space-y-2 rounded-lg bg-accent/30 p-4">
+            <p className="text-xs text-muted-foreground font-light leading-relaxed">
+              <span className="text-foreground font-medium">檢測重點｜</span>
+              {cat.focus}
+            </p>
+            <p className="text-xs text-muted-foreground font-light leading-relaxed">
+              <span className="text-foreground font-medium">報告內容｜</span>
+              {cat.report}
+            </p>
+          </div>
+
+          <ul className="space-y-2 flex-1">
+            {items.map((item) => (
+              <li
+                key={item}
+                className="text-sm text-muted-foreground font-light leading-relaxed flex items-start gap-2.5"
+              >
+                <Check className="mt-1 h-3.5 w-3.5 shrink-0 text-primary/70" strokeWidth={2} aria-hidden />
+                {item}
+              </li>
+            ))}
+          </ul>
+          {hiddenCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              aria-expanded={expanded}
+              className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary underline-offset-4 hover:underline"
+            >
+              {expanded ? "收合" : `看完整 ${cat.items.length} 項`}
+              <ChevronDown
+                className={`h-4 w-4 transition-transform duration-300 ${expanded ? "rotate-180" : ""}`}
+                aria-hidden
+              />
+            </button>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
 const QuickGuide = () => {
   return (
-    <section className="py-20 lg:py-24 bg-background">
+    <section id="diagnostics" className="scroll-mt-24 py-20 lg:py-24 bg-background">
       <div className="container mx-auto px-6 lg:px-12">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -195,9 +270,6 @@ const QuickGuide = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <span className="text-[11px] uppercase tracking-wider text-muted-foreground mb-4 block">
-            CHECKLIST
-          </span>
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground tracking-tight">
             六大系統，逐項確認。
           </h2>
@@ -206,58 +278,10 @@ const QuickGuide = () => {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {categories.map((cat, i) => {
-            const Icon = cat.icon;
-            return (
-              <motion.div
-                key={cat.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.45, delay: i * 0.06 }}
-                className="group h-full bg-card border border-border rounded-xl overflow-hidden hover:border-primary/30 hover:shadow-soft transition-all duration-300"
-              >
-                <CardCarousel images={cat.images} alt={cat.alt} delay={i * 300} />
-                <div className="relative flex flex-col h-full p-6 lg:p-7 overflow-hidden">
-                  {/* watermark icon */}
-                  <Icon
-                    aria-hidden
-                    strokeWidth={1}
-                    className="pointer-events-none absolute -right-4 top-1/2 -translate-y-1/2 h-56 w-56 text-primary/[0.14] transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="relative">
-                    <h3 className="text-base font-bold text-card-foreground mb-4 text-center">
-                      {cat.title}
-                    </h3>
-
-                    <div className="mb-5 space-y-2 rounded-lg bg-accent/30 p-4">
-                      <p className="text-xs text-muted-foreground font-light leading-relaxed">
-                        <span className="text-foreground font-medium">檢測重點｜</span>
-                        {cat.focus}
-                      </p>
-                      <p className="text-xs text-muted-foreground font-light leading-relaxed">
-                        <span className="text-foreground font-medium">報告內容｜</span>
-                        {cat.report}
-                      </p>
-                    </div>
-
-                    <ul className="space-y-2 flex-1">
-                      {cat.items.map((item) => (
-                        <li
-                          key={item}
-                          className="text-sm text-muted-foreground font-light leading-relaxed flex items-start gap-2.5"
-                        >
-                          <span className="mt-[7px] h-1.5 w-1.5 rounded-full bg-primary/60 shrink-0" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 items-start">
+          {categories.map((cat, i) => (
+            <CategoryCard key={cat.title} cat={cat} index={i} />
+          ))}
         </div>
       </div>
     </section>

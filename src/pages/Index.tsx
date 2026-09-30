@@ -25,6 +25,7 @@ const Index = () => {
             "@id": `${SITE_URL}/#business`,
             name: SITE_NAME,
             alternateName: "Home Inspection & Diagnostics",
+            foundingDate: "2025",
             url: SITE_URL,
             logo: `${SITE_URL}/apple-touch-icon.png`,
             image: `${SITE_URL}${DEFAULT_OG_IMAGE}`,

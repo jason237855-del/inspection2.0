@@ -60,13 +60,6 @@ const LaserLevelIcon = () => (
   </svg>
 );
 
-const PipeIcon = () => (
-  <svg viewBox="0 0 34 34" className="h-8 w-8 sm:h-9 sm:w-9">
-    <path d="M6 4v16a6 6 0 0 0 6 6h16" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" opacity="0.6" fill="none" />
-    <path d="M22 20l4 6-6-1z" className="fill-primary" opacity="0.6" />
-  </svg>
-);
-
 const CircuitIcon = () => (
   <svg viewBox="0 0 40 32" className="h-7 w-9 sm:h-8 sm:w-10">
     <path
@@ -113,14 +106,6 @@ const TileIcon = () => (
   </svg>
 );
 
-const WallSectionIcon = () => (
-  <svg viewBox="0 0 40 22" className="h-6 w-11 sm:h-7 sm:w-12">
-    <rect x="1" y="1" width="38" height="5" stroke="currentColor" strokeWidth="1.1" opacity="0.55" />
-    <rect x="1" y="8" width="38" height="6" stroke="currentColor" strokeWidth="1.1" opacity="0.55" strokeDasharray="2 1.6" />
-    <rect x="1" y="16" width="38" height="5" stroke="currentColor" strokeWidth="1.1" opacity="0.55" />
-  </svg>
-);
-
 const CrackIcon = () => (
   <svg viewBox="0 0 34 28" className="h-7 w-9 sm:h-8 sm:w-10">
     <path
@@ -133,22 +118,6 @@ const CrackIcon = () => (
       fill="none"
     />
     <circle cx="18" cy="10" r="2.4" className="stroke-primary" strokeWidth="1.3" fill="none" opacity="0.85" />
-  </svg>
-);
-
-const HumidityIcon = () => (
-  <svg viewBox="0 0 44 26" className="h-6 w-11 sm:h-7 sm:w-12">
-    <rect x="1" y="1" width="42" height="24" rx="2" stroke="currentColor" strokeWidth="1.2" opacity="0.5" />
-    <path
-      d="M4 16c3-6 6 6 9 0s6 6 9 0 6 6 9 0 6 6 9 0"
-      stroke="currentColor"
-      strokeWidth="1.2"
-      opacity="0.55"
-      fill="none"
-    />
-    <text x="4" y="10" fontSize="6.5" className="fill-primary" opacity="0.85">
-      62%
-    </text>
   </svg>
 );
 
@@ -177,17 +146,16 @@ const InspectionPointIcon = (reduced: boolean) => (
   </svg>
 );
 
+// 只放在房子周圍（畫面右半）：左半是標題文字區，原本放在那裡的溼度計、水管、牆體剖面會壓到文字，
+// 且 revealOnScroll 起始透明度只有 0.12，看起來像沒載入的灰框，所以拿掉並改為一開始就清楚顯示
 const ELEMENTS: ElementConfig[] = [
   { id: "thermal", top: "14%", left: "50%", dx: -32, dy: -22, depth: 0.6, visibleFrom: "lg", floatDuration: 5.4, floatDelay: 0.2, render: ThermalIcon },
-  { id: "scanline", top: "15%", left: "76%", dx: 40, dy: -24, depth: 0.8, visibleFrom: "md", revealOnScroll: true, floatDuration: 4.8, floatDelay: 0.6, render: ScanLineIcon },
+  { id: "scanline", top: "15%", left: "76%", dx: 40, dy: -24, depth: 0.8, visibleFrom: "md", floatDuration: 4.8, floatDelay: 0.6, render: ScanLineIcon },
   { id: "laser-level", top: "30%", left: "92%", dx: 60, dy: -8, depth: 0.9, visibleFrom: "md", floatDuration: 5.8, floatDelay: 1.1, render: LaserLevelIcon },
-  { id: "circuit", top: "47%", left: "95%", dx: 64, dy: 8, depth: 0.5, visibleFrom: "md", revealOnScroll: true, floatDuration: 6.2, floatDelay: 0.3, render: CircuitIcon },
+  { id: "circuit", top: "47%", left: "95%", dx: 64, dy: 8, depth: 0.5, visibleFrom: "md", floatDuration: 6.2, floatDelay: 0.3, render: CircuitIcon },
   { id: "outlet", top: "66%", left: "90%", dx: 52, dy: 30, depth: 0.7, visibleFrom: "md", floatDuration: 5.1, floatDelay: 0.8, render: OutletIcon },
   { id: "crack", top: "80%", left: "75%", dx: 22, dy: 46, depth: 1, visibleFrom: "always", floatDuration: 4.5, floatDelay: 1.4, render: CrackIcon },
-  { id: "inspection-point", top: "83%", left: "54%", dx: -6, dy: 50, depth: 0.9, visibleFrom: "always", revealOnScroll: true, floatDuration: 4.2, floatDelay: 0.5, render: InspectionPointIcon },
-  { id: "wall-section", top: "78%", left: "37%", dx: -40, dy: 40, depth: 0.5, visibleFrom: "lg", floatDuration: 6.6, floatDelay: 1.7, render: WallSectionIcon },
-  { id: "pipe", top: "58%", left: "31%", dx: -58, dy: 14, depth: 0.8, visibleFrom: "always", floatDuration: 5.6, floatDelay: 0.9, render: PipeIcon },
-  { id: "humidity", top: "36%", left: "33%", dx: -50, dy: -18, depth: 0.7, visibleFrom: "md", revealOnScroll: true, floatDuration: 5.9, floatDelay: 0.2, render: HumidityIcon },
+  { id: "inspection-point", top: "83%", left: "54%", dx: -6, dy: 50, depth: 0.9, visibleFrom: "always", floatDuration: 4.2, floatDelay: 0.5, render: InspectionPointIcon },
   { id: "tile", top: "21%", left: "45%", dx: -34, dy: -30, depth: 0.6, visibleFrom: "lg", floatDuration: 5.3, floatDelay: 1.2, render: TileIcon },
 ];
 

@@ -12,10 +12,9 @@ const HeroContent = () => {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15, duration: 0.5 }}
-        className="mb-6 inline-flex items-center gap-2 text-[11px] uppercase tracking-wider text-muted-foreground"
+        className="mb-6 text-sm tracking-wider text-muted-foreground"
       >
-        <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-        BY CERTIFIED PROFESSIONALS
+        持技術證照團隊
       </motion.div>
 
       <motion.h1

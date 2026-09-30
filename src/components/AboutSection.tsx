@@ -3,10 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ShieldCheck, Search, FileText, Users } from "lucide-react";
 
 const values = [
-  { icon: ShieldCheck, title: "公正獨立", subtitle: "\n", description: "秉持第三方立場，如實呈現房屋現況，每一項紀錄都有充分依據，每一份報告客觀公正。" },
-  { icon: Search, title: "專業細緻", subtitle: "\n", description: "結合系統化流程、專業儀器與工程經驗，仔細確認每一處容易被忽略的細節。" },
-  { icon: FileText, title: "報告清晰", subtitle: "\n", description: "以清晰的圖文整理檢測結果，讓您看懂缺失問題與改善方向。" },
-  { icon: Users, title: "客戶至上", subtitle: "Client First", description: "從檢測、說明到改善方向，始終站在您的立場，陪您做出更安心的決定。" },
+  { icon: ShieldCheck, title: "公正獨立", description: "秉持第三方立場，如實呈現房屋現況，每一項紀錄都有充分依據，每一份報告客觀公正。" },
+  { icon: Search, title: "專業細緻", description: "結合系統化流程、專業儀器與工程經驗，仔細確認每一處容易被忽略的細節。" },
+  { icon: FileText, title: "報告清晰", description: "以清晰的圖文整理檢測結果，讓您看懂缺失問題與改善方向。" },
+  { icon: Users, title: "客戶至上", description: "從檢測、說明到改善方向，始終站在您的立場，陪您做出更安心的決定。" },
 ];
 
 const AboutSection = () => {
@@ -32,20 +32,17 @@ const AboutSection = () => {
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.6 }}
           >
-            <span className="text-[11px] uppercase tracking-wider text-muted-foreground mb-4 block">ABOUT TEAM</span>
             <h2 className="text-3xl md:text-4xl font-bold mb-6 text-foreground tracking-tight">關於我們的團隊</h2>
-            <div className="space-y-5 text-muted-foreground font-light leading-relaxed">
+            <div className="space-y-5 max-w-[65ch] text-muted-foreground font-light leading-relaxed">
               <p>
-                關於診斷室驗屋
-
                 我們相信，房屋檢測的價值，不只是列出缺失，而是幫助屋主真正理解房屋的狀況，更加清楚了解缺失問題。
-
+              </p>
+              <p>
                 診斷室驗屋以工程實務、專業技術與系統化檢測為基礎，協助您在交屋或購屋以前，看見容易被忽略的細節與問題。
-
+              </p>
+              <p>
                 我們秉持獨立第三方立場，不隸屬任何建商或仲介等。從發現問題、理解問題，到提出後續改善問題的方向，每一項判斷，都以您的權益與未來居住的安心為出發點。
               </p>
-              <p></p>
-              <p></p>
             </div>
           </motion.div>
 
@@ -66,8 +63,7 @@ const AboutSection = () => {
                   className="p-10 bg-card border border-border rounded-2xl shadow-soft text-center"
                 >
                   <Icon className="h-8 w-8 text-primary mb-6 mx-auto" strokeWidth={1.5} />
-                  <h3 className="text-2xl font-bold text-card-foreground mb-1">{current.title}</h3>
-                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-4">{current.subtitle}</p>
+                  <h3 className="text-2xl font-bold text-card-foreground mb-4">{current.title}</h3>
                   <p className="text-sm text-muted-foreground leading-loose font-light">{current.description}</p>
                 </motion.div>
               </AnimatePresence>

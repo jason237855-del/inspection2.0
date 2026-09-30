@@ -8,32 +8,24 @@ const services = [
     number: "01",
     icon: Home,
     title: "新成屋驗屋",
-    hoverColor: "#F3A139", // Pantone 14-1064 TCX Saffron
-    subtitle: "\n",
     description: "交屋前進行系統化房屋檢測，協助確認施工與設備狀況。",
   },
   {
     number: "02",
     icon: Building2,
     title: "中古屋檢測",
-    hoverColor: "#27376F", // Pantone 19-4092 TCX Mazarine Blue
-    subtitle: "\n",
     description: "從現況、設備與可能風險出發，協助理解房屋目前的健康狀態。",
   },
   {
     number: "03",
     icon: RefreshCcw,
     title: "複驗服務",
-    hoverColor: "#CD212A", // Pantone 18-1662 TCX Flame Scarlet
-    subtitle: "\n",
     description: "針對首次驗屋缺失項目，確認改善後的狀況。",
   },
   {
     number: "04",
     icon: MessageSquare,
     title: "屋況諮詢",
-    hoverColor: "#4A5335", // Pantone 19-0323 TCX Chive
-    subtitle: "\n",
     description: "針對特定房屋問題或檢測需求提供專業判斷與建議。",
   },
 ];
@@ -52,9 +44,6 @@ const Services = () => {
           transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
-          <span className="text-[11px] uppercase tracking-wider text-muted-foreground mb-4 block">
-            Our Services
-          </span>
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground tracking-tight">
             核心服務項目
           </h2>
@@ -79,24 +68,20 @@ const Services = () => {
                 className="h-full"
               >
                 <Card
-                  style={isHovered ? { backgroundColor: service.hoverColor } : undefined}
-                  className={`h-full p-8 bg-card border border-border transition-all duration-300 text-center ${
-                    isHovered ? "shadow-hover -translate-y-1 border-transparent" : "shadow-soft"
+                  className={`h-full p-8 border transition-all duration-300 text-center ${
+                    isHovered ? "bg-primary shadow-hover -translate-y-1 border-transparent" : "bg-card border-border shadow-soft"
                   }`}
                 >
                   <div
                     className={`w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-6 transition-colors duration-300 ${
-                      isHovered ? "bg-white/20 text-white" : "bg-primary/10 text-primary"
+                      isHovered ? "bg-primary-foreground/20 text-primary-foreground" : "bg-primary/10 text-primary"
                     }`}
                   >
                     <Icon className="w-7 h-7" strokeWidth={1.5} />
                   </div>
 
-                  <h3 className={`text-xl font-bold mb-1 transition-colors duration-300 ${isHovered ? "text-white" : "text-card-foreground"}`}>{service.title}</h3>
-                  <p className={`text-xs font-semibold uppercase tracking-wider mb-4 transition-colors duration-300 ${isHovered ? "text-white/80" : "text-muted-foreground"}`}>
-                    {service.subtitle}
-                  </p>
-                  <p className={`text-sm leading-relaxed font-light transition-colors duration-300 ${isHovered ? "text-white/90" : "text-muted-foreground"}`}>
+                  <h3 className={`text-xl font-bold mb-4 transition-colors duration-300 ${isHovered ? "text-primary-foreground" : "text-card-foreground"}`}>{service.title}</h3>
+                  <p className={`text-sm leading-relaxed font-light transition-colors duration-300 ${isHovered ? "text-primary-foreground/90" : "text-muted-foreground"}`}>
                     {service.description}
                   </p>
                 </Card>

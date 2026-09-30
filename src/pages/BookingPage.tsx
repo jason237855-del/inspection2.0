@@ -50,7 +50,7 @@ const BookingPage = () => {
                 預約檢測服務
               </h1>
               <p className="text-base text-muted-foreground max-w-2xl mx-auto font-light">
-                填寫基本信息，我們將在 24 小時內與您聯繫確認檢測時間。
+                填寫基本資料，我們將在 24 小時內與您聯繫確認檢測時間。
               </p>
             </div>
 

@@ -42,9 +42,6 @@ const GroupBuying = () => {
           transition={{ duration: reduced ? 0.2 : 0.6 }}
           className="text-center mb-14"
         >
-          <span className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground mb-4 block font-medium">
-            Group Inspection
-          </span>
           <h2 className="text-3xl md:text-5xl font-bold mb-5 text-foreground tracking-tight">建案團報</h2>
           <p className="text-base text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
             {`同建案 ${groupDefaults.default_min_units} 戶以上一起報名，全團享 ${formatDiscount(groupDefaults.default_discount_rate)}優惠。每戶各自預約時段，加入後再選日期即可。`}

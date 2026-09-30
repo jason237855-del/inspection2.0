@@ -172,7 +172,7 @@ const Pricing = () => {
           transition={{ duration: reduced ? 0.2 : 0.6 }}
           className="text-center mb-10"
         >
-          <span className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground mb-4 block font-medium">
+          <span className="text-[11px] uppercase tracking-wider text-muted-foreground mb-4 block">
             Pricing
           </span>
           <h2 className="text-3xl md:text-5xl font-bold mb-5 text-foreground tracking-tight">
