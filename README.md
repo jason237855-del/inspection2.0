@@ -123,6 +123,8 @@ npm run dev
 
 依時間新到舊排列，每筆記錄實際做了什麼變動、為什麼。
 
+- **2026-10-07（減少 Claude Code 確認提示）** — 使用者反映常被要求按確認。分析過去 12 個工作階段的指令後新增 `.claude/settings.json` 允許清單：建置與檢查（`npm run dev/build/build:dev/lint`、`npx tsc`、`npx playwright test`）、git 唯讀與本機提交（`status/diff/log/show/add/commit`）、唯讀檔案指令（`grep/ls/cat/head/tail/wc`），以及 Chrome 擴充功能的唯讀操作（讀取頁面、找元素、看 console、開關分頁）。`git push`（觸發 Vercel 正式部署）與 `npx supabase`（正式資料庫）明確設為每次詢問；`python3`、`curl`、`sed`、`npm install`、Chrome 點擊／輸入／執行 JS 維持預設詢問。注意：`CLAUDE.md` 要求執行 npm 前先載入 nvm，加了這段前綴的 npm 指令屬於串接指令，不會套用允許清單，仍會詢問。
+
 - **2026-09-30（首頁 Hero 背景小圖示整理）** — `src/components/hero/InspectionElements.tsx`：原本有三個漂浮小圖示（溼度計、水管、牆體剖面）放在畫面左半的標題文字區，會壓到副標文字；而標記 `revealOnScroll` 的圖示一開始透明度只有 0.12，看起來像沒載入的灰色空框。拿掉這三個（及其圖示元件），其餘 8 個都在房子周圍，改為一開始就清楚顯示。游標文字拖尾依使用者要求保留不變。
 - **2026-09-30（全站檢查後的修正：關於頁、頁尾、404、導覽列）** — ①`src/pages/About.tsx` 原本是建站範本留下的文案，含查無根據的「成立於 2010 年」「完成超過 3,000 套住宅與商業物業」「商業建築評估」「與國際接軌」等說法，以及大量大陸用語（信息、質量、開發商、物業、置業…）與錯字「籤字」；改用首頁「關於我們」的三段自家文字，重寫「為什麼交屋前要驗屋」一段（不含任何數字或年份），價值改為與首頁一致的四項（公正獨立、專業細緻、報告清晰、客戶至上），頁尾加預約按鈕，圖片 alt 改中文。成立年份依使用者提供為 2025 年，寫進關於頁「我們的理念」第二段，並在首頁結構化資料（JSON-LD）加上 `foundingDate: "2025"`；服務件數等有真實資料後再補。②`Footer.tsx` 原本沒有任何聯絡方式，新增「聯絡我們」：LINE 官方帳號、線上預約、常見問題、關於我們（/about 原本全站沒有連結，只在 sitemap 裡）；電話、Email、營業時間待使用者提供。③`NotFound.tsx` 原為英文範本（Oops! Page not found），改為中文並加上導覽列、頁尾、回首頁與預約按鈕。④`Navigation.tsx`：預約按鈕拿掉無限閃爍、文字改為「立即預約驗屋」；手機選單「診斷項目」原本連到核心服務區塊，改連六大系統（`QuickGuide.tsx` 新增 `id="diagnostics"`），另加「核心服務」項目；因按鈕變寬，768～1023px 寬度時隱藏 logo 旁的英文副標，避免導覽列擠出。⑤`FloatingConsultButton.tsx` 拿掉無限脈衝光圈。⑥`BookingPage.tsx`「基本信息」改「基本資料」；`Faq.tsx`「沒錯可以的」改「可以」。
 
