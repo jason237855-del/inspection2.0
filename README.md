@@ -123,6 +123,7 @@ npm run dev
 
 依時間新到舊排列，每筆記錄實際做了什麼變動、為什麼。
 
+- **2026-11-17（新成屋客製方案）** — 後台方案代碼新增 `newcustom`「新成屋客製方案」（`src/components/admin/types.ts` 的 `inspectionLabels` 與 `inspectionOptions`），只出現在後台的預約新增／編輯與統計顯示；公開預約表單（`BookingForm`）自行決定方案代碼，不會出現此選項。資料庫 `inspection_type` 沒有限制，不需 migration。原因：使用者要開「新成屋客製方案」的案件（固定 6,000 元／戶），預約會經由 booking-intake 自動帶到檢驗系統，並套用同名範本。
 - **2026-10-07（減少 Claude Code 確認提示）** — 使用者反映常被要求按確認。分析過去 12 個工作階段的指令後新增 `.claude/settings.json` 允許清單：建置與檢查（`npm run dev/build/build:dev/lint`、`npx tsc`、`npx playwright test`）、git 唯讀與本機提交（`status/diff/log/show/add/commit`）、唯讀檔案指令（`grep/ls/cat/head/tail/wc`），以及 Chrome 擴充功能的唯讀操作（讀取頁面、找元素、看 console、開關分頁）。`git push`（觸發 Vercel 正式部署）與 `npx supabase`（正式資料庫）明確設為每次詢問；`python3`、`curl`、`sed`、`npm install`、Chrome 點擊／輸入／執行 JS 維持預設詢問。注意：`CLAUDE.md` 要求執行 npm 前先載入 nvm，加了這段前綴的 npm 指令屬於串接指令，不會套用允許清單，仍會詢問。
 
 - **2026-09-30（首頁 Hero 背景小圖示整理）** — `src/components/hero/InspectionElements.tsx`：原本有三個漂浮小圖示（溼度計、水管、牆體剖面）放在畫面左半的標題文字區，會壓到副標文字；而標記 `revealOnScroll` 的圖示一開始透明度只有 0.12，看起來像沒載入的灰色空框。拿掉這三個（及其圖示元件），其餘 8 個都在房子周圍，改為一開始就清楚顯示。游標文字拖尾依使用者要求保留不變。

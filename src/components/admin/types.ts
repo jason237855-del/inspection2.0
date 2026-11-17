@@ -84,6 +84,8 @@ export const inspectionLabels: Record<string, string> = {
   newfirst_recheck: "新成屋初驗 + 複驗方案",
   newrecheck: "新成屋複驗",
   resale: "中古屋驗屋",
+  // Admin-only custom plan; not offered on the public booking form.
+  newcustom: "新成屋客製方案",
 };
 
 export const inspectionOptions = [
@@ -91,6 +93,7 @@ export const inspectionOptions = [
   { value: "newfirst_recheck", label: "新成屋初驗 + 複驗方案" },
   { value: "newrecheck", label: "新成屋複驗" },
   { value: "resale", label: "中古屋驗屋" },
+  { value: "newcustom", label: "新成屋客製方案" },
 ];
 
 export const propertyLabels: Record<string, string> = {
