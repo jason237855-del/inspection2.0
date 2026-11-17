@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CalendarDays, Clock, CheckCircle2, XCircle, Percent, ArrowUp, ArrowDown, Wallet, TrendingUp } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import type { BookingRequest, Availability } from "./types";
+import { inspectionLabels, type BookingRequest, type Availability } from "./types";
 
 const formatCurrency = (n: number) => `NT$ ${Math.round(n).toLocaleString("en-US")}`;
 
@@ -22,11 +22,7 @@ const statusColors: Record<string, string> = {
   cancelled: "bg-destructive/10 text-destructive border-destructive/20",
 };
 
-const inspectionLabels: Record<string, string> = {
-  newfirst: "新成屋初驗",
-  newrecheck: "新成屋複驗",
-  resale: "中古屋驗屋",
-};
+// Plan labels come from types.ts so every plan (incl. newfirst_recheck, newcustom) shows here.
 
 const propertyLabels: Record<string, string> = {
   townhouse: "透天",
