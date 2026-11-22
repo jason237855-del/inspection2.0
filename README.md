@@ -123,6 +123,7 @@ npm run dev
 
 依時間新到舊排列，每筆記錄實際做了什麼變動、為什麼。
 
+- **2026-11-22（zod 升級到 4）** — `zod` 從 3.25 升到 4.6（取代 Dependabot PR #4）。`src/pages/Auth.tsx` 登入驗證錯誤訊息改用 `error.issues`，因為 zod 4 移除了 `error.errors`，不改的話輸入格式錯誤時會出錯而不是顯示中文提示。`@hookform/resolvers` 專案裡沒有用到，所以沒跟著升級。Vite 8 的 PR #3 暫不合併：`@vitejs/plugin-react-swc` 3.x 只支援到 Vite 7，npm 會裝不起來。
 - **2026-11-17（總覽方案名稱）** — 後台「總覽」的近期預約與「檢測類型分布」改用 `types.ts` 共用的方案名稱表（原本自己維護一份，只有新成屋初驗／新成屋複驗／中古屋驗屋）：「新成屋客製方案」不再顯示代碼 `newcustom`，「新成屋初驗＋複驗方案」也補進分布圖，這兩種預約現在會被計入。原因：使用者發現大坪林one 兩張客製方案預約在總覽顯示 newcustom 且沒有被統計。
 - **2026-11-17（新成屋客製方案）** — 後台方案代碼新增 `newcustom`「新成屋客製方案」（`src/components/admin/types.ts` 的 `inspectionLabels` 與 `inspectionOptions`），只出現在後台的預約新增／編輯與統計顯示；公開預約表單（`BookingForm`）自行決定方案代碼，不會出現此選項。資料庫 `inspection_type` 沒有限制，不需 migration。原因：使用者要開「新成屋客製方案」的案件（固定 6,000 元／戶），預約會經由 booking-intake 自動帶到檢驗系統，並套用同名範本。
 - **2026-10-07（減少 Claude Code 確認提示）** — 使用者反映常被要求按確認。分析過去 12 個工作階段的指令後新增 `.claude/settings.json` 允許清單：建置與檢查（`npm run dev/build/build:dev/lint`、`npx tsc`、`npx playwright test`）、git 唯讀與本機提交（`status/diff/log/show/add/commit`）、唯讀檔案指令（`grep/ls/cat/head/tail/wc`），以及 Chrome 擴充功能的唯讀操作（讀取頁面、找元素、看 console、開關分頁）。`git push`（觸發 Vercel 正式部署）與 `npx supabase`（正式資料庫）明確設為每次詢問；`python3`、`curl`、`sed`、`npm install`、Chrome 點擊／輸入／執行 JS 維持預設詢問。注意：`CLAUDE.md` 要求執行 npm 前先載入 nvm，加了這段前綴的 npm 指令屬於串接指令，不會套用允許清單，仍會詢問。

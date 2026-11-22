@@ -115,7 +115,7 @@ const Auth = () => {
     if (!validation.success) {
       toast({
         title: "輸入錯誤",
-        description: validation.error.errors[0].message,
+        description: validation.error.issues[0].message,
         variant: "destructive",
       });
       return;
