@@ -123,6 +123,7 @@ npm run dev
 
 依時間新到舊排列，每筆記錄實際做了什麼變動、為什麼。
 
+- **2026-11-22（合併 Dependabot 開發工具升級）** — 合併 #6（`source-map-js` 1.2.1→1.2.4）、#7（`sucrase` 3.35.0→3.35.1，移除不再使用的 `glob`）、#9（`typescript-eslint` ^8.38.0→^8.73.0 與 `minimatch`；原 #8 與 #7 衝突，Dependabot 自動關閉後改開 #9）。都只是建置／檢查用的開發工具，不影響網站畫面與功能；本機 `npm run build` 成功、Playwright 14 項全過（Playwright 瀏覽器需重新 `npx playwright install chromium`）。`npm run lint` 有 1 個錯誤（`tailwind.config.ts` 用了 `require()`），升級前就存在、非本次造成。**#3 Vite 5→8 大改版暫不合併**，之後另找時間在本機完整測試再升。
 - **2026-11-22（zod 升級到 4）** — `zod` 從 3.25 升到 4.6（取代 Dependabot PR #4）。`src/pages/Auth.tsx` 登入驗證錯誤訊息改用 `error.issues`，因為 zod 4 移除了 `error.errors`，不改的話輸入格式錯誤時會出錯而不是顯示中文提示。`@hookform/resolvers` 專案裡沒有用到，所以沒跟著升級。Vite 8 的 PR #3 暫不合併：`@vitejs/plugin-react-swc` 3.x 只支援到 Vite 7，npm 會裝不起來。
 - **2026-11-17（總覽方案名稱）** — 後台「總覽」的近期預約與「檢測類型分布」改用 `types.ts` 共用的方案名稱表（原本自己維護一份，只有新成屋初驗／新成屋複驗／中古屋驗屋）：「新成屋客製方案」不再顯示代碼 `newcustom`，「新成屋初驗＋複驗方案」也補進分布圖，這兩種預約現在會被計入。原因：使用者發現大坪林one 兩張客製方案預約在總覽顯示 newcustom 且沒有被統計。
 - **2026-11-17（新成屋客製方案）** — 後台方案代碼新增 `newcustom`「新成屋客製方案」（`src/components/admin/types.ts` 的 `inspectionLabels` 與 `inspectionOptions`），只出現在後台的預約新增／編輯與統計顯示；公開預約表單（`BookingForm`）自行決定方案代碼，不會出現此選項。資料庫 `inspection_type` 沒有限制，不需 migration。原因：使用者要開「新成屋客製方案」的案件（固定 6,000 元／戶），預約會經由 booking-intake 自動帶到檢驗系統，並套用同名範本。
