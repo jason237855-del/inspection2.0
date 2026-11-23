@@ -4,7 +4,8 @@ import { z } from "npm:zod@3.23.8";
 
 const LINE_PUSH_ENDPOINT = "https://api.line.me/v2/bot/message/push";
 const LINE_PROFILE_URL = "https://lin.ee/8S6eDLR";
-const LINE_FRIEND_DISCOUNT = 500;
+// 一般預約的 LINE 好友折抵；資料庫 enforce_public_booking_rules 與前端 BookingForm.tsx 各有一份，調整時三邊都要改
+const LINE_FRIEND_DISCOUNT = 666;
 
 // LINE 身分由後端拿 LIFF 存取憑證向 LINE 查詢，不再信任客戶端自報的 line_user_id。
 const LINE_PROFILE_API = "https://api.line.me/v2/profile";
@@ -100,6 +101,12 @@ Deno.serve(async (req) => {
     const token = Deno.env.get("LINE_CHANNEL_ACCESS_TOKEN");
     if (!token) return json({ success: true, bound: true, push: "skipped_no_token", price: discounted });
 
+    // 憑證上顯示該筆實際折抵（改價前建立的訂單仍是舊折扣），取不到才用目前的折扣金額
+    const appliedDiscount =
+      booking.original_price != null && discounted != null && booking.original_price > discounted
+        ? booking.original_price - discounted
+        : LINE_FRIEND_DISCOUNT;
+
     const rows: [string, string][] = [
       ["預約編號", `#${String(booking.id).slice(0, 8).toUpperCase()}`],
       ["預約姓名", booking.name || "未提供"],
@@ -135,7 +142,7 @@ Deno.serve(async (req) => {
                   type: "text",
                   text: isGroup
                     ? "🏢 團報訂單依成團戶數計價（不與 LINE 好友折價並用）"
-                    : `🎁 已套用 LINE 好友折價 ${fmt(LINE_FRIEND_DISCOUNT)} 優惠`,
+                    : `🎁 已套用 LINE 好友折價 ${fmt(appliedDiscount)} 優惠`,
                   size: "sm",
                   color: "#FFFFFF",
                   weight: "bold",

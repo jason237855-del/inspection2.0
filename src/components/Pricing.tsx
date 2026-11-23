@@ -34,10 +34,10 @@ const plansByTab: Record<TabKey, Plan[]> = {
       key: "new-first",
       label: "初驗方案",
       title: "新成屋驗屋（初驗）",
-      price: 7777,
+      price: 6666,
       originalPrice: 8000,
       unit: "起 / 20 坪以內",
-      extraNote: "每超過一坪 $400",
+      extraNote: "每超過一坪 $200",
       description: "交屋前的完整體檢，精準掌握施工品質與設備狀況。",
       featuresHeader: "本方案包含：",
       features: [
@@ -53,10 +53,10 @@ const plansByTab: Record<TabKey, Plan[]> = {
       key: "new-recheck",
       label: "複驗方案",
       title: "新成屋驗屋（複驗）",
-      price: 3000,
-      originalPrice: 5000,
+      price: 2000,
+      originalPrice: 3000,
       unit: "起 / 20 坪以內",
-      extraNote: "每超過一坪 $400",
+      extraNote: "每超過一坪 $200",
       description: "確認建商修繕是否確實完成，避免帶著缺失入住。",
       featuresHeader: "本方案包含：",
       features: [
@@ -76,7 +76,7 @@ const plansByTab: Record<TabKey, Plan[]> = {
       title: "中古屋驗屋",
       price: 10000,
       unit: "起 / 20 坪以內",
-      extraNote: "每超過一坪 $400",
+      extraNote: "每超過一坪 $200",
       description: "從現況、設備與潛在風險出發，看懂房子真正的健康狀態。",
       featuresHeader: "本方案包含：",
       features: [
@@ -126,7 +126,7 @@ const comparison: {
   { label: "管線老化評估", newBuild: false, group: false, resale: true },
   { label: "屋況風險評估", newBuild: false, group: false, resale: true },
   { label: "建商缺失溝通建議", newBuild: true, group: true, resale: false },
-  { label: "複驗服務", newBuild: "$3,000 起", group: true, resale: false },
+  { label: "複驗服務", newBuild: "$2,000 起", group: true, resale: false },
   { label: "專屬團報排程", newBuild: false, group: true, resale: false },
   { label: "假日驗屋費用", newBuild: false, group: false, resale: true },
 ];
@@ -448,7 +448,7 @@ const Pricing = () => {
         <div className="max-w-4xl mx-auto mt-10 flex items-start justify-center gap-2 text-center">
           <Minus className="w-3.5 h-3.5 text-muted-foreground mt-0.5 shrink-0" />
           <p className="text-xs text-muted-foreground font-light leading-relaxed">
-            超出坪數以每坪 $400 加價計算。
+            超出坪數以每坪 $200 加價計算。
           </p>
         </div>
       </div>

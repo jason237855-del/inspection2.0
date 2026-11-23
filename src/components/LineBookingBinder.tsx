@@ -8,7 +8,7 @@ import "@/hooks/useLiffProfile"; // Window.liff 型別宣告
 
 /**
  * 當使用者從 LIFF 連結（?booking_id=xxx）開啟 /booking 時，
- * 自動取得 LINE userId 並綁定至該筆預約，後端會發送預約憑證與 $500 折抵，
+ * 自動取得 LINE userId 並綁定至該筆預約，後端會發送預約憑證與 $666 折抵，
  * 完成後導向官方 LINE 加入好友頁面。
  */
 const LineBookingBinder = () => {
@@ -77,7 +77,7 @@ const LineBookingBinder = () => {
           {state === "done"
             ? isGroup
               ? "綁定成功！預約憑證已發送至您的 LINE 聊天室（團報訂單依成團戶數計價，不與 LINE 好友折價並用），即將為您導向官方 LINE…"
-              : "綁定成功！已套用 LINE 好友折價 $500，預約憑證已發送至您的 LINE 聊天室，即將為您導向官方 LINE…"
+              : "綁定成功！已套用 LINE 好友折價 $666，預約憑證已發送至您的 LINE 聊天室，即將為您導向官方 LINE…"
             : state === "error"
               ? "綁定失敗，請稍後再試或直接於官方 LINE 聯繫我們。"
               : "正在綁定您的 LINE 帳號…"}

@@ -50,7 +50,7 @@ npm run dev
 - **QuickGuide**：六大診斷項目（電氣、給排水、防水、建築土建、設備、環境），每類有輪播圖與檢測項目清單
 - **Process**：服務流程五步驟（預約洽詢 → 行前準備 → 現場檢測 → 報告交付 → 複驗追蹤），含 Canvas 動態背景（`FlowField.tsx`）
 - **Services**：核心服務四項（新成屋驗屋／中古屋檢測／複驗服務／屋況諮詢）
-- **Pricing**：驗屋費用，三種方案分頁（新成屋初驗 $7,777 起、新成屋複驗 $3,000 起、中古屋 $10,000 起；團報優惠分頁不顯示價格，僅列同社區 3 戶以上適用與專屬服務內容），附方案差異比較表
+- **Pricing**：驗屋費用，三種方案分頁（新成屋初驗 $6,666 起、新成屋複驗 $2,000 起、中古屋 $10,000 起，超出 20 坪每坪 $200；團報優惠分頁不顯示價格，僅列同社區 3 戶以上適用與專屬服務內容），附方案差異比較表
 - **GroupBuying**：建案團報區塊（`#group-buying`），列出開放中建案與成團進度，導向 `/booking?group=<id>`；資料來自 `group_projects`
 - **Booking**：預約 CTA，導向 `/booking`
 
@@ -89,7 +89,7 @@ npm run dev
 | Function | 說明 | 需要的環境變數 |
 | --- | --- | --- |
 | `send-line-notification` | 新預約產生時，推播 Flex Message 卡片給管理員 LINE 群組 | `LINE_CHANNEL_ACCESS_TOKEN`、`LINE_ADMIN_GROUP_ID`、`ADMIN_LINE_USER_ID` |
-| `bind-line-booking` | 使用者加 LINE 好友後，綁定該筆預約、套用 $500 折扣、回推播預約憑證給客戶 | `LINE_CHANNEL_ACCESS_TOKEN`、`SUPABASE_URL`、`SUPABASE_SERVICE_ROLE_KEY` |
+| `bind-line-booking` | 使用者加 LINE 好友後，綁定該筆預約、套用 LINE 好友折扣（目前 $666）、回推播預約憑證給客戶 | `LINE_CHANNEL_ACCESS_TOKEN`、`SUPABASE_URL`、`SUPABASE_SERVICE_ROLE_KEY` |
 | `line-webhook` | 接收 LINE 平台事件（主要用途是記錄群組 ID，方便設定管理員群組環境變數） | — |
 
 ## 資料庫（`supabase/migrations`）
@@ -124,6 +124,7 @@ npm run dev
 依時間新到舊排列，每筆記錄實際做了什麼變動、為什麼。
 
 - **2026-11-22（合併 Dependabot 開發工具升級）** — 合併 #6（`source-map-js` 1.2.1→1.2.4）、#7（`sucrase` 3.35.0→3.35.1，移除不再使用的 `glob`）、#9（`typescript-eslint` ^8.38.0→^8.73.0 與 `minimatch`；原 #8 與 #7 衝突，Dependabot 自動關閉後改開 #9）。都只是建置／檢查用的開發工具，不影響網站畫面與功能；本機 `npm run build` 成功、Playwright 14 項全過（Playwright 瀏覽器需重新 `npx playwright install chromium`）。`npm run lint` 有 1 個錯誤（`tailwind.config.ts` 用了 `require()`），升級前就存在、非本次造成。**#3 Vite 5→8 大改版暫不合併**，之後另找時間在本機完整測試再升。
+- **2026-11-23（調降驗屋價格）** — 依使用者要求調價（只影響之後的新預約，既有訂單金額不變；調價時正式庫沒有任何團報訂單）：新成屋初驗 $7,777 → **$6,666**（劃線價 $8,000 不變）；複驗加購 $3,000 → **$2,000**（劃線價 $5,000 → $3,000），新成屋與中古屋都適用；超出 20 坪每坪 $400 → **$200**，所有方案都適用；一般預約 LINE 好友折抵 $500 → **$666**；團報基本費 $8,000 → **$6,666**、團報複驗 $2,500 → **$2,000**，讓團報不會比一般預約貴；中古屋 $10,000 不變。三個地方一起改：前端 `Pricing.tsx`／`BookingForm.tsx`（每坪加價與 LINE 折扣抽成常數 `PER_PING_SURCHARGE`、`LINE_FRIEND_DISCOUNT`）、`LineBookingBinder.tsx` 文字；Edge Function `bind-line-booking` 的折扣改 $666，LINE 憑證改顯示該筆實際折抵金額（改價前預約、改價後才綁 LINE 的舊單仍顯示 $500）；資料庫 migration `20261123100000_pricing_2026_11.sql` 重新定義 `enforce_public_booking_rules` 與 `recalc_group_pricing`。套用前已確認正式庫函式與上一版 migration 完全相同。附註：團報 $6,666 打九折是 $5,999，跟一般預約加 LINE 的 $6,000 幾乎一樣，想拉開差距可以到後台調團報預設折扣。
 - **2026-11-22（zod 升級到 4）** — `zod` 從 3.25 升到 4.6（取代 Dependabot PR #4）。`src/pages/Auth.tsx` 登入驗證錯誤訊息改用 `error.issues`，因為 zod 4 移除了 `error.errors`，不改的話輸入格式錯誤時會出錯而不是顯示中文提示。`@hookform/resolvers` 專案裡沒有用到，所以沒跟著升級。Vite 8 的 PR #3 暫不合併：`@vitejs/plugin-react-swc` 3.x 只支援到 Vite 7，npm 會裝不起來。
 - **2026-11-17（總覽方案名稱）** — 後台「總覽」的近期預約與「檢測類型分布」改用 `types.ts` 共用的方案名稱表（原本自己維護一份，只有新成屋初驗／新成屋複驗／中古屋驗屋）：「新成屋客製方案」不再顯示代碼 `newcustom`，「新成屋初驗＋複驗方案」也補進分布圖，這兩種預約現在會被計入。原因：使用者發現大坪林one 兩張客製方案預約在總覽顯示 newcustom 且沒有被統計。
 - **2026-11-17（新成屋客製方案）** — 後台方案代碼新增 `newcustom`「新成屋客製方案」（`src/components/admin/types.ts` 的 `inspectionLabels` 與 `inspectionOptions`），只出現在後台的預約新增／編輯與統計顯示；公開預約表單（`BookingForm`）自行決定方案代碼，不會出現此選項。資料庫 `inspection_type` 沒有限制，不需 migration。原因：使用者要開「新成屋客製方案」的案件（固定 6,000 元／戶），預約會經由 booking-intake 自動帶到檢驗系統，並套用同名範本。
@@ -225,7 +226,7 @@ npm run dev
   - **RLS**：訪客只能寫 `status=pending`、`source=web`、不帶 LINE 欄位與備註、日期不得為過去、欄位有長度上限的訂單；加入團報時建案必須是 `active`。
   - **`enforce_public_booking_rules` BEFORE INSERT trigger**（僅約束 anon 與非管理員登入者；管理員、`service_role`、直接連資料庫者 `auth.role()` 為 null 皆放行）：忽略客戶端送來的價格，由資料庫依房屋類型／坪數／複驗自行計算（新成屋 $7,777、中古屋 $10,000、複驗 +$3,000、超過 20 坪每坪 +$400；一般預約再扣 LINE 好友價 $500，團報不扣，成團折扣仍由 `booking_group_pricing` 處理）；伺服器端檢查日期是否封鎖、時段是否存在且啟用、是否額滿（同日期＋時段用 advisory lock 排隊，避免同時搶最後名額超收）；頻率限制：同電話 1 小時最多 5 筆、全站 `web` 來源 10 分鐘最多 60 筆。
   - **`limit_pending_group_proposals` trigger**：待審核的團報提案上限 30 筆。
-  - **!! 維護注意**：價格公式在前端 `BookingForm.tsx`（`BASE_PRICE`／`REINSPECTION_PRICE`／每坪 $400／LINE 折 $500）與這個 migration 的 trigger 各有一份，**調整價格時兩邊都要改**，否則客戶看到的價格與實際儲存的會不一致。
+  - **!! 維護注意**：價格公式在前端 `BookingForm.tsx`（`BASE_PRICE`／`REINSPECTION_PRICE`／`PER_PING_SURCHARGE`／`LINE_FRIEND_DISCOUNT`）、Edge Function `bind-line-booking`（`LINE_FRIEND_DISCOUNT`）與資料庫 trigger（最新定義在 `20261123100000_pricing_2026_11.sql`）各有一份，**調整價格時兩邊都要改**，否則客戶看到的價格與實際儲存的會不一致。
   - **驗證**：先在正式庫用「交易內執行 migration＋測試後回滾」測過 16 種情境（正常單、中古＋複驗、團報、假狀態／來源／過去日期／假建案／待審核建案／假房屋類型／封鎖日／不存在時段／額滿／同電話超額／訪客直接建立 active 建案，以及管理員、service_role、直接 SQL 寫入不受限），過程中發現第一版直接 SQL 連線（`auth.role()` 為 null）會被誤套用限制，已修正；套用後再用匿名金鑰打正式 API 確認假狀態、假來源（401）與假房屋類型、不存在時段（400）都被拒且沒有寫入任何資料。
   - **尚未處理的資安項目**：LINE 三個 Edge Function（`line-webhook` 簽章驗證、`send-line-notification` 防濫用、`bind-line-booking` 身分檢查）、`npm audit` 套件漏洞、儲存庫公開／`main` 分支保護／Dependabot。
 - **2026-09-19（建案團報）** — 新增「建案團報」功能：同建案多戶各自預約，滿 3 戶後全團享 9 折（含先報的戶，價格追溯調整）。使用者決策：折扣時機＝滿門檻後全團追溯；團報不與「LINE 好友折 $500」並用；未達門檻時前端顯示原價＋「滿 3 戶享 9 折」；建案來源＝後台可建立，客戶也可提出新建案（待後台核准）。

@@ -34,14 +34,17 @@ const slideVariants = {
   exit: (direction: number) => ({ x: direction < 0 ? 300 : -300, opacity: 0 }),
 };
 
-const BASE_PRICE: Record<string, number> = { newbuild: 7777, resale: 10000 };
-const REINSPECTION_PRICE = 3000;
-// 團報（僅限新成屋）：基本費 $8,000、複驗加購固定 $2,500（不打成團折扣）
-// !! 資料庫的計價（migration 20260920170000_group_pricing_v2.sql）有一份相同的數字，調整時兩邊都要改
-const GROUP_BASE_PRICE = 8000;
-const GROUP_REINSPECTION_PRICE = 2500;
+const BASE_PRICE: Record<string, number> = { newbuild: 6666, resale: 10000 };
+const REINSPECTION_PRICE = 2000;
+// 超出 20 坪的每坪加價、一般預約的 LINE 好友折抵（團報不適用）
+const PER_PING_SURCHARGE = 200;
+const LINE_FRIEND_DISCOUNT = 666;
+// 團報（僅限新成屋）：基本費 $6,666、複驗加購固定 $2,000（不打成團折扣）
+// !! 資料庫的計價（migration 20261123100000_pricing_2026_11.sql）有一份相同的數字，調整時兩邊都要改
+const GROUP_BASE_PRICE = 6666;
+const GROUP_REINSPECTION_PRICE = 2000;
 // 複驗方案的官網原價，只用於畫面上的劃線價顯示
-const REINSPECTION_LIST_PRICE = 5000;
+const REINSPECTION_LIST_PRICE = 3000;
 
 const propertyLabels: Record<string, string> = { newbuild: "新成屋", resale: "中古屋" };
 const houseTypeLabels: Record<string, string> = {
@@ -190,7 +193,7 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
   const reinspectionPrice = groupProject ? GROUP_REINSPECTION_PRICE : REINSPECTION_PRICE;
   const basePrice = groupProject ? GROUP_BASE_PRICE : propertyType ? BASE_PRICE[propertyType] : 0;
   const reinspectionAmount = reinspection === "add" ? reinspectionPrice : 0;
-  const pingSurcharge = Math.max(0, pingNum - 20) * 400;
+  const pingSurcharge = Math.max(0, pingNum - 20) * PER_PING_SURCHARGE;
   const originalPrice = basePrice + reinspectionAmount + pingSurcharge;
   // 團報：加入後戶數達門檻 → 全團原價 × 折扣；未達門檻先以原價計，達標後由資料庫自動回頭調整
   const groupReached = !!groupProject && groupCount + 1 >= groupProject.min_units;
@@ -198,7 +201,7 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
   const groupPrice = groupProject
     ? Math.round((basePrice + pingSurcharge) * groupProject.discount_rate) + reinspectionAmount
     : 0;
-  const discountedPrice = groupProject ? (groupReached ? groupPrice : originalPrice) : originalPrice - 500;
+  const discountedPrice = groupProject ? (groupReached ? groupPrice : originalPrice) : originalPrice - LINE_FRIEND_DISCOUNT;
   const estimatedPrice = discountedPrice;
   const inspectionTypeValue =
     propertyType === "resale" ? "resale" : reinspection === "add" ? "newfirst_recheck" : "newfirst";
@@ -593,7 +596,7 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
                     <p className="text-3xl font-bold text-card-foreground tracking-tight">請先選擇房屋類型</p>
                   )}
                   <p className="mt-2 text-xs font-light text-muted-foreground">
-                    基本坪數 20 坪，超出部分每坪 $400 加價計算。
+                    基本坪數 20 坪，超出部分每坪 $200 加價計算。
                     {groupProject && reinspection === "add" && `團報成團折扣不含複驗方案（複驗固定 ${formatNT(GROUP_REINSPECTION_PRICE)}）。`}
                   </p>
                 </div>
@@ -817,12 +820,12 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
               >
                 <CheckCircle className="mx-auto h-12 w-12 text-primary mb-5" />
                 <h3 className="text-xl font-bold text-card-foreground mb-2">
-                  {groupProject ? "🎉 預約成功！最後一步：加入官方 LINE 領取預約憑證" : "🎉 預約成功！最後一步：領取 $500 折抵與預約憑證"}
+                  {groupProject ? "🎉 預約成功！最後一步：加入官方 LINE 領取預約憑證" : "🎉 預約成功！最後一步：領取 $666 折抵與預約憑證"}
                 </h3>
                 <p className="text-sm font-light text-muted-foreground mb-6">
                   {groupProject
                     ? "加入官方 LINE 即可自動綁定本筆預約並取得電子預約憑證。團報價格以成團後為準，不與 LINE 好友優惠並用。"
-                    : "加入官方 LINE 即可自動綁定本筆預約，立即現折 $500 並取得電子預約憑證。"}
+                    : "加入官方 LINE 即可自動綁定本筆預約，立即現折 $666 並取得電子預約憑證。"}
                 </p>
 
                 <a
@@ -840,7 +843,7 @@ const BookingForm = ({ className = "", autoFocus = false }: BookingFormProps) =>
                   className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#06C755] hover:bg-[#05b34c] px-5 py-4 text-white text-sm font-semibold transition-colors shadow-soft cursor-pointer"
                 >
                   <Gift className="w-4 h-4" />
-                  {groupProject ? "點我加入官方 LINE 並領取預約憑證" : "點我加入官方 LINE 現折 $500 並領取預約憑證"}
+                  {groupProject ? "點我加入官方 LINE 並領取預約憑證" : "點我加入官方 LINE 現折 $666 並領取預約憑證"}
                 </a>
 
                 {bookingId && (
